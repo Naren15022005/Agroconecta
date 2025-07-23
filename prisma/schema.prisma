@@ -1,0 +1,221 @@
+// Modelo de reseñas
+model Review {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  productId String?
+  product   Product? @relation("ProductReviews", fields: [productId], references: [id])
+  rating    Int      @default(5)
+  comment   String?
+  createdAt DateTime @default(now())
+
+  @@map("reviews")
+}
+// Modelo de notificaciones
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation("UserNotifications", fields: [userId], references: [id])
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("notifications")
+}
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// Roles de usuario
+enum UserRole {
+  CAMPESINO   // Agricultor/Campesino
+  EMPRESA     // Empresa compradora
+  COMPRADOR   // Comprador individual
+  ADMIN       // Administrador del sistema
+}
+
+// Estados de productos
+enum ProductStatus {
+  DISPONIBLE    // Producto disponible para venta
+  AGOTADO      // Sin stock
+  SUSPENDIDO   // Suspendido por admin
+}
+
+// Estados de pedidos
+enum OrderStatus {
+  PENDIENTE     // Pedido realizado, esperando confirmación
+  CONFIRMADO    // Confirmado por campesino
+  EN_PROCESO    // En preparación
+  ENVIADO       // Enviado
+  ENTREGADO     // Entregado al comprador
+  CANCELADO     // Cancelado
+}
+
+// Modelo de usuarios
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  password    String
+  name        String
+  phone       String?
+  address     String?
+  role        UserRole @default(COMPRADOR)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relaciones
+  products    Product[]
+  orders      Order[]
+  cartItems   CartItem[]
+  notifications Notification[] @relation("UserNotifications")
+  reviews       Review[] // Reseñas hechas por el usuario
+
+  accounts    Account[]
+  sessions    Session[]
+
+  @@map("users")
+}
+
+// Modelo de categorías
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relaciones
+  products    Product[]
+
+  @@map("categories")
+}
+
+// Modelo de productos
+model Product {
+  id          String        @id @default(cuid())
+  name        String
+  description String?
+  price       Decimal       @db.Decimal(10, 2)
+  stock       Int           @default(0)
+  unit        String        // kg, lb, unidad, etc.
+  imageUrl    String?
+  status      ProductStatus @default(DISPONIBLE)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Relaciones
+  campesinoId String
+  campesino   User     @relation(fields: [campesinoId], references: [id], onDelete: Cascade)
+  
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+  
+  cartItems   CartItem[]
+  orderItems  OrderItem[]
+  reviews     Review[] @relation("ProductReviews") // Reseñas asociadas al producto
+
+  @@map("products")
+}
+
+// Modelo del carrito de compras
+model CartItem {
+  id        String   @id @default(cuid())
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId]) // Un usuario no puede tener el mismo producto duplicado en carrito
+  @@map("cart_items")
+}
+
+// Modelo de pedidos
+model Order {
+  id          String      @id @default(cuid())
+  total       Decimal     @db.Decimal(10, 2)
+  status      OrderStatus @default(PENDIENTE)
+  notes       String?     // Notas del comprador
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relaciones
+  buyerId     String
+  buyer       User        @relation(fields: [buyerId], references: [id])
+  
+  orderItems  OrderItem[]
+
+  @@map("orders")
+}
+
+// Items individuales de un pedido (relación many-to-many entre Order y Product)
+model OrderItem {
+  id        String  @id @default(cuid())
+  quantity  Int
+  price     Decimal @db.Decimal(10, 2) // Precio al momento del pedido
+  subtotal  Decimal @db.Decimal(10, 2) // quantity * price
+
+  // Relaciones
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+// NextAuth.js models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
