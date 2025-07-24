@@ -2909,3 +2909,140 @@ Escáner de QR para trazabilidad.
 Geolocalización de zonas de entrega y aliados cercanos.
 
 
+______________________________________________________
+
+necesitamos diseñar una experiencia balanceada, donde al ingresar al sistema:
+
+Se sienta como un comprador (mercado).
+
+Pero tenga a la mano su rol de vendedor (dashboard, gestión de productos, pedidos, etc.).
+
+🧩 Objetivo: Experiencia de usuario para agricultores (compradores/vendedores)
+🎯 Perfil: Agricultor (comprador y vendedor)
+Puede publicar productos para la venta.
+
+Puede comprar productos de otros agricultores.
+
+Debe ver sus pedidos, ventas, publicaciones, estadísticas.
+
+🧭 Flujo propuesto tras iniciar sesión:
+✅ Pantalla inicial tras login: “El Mercado”
+Una vista amigable tipo catálogo o vitrina donde puede ver productos por cercanía, categoría, promociones, etc.
+
+🛒 Motiva al agricultor a comprar.
+
+🌍 Puedes mostrar: “Productos cerca de ti”, “Lo más vendido”, “Nuevos productos”, etc.
+
+🔍 Búsqueda por nombre, categoría, o área geográfica.
+
+📍Encabezado o sidebar (si es desktop) debe tener:
+🏠 Mercado (vista principal al ingresar)
+
+📦 Mis productos publicados (como vendedor)
+
+📥 Mis ventas / pedidos recibidos
+
+🛍️ Mis compras realizadas
+
+➕ Publicar nuevo producto
+
+📊 Estadísticas de venta
+
+⚙️ Configuración de perfil
+
+🗂️ Alternativa visual: Tab principal + menú inferior (modo móvil)
+Icono	Sección
+🏠	Mercado
+📦	Mis productos
+➕	Publicar
+💬	Pedidos (enviados y recibidos)
+👤	Perfil
+
+💡 El mercado debe tener una opción “Comprar por ubicación” o “Explorar por zona”, usando geolocalización.
+
+🧠 Ventajas de esta estructura:
+✅ Primero compra, luego gestiona → UX tipo consumidor.
+
+✅ No abruma al usuario con muchos botones administrativos al inicio.
+
+✅ Refuerza que también es cliente dentro de la red.
+
+🔧 Acceso a funciones de vendedor
+Desde cualquier parte debe poder entrar a su “Espacio de productor” o dashboard para:
+
+Editar productos.
+
+Ver pedidos recibidos.
+
+Ver historial de ventas.
+
+Configurar su perfil como vendedor.
+
+📱 Ejemplo visual (flujo móvil):
+🧑‍🌾 Agricultor inicia sesión
+
+✅ Entra al “Mercado”
+
+Ve productos → puede buscar, comprar, explorar por zona
+
+Si quiere vender, pulsa en ➕ “Publicar producto” o va a 📦 “Mis productos”
+
+Tiene un apartado “Mis estadísticas” o “Mis ventas”
+
+🎯 En resumen
+✅ Inicio en el Mercado: natural, cómodo, invita a comprar.
+
+🛠️ Dashboard de vendedor accesible: no invasivo, pero fácil de encontrar.
+
+🧭 Menú bien organizado: para que sepa dónde gestionar, sin perderse.
+
+📍 Filtros por ubicación para que vea productos cercanos y se incentive a interactuar localmente.
+
+Flujo del Agricultor (Comprador/Vendedor)
+✅ 1. Inicio de sesión exitoso
+El agricultor entra a su cuenta.
+
+⏩ 2. Redirección inmediata a la vista principal: "Mercado"
+El sistema le muestra directamente los productos disponibles para comprar.
+
+📦 Vista tipo catálogo (productos por categoría, ubicación, estado, precio)
+
+🔍 Filtros: por zona geográfica, categoría, precio, etc.
+
+🗺️ Ubicación: productos cercanos (si hay geolocalización)
+
+🧭 3. Menú lateral (o superior) con accesos rápidos:
+Sección	Descripción
+🛒 Mercado	Comprar productos de otros
+📦 Mis productos	Gestionar lo que él tiene en venta
+📊 Dashboard	Ver estadísticas de sus ventas y compras
+💼 Pedidos	Ver pedidos realizados y recibidos
+📍 Ubicación	Configurar su dirección para compras/vistas por zona
+⚙️ Configuración	Editar perfil, cerrar sesión, etc
+
+🔁 Flujo de acciones posibles:
+Desde Mercado → Comprar productos
+
+Desde Mis productos → Publicar, editar, eliminar productos
+
+Desde Dashboard → Analizar ventas y ganancias
+
+Desde Pedidos → Dar seguimiento a sus entregas/ventas
+
+Desde Ubicación → Cambiar su ubicación o zona de entrega
+
+📌 Opcional: Rol híbrido "Agricultor-Comerciante"
+El sistema detecta que el usuario puede tanto vender como comprar.
+
+Por defecto entra al Mercado (como comprador).
+
+Pero tiene acceso total a su gestión de productos, pedidos y dashboard.
+
+📊 ¿Por qué este flujo? (Ventajas)
+Es intuitivo: entra y ve lo que puede comprar, como cualquier usuario moderno.
+
+Da control total desde un menú bien distribuido.
+
+Facilita la expansión futura a otras funcionalidades (ej: chat con compradores, envíos, reportes automáticos, etc).
+
+El agricultor puede ser activo en la plataforma: vende, compra, gestiona, todo en un solo lugar.

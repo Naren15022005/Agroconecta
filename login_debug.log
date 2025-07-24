@@ -1,0 +1,54 @@
+[2025-07-24T21:32:04.986Z] AUTH: credentials {"email":"alfonsonavarroch@gmail.com","password":"12345678","redirect":"false","csrfToken":"fc77122794c72ae831495416ab5ffda415b9bf68c58dcfce7da163b8b6f576f7","callbackUrl":"http://localhost:3004/auth/signin","json":"true"}
+[2025-07-24T21:32:05.050Z] AUTH: user encontrado {"id":"cmdhvp5jo0000wao01y8y44m7","email":"alfonsonavarroch@gmail.com","password":"$2b$10$mTyVAYljNy64EJkultMqWepyanUAfuOB6zAbDD8Tc6sJ4qSZcYsPC","name":"naren alfonso navarro chole","phone":"3011737645","address":"cucuta","role":"CAMPESINO","isActive":true,"createdAt":"2025-07-24T21:02:27.156Z","updatedAt":"2025-07-24T21:02:43.503Z"}
+[2025-07-24T21:32:05.051Z] AUTH: contraseña ingresada: 12345678
+[2025-07-24T21:32:05.051Z] AUTH: hash en base de datos: $2b$10$mTyVAYljNy64EJkultMqWepyanUAfuOB6zAbDD8Tc6sJ4qSZcYsPC
+[2025-07-24T21:32:05.181Z] AUTH: isValidPassword true
+[2025-07-24T21:32:05.182Z] AUTH: Login exitoso
+[2025-07-24T21:35:20.828Z] AUTH: credentials {"email":"alfonsonavarroch@gmail.com","password":"12345678","redirect":"false","csrfToken":"fc77122794c72ae831495416ab5ffda415b9bf68c58dcfce7da163b8b6f576f7","callbackUrl":"http://localhost:3005/auth/signin","json":"true"}
+[2025-07-24T21:35:20.840Z] AUTH: user encontrado {"id":"cmdhvp5jo0000wao01y8y44m7","email":"alfonsonavarroch@gmail.com","password":"$2b$10$mTyVAYljNy64EJkultMqWepyanUAfuOB6zAbDD8Tc6sJ4qSZcYsPC","name":"naren alfonso navarro chole","phone":"3011737645","address":"cucuta","role":"CAMPESINO","isActive":true,"createdAt":"2025-07-24T21:02:27.156Z","updatedAt":"2025-07-24T21:02:43.503Z"}
+[2025-07-24T21:35:20.841Z] AUTH: contraseña ingresada: 12345678
+[2025-07-24T21:35:20.842Z] AUTH: hash en base de datos: $2b$10$mTyVAYljNy64EJkultMqWepyanUAfuOB6zAbDD8Tc6sJ4qSZcYsPC
+[2025-07-24T21:35:20.983Z] AUTH: isValidPassword true
+[2025-07-24T21:35:20.983Z] AUTH: Login exitoso
+[2025-07-24T21:37:35.688Z] AUTH: credentials {"email":"alfonsonavarroch@gmail.com","password":"12345678","redirect":"false","csrfToken":"fc77122794c72ae831495416ab5ffda415b9bf68c58dcfce7da163b8b6f576f7","callbackUrl":"http://localhost:3006/auth/signin","json":"true"}
+[2025-07-24T21:37:35.699Z] AUTH: user encontrado {"id":"cmdhvp5jo0000wao01y8y44m7","email":"alfonsonavarroch@gmail.com","password":"$2b$10$mTyVAYljNy64EJkultMqWepyanUAfuOB6zAbDD8Tc6sJ4qSZcYsPC","name":"naren alfonso navarro chole","phone":"3011737645","address":"cucuta","role":"CAMPESINO","isActive":true,"createdAt":"2025-07-24T21:02:27.156Z","updatedAt":"2025-07-24T21:02:43.503Z"}
+[2025-07-24T21:37:35.699Z] AUTH: contraseña ingresada: 12345678
+[2025-07-24T21:37:35.700Z] AUTH: hash en base de datos: $2b$10$mTyVAYljNy64EJkultMqWepyanUAfuOB6zAbDD8Tc6sJ4qSZcYsPC
+[2025-07-24T21:37:35.830Z] AUTH: isValidPassword true
+[2025-07-24T21:37:35.830Z] AUTH: Login exitoso
+[2025-07-24T21:39:39.520Z] AUTH: credentials {"email":"alfonsonavarroch@gmail.com","password":"12345678","redirect":"false","csrfToken":"fc77122794c72ae831495416ab5ffda415b9bf68c58dcfce7da163b8b6f576f7","callbackUrl":"http://localhost:3000/auth/signin","json":"true"}
+[2025-07-24T21:39:39.531Z] AUTH: user encontrado {"id":"cmdhvp5jo0000wao01y8y44m7","email":"alfonsonavarroch@gmail.com","password":"$2b$10$mTyVAYljNy64EJkultMqWepyanUAfuOB6zAbDD8Tc6sJ4qSZcYsPC","name":"naren alfonso navarro chole","phone":"3011737645","address":"cucuta","role":"CAMPESINO","isActive":true,"createdAt":"2025-07-24T21:02:27.156Z","updatedAt":"2025-07-24T21:02:43.503Z"}
+[2025-07-24T21:39:39.531Z] AUTH: contraseña ingresada: 12345678
+[2025-07-24T21:39:39.532Z] AUTH: hash en base de datos: $2b$10$mTyVAYljNy64EJkultMqWepyanUAfuOB6zAbDD8Tc6sJ4qSZcYsPC
+[2025-07-24T21:39:39.664Z] AUTH: isValidPassword true
+[2025-07-24T21:39:39.664Z] AUTH: Login exitoso
+[2025-07-24T21:42:44.576Z] AUTH: credentials {"email":"alfonsonavarroch@gmail.com","password":"12345678","redirect":"false","callbackUrl":"/agricultor/mercado","csrfToken":"fc77122794c72ae831495416ab5ffda415b9bf68c58dcfce7da163b8b6f576f7","json":"true"}
+[2025-07-24T21:42:44.587Z] AUTH: user encontrado {"id":"cmdhvp5jo0000wao01y8y44m7","email":"alfonsonavarroch@gmail.com","password":"$2b$10$mTyVAYljNy64EJkultMqWepyanUAfuOB6zAbDD8Tc6sJ4qSZcYsPC","name":"naren alfonso navarro chole","phone":"3011737645","address":"cucuta","role":"CAMPESINO","isActive":true,"createdAt":"2025-07-24T21:02:27.156Z","updatedAt":"2025-07-24T21:02:43.503Z"}
+[2025-07-24T21:42:44.587Z] AUTH: contraseña ingresada: 12345678
+[2025-07-24T21:42:44.588Z] AUTH: hash en base de datos: $2b$10$mTyVAYljNy64EJkultMqWepyanUAfuOB6zAbDD8Tc6sJ4qSZcYsPC
+[2025-07-24T21:42:44.720Z] AUTH: isValidPassword true
+[2025-07-24T21:42:44.721Z] AUTH: Login exitoso
+[2025-07-24T21:44:10.906Z] AUTH: credentials {"email":"alfonsonavarroch@gmail.com","password":"12345678","redirect":"false","callbackUrl":"/agricultor/mercado","csrfToken":"fc77122794c72ae831495416ab5ffda415b9bf68c58dcfce7da163b8b6f576f7","json":"true"}
+[2025-07-24T21:44:10.923Z] AUTH: user encontrado {"id":"cmdhvp5jo0000wao01y8y44m7","email":"alfonsonavarroch@gmail.com","password":"$2b$10$mTyVAYljNy64EJkultMqWepyanUAfuOB6zAbDD8Tc6sJ4qSZcYsPC","name":"naren alfonso navarro chole","phone":"3011737645","address":"cucuta","role":"CAMPESINO","isActive":true,"createdAt":"2025-07-24T21:02:27.156Z","updatedAt":"2025-07-24T21:02:43.503Z"}
+[2025-07-24T21:44:10.923Z] AUTH: contraseña ingresada: 12345678
+[2025-07-24T21:44:10.924Z] AUTH: hash en base de datos: $2b$10$mTyVAYljNy64EJkultMqWepyanUAfuOB6zAbDD8Tc6sJ4qSZcYsPC
+[2025-07-24T21:44:11.056Z] AUTH: isValidPassword true
+[2025-07-24T21:44:11.057Z] AUTH: Login exitoso
+[2025-07-24T21:47:01.661Z] AUTH: credentials {"email":"alfonsonavarroch@gmail.com","password":"12345678","redirect":"false","callbackUrl":"/agricultor/mercado","csrfToken":"fc77122794c72ae831495416ab5ffda415b9bf68c58dcfce7da163b8b6f576f7","json":"true"}
+[2025-07-24T21:47:01.671Z] AUTH: user encontrado {"id":"cmdhvp5jo0000wao01y8y44m7","email":"alfonsonavarroch@gmail.com","password":"$2b$10$mTyVAYljNy64EJkultMqWepyanUAfuOB6zAbDD8Tc6sJ4qSZcYsPC","name":"naren alfonso navarro chole","phone":"3011737645","address":"cucuta","role":"CAMPESINO","isActive":true,"createdAt":"2025-07-24T21:02:27.156Z","updatedAt":"2025-07-24T21:02:43.503Z"}
+[2025-07-24T21:47:01.671Z] AUTH: contraseña ingresada: 12345678
+[2025-07-24T21:47:01.672Z] AUTH: hash en base de datos: $2b$10$mTyVAYljNy64EJkultMqWepyanUAfuOB6zAbDD8Tc6sJ4qSZcYsPC
+[2025-07-24T21:47:01.803Z] AUTH: isValidPassword true
+[2025-07-24T21:47:01.804Z] AUTH: Login exitoso
+[2025-07-24T22:44:59.424Z] AUTH: credentials {"email":"alfonsonavarroch@gmail.com","password":"12345678","redirect":"false","callbackUrl":"/agricultor/mercado","csrfToken":"dfde57258c3be99aefd69c191c86381694016fe47ccee15345cdbac36ed07613","json":"true"}
+[2025-07-24T22:44:59.432Z] AUTH: user encontrado {"id":"cmdhvp5jo0000wao01y8y44m7","email":"alfonsonavarroch@gmail.com","password":"$2b$10$mTyVAYljNy64EJkultMqWepyanUAfuOB6zAbDD8Tc6sJ4qSZcYsPC","name":"naren alfonso navarro chole","phone":"3011737645","address":"cucuta","role":"CAMPESINO","isActive":true,"createdAt":"2025-07-24T21:02:27.156Z","updatedAt":"2025-07-24T21:02:43.503Z"}
+[2025-07-24T22:44:59.432Z] AUTH: contraseña ingresada: 12345678
+[2025-07-24T22:44:59.432Z] AUTH: hash en base de datos: $2b$10$mTyVAYljNy64EJkultMqWepyanUAfuOB6zAbDD8Tc6sJ4qSZcYsPC
+[2025-07-24T22:44:59.547Z] AUTH: isValidPassword true
+[2025-07-24T22:44:59.548Z] AUTH: Login exitoso
+[2025-07-24T23:00:22.587Z] AUTH: credentials {"email":"minexsena@gmail.com","password":"1234@@@@.","redirect":"false","callbackUrl":"/agricultor/mercado","csrfToken":"fc77122794c72ae831495416ab5ffda415b9bf68c58dcfce7da163b8b6f576f7","json":"true"}
+[2025-07-24T23:00:22.590Z] AUTH: user encontrado {"id":"cmdhzrred0000waxodn7ffv9u","email":"minexsena@gmail.com","password":"$2b$10$3ZkUEiEd5bSEEQ37C98Paem.tU7Bnne3j.lN0xdZY02YazHTpbto6","name":"jose miguel","phone":"3123003658","address":"que te importa donde vivo ","role":"CAMPESINO","isActive":true,"createdAt":"2025-07-24T22:56:27.253Z","updatedAt":"2025-07-24T22:59:29.369Z"}
+[2025-07-24T23:00:22.591Z] AUTH: contraseña ingresada: 1234@@@@.
+[2025-07-24T23:00:22.591Z] AUTH: hash en base de datos: $2b$10$3ZkUEiEd5bSEEQ37C98Paem.tU7Bnne3j.lN0xdZY02YazHTpbto6
+[2025-07-24T23:00:22.704Z] AUTH: isValidPassword true
+[2025-07-24T23:00:22.705Z] AUTH: Login exitoso

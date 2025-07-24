@@ -1,7 +1,45 @@
-import Link from 'next/link'
-import { Tractor } from 'lucide-react'
+"use client";
+import Link from 'next/link';
+import { Tractor } from 'lucide-react';
+import { useState } from 'react';
+import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 export default function SignInPage() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    
+    try {
+      const res = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+        callbackUrl: '/agricultor/mercado'
+      });
+      
+      setLoading(false);
+      
+      if (res?.ok && !res?.error) {
+        // Login exitoso
+        window.location.href = '/agricultor/mercado';
+      } else {
+        setError('Credenciales incorrectas o usuario inactivo');
+      }
+    } catch (error) {
+      setLoading(false);
+      setError('Error de conexión. Intenta nuevamente.');
+      console.error('Login error:', error);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
@@ -19,7 +57,7 @@ export default function SignInPage() {
             </Link>
           </p>
         </div>
-        <form className="mt-8 space-y-6" action="#" method="POST">
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
               <label htmlFor="email-address" className="sr-only">
@@ -31,6 +69,8 @@ export default function SignInPage() {
                 type="email"
                 autoComplete="email"
                 required
+                value={email}
+                onChange={e => setEmail(e.target.value)}
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
                 placeholder="Correo electrónico"
               />
@@ -45,11 +85,15 @@ export default function SignInPage() {
                 type="password"
                 autoComplete="current-password"
                 required
+                value={password}
+                onChange={e => setPassword(e.target.value)}
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
                 placeholder="Contraseña"
               />
             </div>
           </div>
+
+          {error && <div className="text-red-600 text-sm text-center">{error}</div>}
 
           <div className="flex items-center justify-between">
             <div className="flex items-center">
@@ -74,9 +118,10 @@ export default function SignInPage() {
           <div>
             <button
               type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+              disabled={loading}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-60"
             >
-              Iniciar Sesión
+              {loading ? 'Iniciando...' : 'Iniciar Sesión'}
             </button>
           </div>
 
@@ -91,5 +136,5 @@ export default function SignInPage() {
         </form>
       </div>
     </div>
-  )
+  );
 }

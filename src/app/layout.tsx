@@ -1,16 +1,11 @@
-import type { Metadata } from "next";
+"use client";
 import { Inter } from "next/font/google";
 import "../styles/globals.css";
+import { SessionProvider } from "next-auth/react";
 
 const inter = Inter({
   subsets: ["latin"],
 });
-
-export const metadata: Metadata = {
-  title: "AgroConecta - Marketplace Agrícola Colombiano",
-  description: "Conectando directamente campesinos con compradores. Elimina intermediarios y promueve el comercio justo en Colombia.",
-  keywords: "agricultura, campesinos, marketplace, Colombia, productos agrícolas, comercio justo",
-};
 
 export default function RootLayout({
   children,
@@ -19,8 +14,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
+      <head>
+        <title>AgroConecta</title>
+        <meta name="description" content="Conectando directamente campesinos con compradores. Elimina intermediarios y promueve el comercio justo en Colombia." />
+      </head>
       <body className={`${inter.className} antialiased`}>
-        {children}
+        <SessionProvider>
+          {children}
+        </SessionProvider>
       </body>
     </html>
   );
