@@ -1,16 +1,29 @@
 "use client";
 import Link from 'next/link';
-import { Tractor } from 'lucide-react';
-import { useState } from 'react';
+import { Tractor, CheckCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function SignInPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showActivationSuccess, setShowActivationSuccess] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const activated = searchParams.get('activated');
+    if (activated === 'true') {
+      setShowActivationSuccess(true);
+      // Ocultar el mensaje después de 5 segundos
+      setTimeout(() => {
+        setShowActivationSuccess(false);
+      }, 5000);
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,6 +70,34 @@ export default function SignInPage() {
             </Link>
           </p>
         </div>
+        
+        {/* Mensaje de activación exitosa */}
+        {showActivationSuccess && (
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-6 shadow-lg" style={{animation: 'fadeIn 0.5s ease-in'}}>
+            <div className="flex items-center space-x-3">
+              <div className="flex-shrink-0">
+                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center animate-bounce">
+                  <CheckCircle className="h-6 w-6 text-green-600" />
+                </div>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-green-800 mb-1">
+                  ¡Cuenta Activada Exitosamente! 🎉
+                </h3>
+                <p className="text-green-700 text-sm">
+                  Ya puedes iniciar sesión con tu correo y contraseña
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-md p-4">
+            <div className="text-red-700 text-sm">{error}</div>
+          </div>
+        )}
+        
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
@@ -92,8 +133,6 @@ export default function SignInPage() {
               />
             </div>
           </div>
-
-          {error && <div className="text-red-600 text-sm text-center">{error}</div>}
 
           <div className="flex items-center justify-between">
             <div className="flex items-center">

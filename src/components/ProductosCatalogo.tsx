@@ -1,6 +1,6 @@
 "use client";
-import { useState } from 'react';
-import { Heart, Star, MapPin, Calendar, User } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Heart, Star, MapPin, Calendar, User, X } from 'lucide-react';
 
 interface Producto {
   id: number;
@@ -132,12 +132,154 @@ const productosDemo: Producto[] = [
   }
 ];
 
-export default function ProductosCatalogo({ viewMode = 'grid' }: { viewMode?: 'grid' | 'list' }) {
-  const [productos, setProductos] = useState<Producto[]>(productosDemo);
-  const [filtroCategoria, setFiltroCategoria] = useState<string>("Todas");
-  const [ordenPor, setOrdenPor] = useState<string>("recientes");
+export default function ProductosCatalogo({ 
+  viewMode = 'grid', 
+  filtroCategoria = "Todos",
+  ordenPor = "recientes",
+  busqueda = ""
+}: { 
+  viewMode?: 'grid' | 'list';
+  filtroCategoria?: string;
+  ordenPor?: string;
+  busqueda?: string;
+}) {
+  const [productos, setProductos] = useState<Producto[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastColor, setToastColor] = useState("");
+  const [toastIcon, setToastIcon] = useState("");
 
-  const categorias = ["Todas", "Frutas", "Tubérculos", "Café", "Hierbas", "Cereales", "Lácteos"];
+  // Cargar productos desde la API
+  useEffect(() => {
+    const cargarProductos = async () => {
+      try {
+        const res = await fetch('/api/productos');
+        
+        if (res.ok) {
+          const productosAPI = await res.json();
+          
+          // Convertir formato de API al formato esperado por el componente
+          const productosFormateados = productosAPI.map((p: any, index: number) => ({
+            id: index + 1,
+            nombre: p.name,
+            descripcion: p.description,
+            precio: p.price,
+            unidad: p.unit,
+            categoria: p.category?.name || 'Sin categoría',
+            agricultor: p.agricultor?.user?.nombre || 'Agricultor desconocido',
+            ubicacion: 'Colombia', // Por ahora hardcoded
+            fecha: 'Hace unas horas', // Por ahora hardcoded
+            imagen: p.imageUrl || '🌿',
+            rating: 4.5, // Por ahora hardcoded
+            isFavorite: false
+          }));
+          
+          setProductos(productosFormateados);
+        } else {
+          // En caso de error, usar productos demo como fallback
+          setProductos(productosDemo);
+        }
+      } catch (error) {
+        // En caso de error, usar productos demo como fallback
+        setProductos(productosDemo);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    cargarProductos();
+  }, []);
+  const [prevOrdenPor, setPrevOrdenPor] = useState(ordenPor);
+  const [prevFiltroCategoria, setPrevFiltroCategoria] = useState(filtroCategoria);
+  const [prevBusqueda, setPrevBusqueda] = useState(busqueda);
+
+  // Colores suaves y discretos para el mensaje
+  const coloresPasteles = [
+    "bg-gray-50 border-gray-200 text-gray-600",
+    "bg-blue-50 border-blue-200 text-blue-600", 
+    "bg-green-50 border-green-200 text-green-600",
+    "bg-purple-50 border-purple-200 text-purple-600",
+    "bg-amber-50 border-amber-200 text-amber-600",
+    "bg-indigo-50 border-indigo-200 text-indigo-600",
+    "bg-rose-50 border-rose-200 text-rose-600",
+    "bg-cyan-50 border-cyan-200 text-cyan-600",
+    "bg-orange-50 border-orange-200 text-orange-600",
+    "bg-lime-50 border-lime-200 text-lime-600",
+    "bg-red-50 border-red-200 text-red-600",
+    "bg-teal-50 border-teal-200 text-teal-600",
+    "bg-violet-50 border-violet-200 text-violet-600",
+    "bg-sky-50 border-sky-200 text-sky-600",
+    "bg-emerald-50 border-emerald-200 text-emerald-600"
+  ];
+
+  // Detectar cambios en ordenPor y mostrar toast
+  useEffect(() => {
+    if (prevOrdenPor !== ordenPor) {
+      const colorAleatorio = coloresPasteles[Math.floor(Math.random() * coloresPasteles.length)];
+      const { mensaje, icono } = (() => {
+        switch (ordenPor) {
+          case "recientes":
+            return { mensaje: "Mostrando productos más recientes", icono: "🕒" };
+          case "precio-asc":
+            return { mensaje: "Ordenado por precio: menor a mayor", icono: "💰" };
+          case "precio-desc":
+            return { mensaje: "Ordenado por precio: mayor a menor", icono: "💸" };
+          case "rating":
+            return { mensaje: "Mostrando mejor calificados primero", icono: "⭐" };
+          default:
+            return { mensaje: "Orden actualizado", icono: "📋" };
+        }
+      })();
+      
+      mostrarToast(mensaje, colorAleatorio, icono);
+      setPrevOrdenPor(ordenPor);
+    }
+  }, [ordenPor, prevOrdenPor]);
+
+  // Detectar cambios en filtro de categoría
+  useEffect(() => {
+    if (prevFiltroCategoria !== filtroCategoria) {
+      const colorAleatorio = coloresPasteles[Math.floor(Math.random() * coloresPasteles.length)];
+      const { mensaje, icono } = filtroCategoria === "Todos" 
+        ? { mensaje: "Mostrando todas las categorías", icono: "🌟" }
+        : { mensaje: `Filtrando por: ${filtroCategoria}`, icono: "🏷️" };
+      
+      mostrarToast(mensaje, colorAleatorio, icono);
+      setPrevFiltroCategoria(filtroCategoria);
+    }
+  }, [filtroCategoria, prevFiltroCategoria]);
+
+  // Detectar cambios en búsqueda
+  useEffect(() => {
+    if (prevBusqueda !== busqueda && busqueda !== "") {
+      const colorAleatorio = coloresPasteles[Math.floor(Math.random() * coloresPasteles.length)];
+      const mensaje = `Buscando: "${busqueda}"`;
+      
+      mostrarToast(mensaje, colorAleatorio, "🔍");
+      setPrevBusqueda(busqueda);
+    } else if (prevBusqueda !== "" && busqueda === "") {
+      const colorAleatorio = coloresPasteles[Math.floor(Math.random() * coloresPasteles.length)];
+      mostrarToast("Búsqueda limpiada", colorAleatorio, "✨");
+      setPrevBusqueda(busqueda);
+    }
+  }, [busqueda, prevBusqueda]);
+
+  // Función para mostrar toast
+  const mostrarToast = (mensaje: string, color: string, icono: string) => {
+    const resultadosCount = productosFiltrados.length;
+    const mensajeCompleto = `${mensaje} • ${resultadosCount} resultado${resultadosCount !== 1 ? 's' : ''}`;
+    
+    setToastMessage(mensajeCompleto);
+    setToastColor(color);
+    setToastIcon(icono);
+    setShowToast(true);
+
+    // Auto-ocultar después de 3 segundos
+    setTimeout(() => {
+      setShowToast(false);
+    }, 3000);
+  };
 
   const toggleFavorite = (id: number) => {
     setProductos(prev => 
@@ -148,7 +290,19 @@ export default function ProductosCatalogo({ viewMode = 'grid' }: { viewMode?: 'g
   };
 
   const productosFiltrados = productos
-    .filter(producto => filtroCategoria === "Todas" || producto.categoria === filtroCategoria)
+    .filter(producto => {
+      // Filtro por categoría
+      const coincideCategoria = filtroCategoria === "Todos" || producto.categoria === filtroCategoria;
+      
+      // Filtro por búsqueda
+      const coincideBusqueda = busqueda === "" || 
+        producto.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
+        producto.descripcion.toLowerCase().includes(busqueda.toLowerCase()) ||
+        producto.agricultor.toLowerCase().includes(busqueda.toLowerCase()) ||
+        producto.ubicacion.toLowerCase().includes(busqueda.toLowerCase());
+      
+      return coincideCategoria && coincideBusqueda;
+    })
     .sort((a, b) => {
       switch (ordenPor) {
         case "precio-asc":
@@ -184,47 +338,46 @@ export default function ProductosCatalogo({ viewMode = 'grid' }: { viewMode?: 'g
   };
 
   return (
-    <div className="space-y-8">
-      {/* Filtros y ordenamiento */}
-      <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
-        <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Filtrar por categoría</h3>
-            <div className="flex flex-wrap gap-2">
-              {categorias.map(categoria => (
-                <button
-                  key={categoria}
-                  onClick={() => setFiltroCategoria(categoria)}
-                  className={`px-4 py-2 rounded-full transition-all duration-300 font-medium hover:scale-105 active:scale-95 ${
-                    filtroCategoria === categoria
-                      ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg hover:shadow-xl'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-md'
-                  }`}
-                >
-                  {categoria}
-                </button>
-              ))}
+    <div className="space-y-4 relative">
+      {/* Estado de carga */}
+      {loading && (
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Cargando productos...</p>
+        </div>
+      )}
+
+      {/* Contenido principal (solo se muestra cuando no está cargando) */}
+      {!loading && (
+        <>
+      {/* Mensaje de estado sutil */}
+      {showToast && (
+        <div className={`${toastColor} border rounded-lg transition-all duration-300 ease-out ${showToast ? 'opacity-100' : 'opacity-0'}`}>
+          <div className="px-4 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <span className="text-lg">{toastIcon}</span>
+                <div>
+                  <span className="text-sm font-medium">
+                    {toastMessage.split(' • ')[0]}
+                  </span>
+                  <span className="text-xs text-current opacity-70 ml-2">
+                    {toastMessage.split(' • ')[1]}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowToast(false)}
+                className="ml-3 p-1 rounded hover:bg-current hover:bg-opacity-10 transition-colors duration-200"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
           </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Ordenar por
-            </label>
-            <select
-              value={ordenPor}
-              onChange={(e) => setOrdenPor(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
-            >
-              <option value="recientes">Más recientes</option>
-              <option value="precio-asc">Precio: menor a mayor</option>
-              <option value="precio-desc">Precio: mayor a menor</option>
-              <option value="rating">Mejor calificados</option>
-            </select>
-          </div>
         </div>
-      </div>
+      )}
 
+      {/* Grid/Lista de productos */}
       {/* Grid/Lista de productos */}
       {viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -294,7 +447,7 @@ export default function ProductosCatalogo({ viewMode = 'grid' }: { viewMode?: 'g
 
                 {/* Botón de acción */}
                 <div className="pt-4">
-                  <button className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]">
+                  <button className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-3 px-4 rounded-xl transition-colors duration-200 shadow-lg hover:shadow-xl">
                     Comprar Ahora
                   </button>
                 </div>
@@ -372,7 +525,7 @@ export default function ProductosCatalogo({ viewMode = 'grid' }: { viewMode?: 'g
 
                     {/* Botón de acción */}
                     <div className="lg:ml-6">
-                      <button className="w-full lg:w-auto bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap">
+                      <button className="w-full lg:w-auto bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200 shadow-lg hover:shadow-xl whitespace-nowrap">
                         Comprar Ahora
                       </button>
                     </div>
@@ -386,15 +539,22 @@ export default function ProductosCatalogo({ viewMode = 'grid' }: { viewMode?: 'g
 
       {/* Mensaje cuando no hay productos */}
       {productosFiltrados.length === 0 && (
-        <div className="text-center py-12">
-          <div className="text-6xl mb-4">🌾</div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            No hay productos en esta categoría
-          </h3>
-          <p className="text-gray-600">
-            Intenta seleccionar una categoría diferente o ajustar los filtros.
+        <div className="text-center py-16 bg-white rounded-xl border border-gray-100">
+          <div className="text-6xl mb-4">🔍</div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">No se encontraron productos</h3>
+          <p className="text-gray-600 mb-6">
+            {busqueda ? `No hay productos que coincidan con "${busqueda}"` : 
+             filtroCategoria !== "Todos" ? `No hay productos en la categoría "${filtroCategoria}"` :
+             "No hay productos disponibles en este momento"}
           </p>
+          <div className="space-y-2 text-sm text-gray-500">
+            <p>• Intenta con otros términos de búsqueda</p>
+            <p>• Cambia los filtros aplicados</p>
+            <p>• Explora otras categorías</p>
+          </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );

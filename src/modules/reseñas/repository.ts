@@ -1,22 +1,23 @@
 // Repositorio para acceso a datos de Reseñas
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
-
+// TODO: Implementar modelo de Review en Prisma
 export class ReseñasRepository {
   async listarPorProducto(productId: string) {
-    return prisma.review.findMany({ where: { productId } });
+    // TODO: Implementar cuando se cree el modelo de Review
+    return [];
   }
 
   async listarPorUsuario(userId: string) {
-    return prisma.review.findMany({ where: { userId } });
+    // TODO: Implementar cuando se cree el modelo de Review
+    return [];
   }
 
   async crearReseña(data: any) {
-    return prisma.review.create({ data });
+    // TODO: Implementar cuando se cree el modelo de Review
+    return null;
   }
 
   async eliminarReseña(id: string) {
-    return prisma.review.delete({ where: { id } });
+    // TODO: Implementar cuando se cree el modelo de Review
+    return null;
   }
 }

@@ -1,30 +1,3 @@
-// Modelo de reseñas
-model Review {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  productId String?
-  product   Product? @relation("ProductReviews", fields: [productId], references: [id])
-  rating    Int      @default(5)
-  comment   String?
-  createdAt DateTime @default(now())
-
-  @@map("reviews")
-}
-// Modelo de notificaciones
-model Notification {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation("UserNotifications", fields: [userId], references: [id])
-  message   String
-  read      Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  @@map("notifications")
-}
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -34,153 +7,173 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Roles de usuario
-enum UserRole {
-  CAMPESINO   // Agricultor/Campesino
-  EMPRESA     // Empresa compradora
-  COMPRADOR   // Comprador individual
-  ADMIN       // Administrador del sistema
-}
-
-// Estados de productos
-enum ProductStatus {
-  DISPONIBLE    // Producto disponible para venta
-  AGOTADO      // Sin stock
-  SUSPENDIDO   // Suspendido por admin
-}
-
-// Estados de pedidos
-enum OrderStatus {
-  PENDIENTE     // Pedido realizado, esperando confirmación
-  CONFIRMADO    // Confirmado por campesino
-  EN_PROCESO    // En preparación
-  ENVIADO       // Enviado
-  ENTREGADO     // Entregado al comprador
-  CANCELADO     // Cancelado
-}
-
-// Modelo de usuarios
-model User {
-  id          String   @id @default(cuid())
-  email       String   @unique
-  password    String
-  name        String
-  phone       String?
-  address     String?
-  role        UserRole @default(COMPRADOR)
+model Role {
+  id          String   @id
+  name        String   @unique
+  displayName String
+  description String?
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  users       User[]
 
-  // Relaciones
-  products    Product[]
-  orders      Order[]
-  cartItems   CartItem[]
-  notifications Notification[] @relation("UserNotifications")
-  reviews       Review[] // Reseñas hechas por el usuario
+  @@map("roles")
+}
 
+model User {
+  id          String      @id
+  nombre      String
+  correo      String      @unique
+  contraseña String
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  roleId      String
   accounts    Account[]
+  agricultor  Agricultor?
+  cartItems   CartItem[]
+  cliente     Cliente?
+  empresa     Empresa?
+  orders      Order[]
   sessions    Session[]
+  role        Role        @relation(fields: [roleId], references: [id])
 
+  @@index([roleId], map: "users_roleId_fkey")
   @@map("users")
 }
 
-// Modelo de categorías
+model Agricultor {
+  id          String    @id
+  user_id     String    @unique
+  telefono    String?
+  ubicacion   String?
+  descripcion String?
+  foto        String?
+  verificado  Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  user        User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  products    Product[]
+
+  @@map("agricultores")
+}
+
+model Cliente {
+  id           String   @id
+  user_id      String   @unique
+  telefono     String?
+  direccion    String?
+  preferencias String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("clientes")
+}
+
+model Empresa {
+  id           String   @id
+  user_id      String   @unique
+  razon_social String
+  nit          String   @unique
+  telefono     String?
+  direccion    String?
+  sector       String?
+  descripcion  String?
+  logo         String?
+  verificada   Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("empresas")
+}
+
 model Category {
-  id          String    @id @default(cuid())
+  id          String    @id
   name        String    @unique
   description String?
   isActive    Boolean   @default(true)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-
-  // Relaciones
   products    Product[]
 
   @@map("categories")
 }
 
-// Modelo de productos
 model Product {
-  id          String        @id @default(cuid())
-  name        String
-  description String?
-  price       Decimal       @db.Decimal(10, 2)
-  stock       Int           @default(0)
-  unit        String        // kg, lb, unidad, etc.
-  imageUrl    String?
-  status      ProductStatus @default(DISPONIBLE)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id            String        @id
+  name          String
+  description   String?
+  price         Decimal       @db.Decimal(10, 2)
+  stock         Int           @default(0)
+  reservedStock Int           @default(0)
+  unit          String
+  imageUrl      String?
+  status        ProductStatus @default(DISPONIBLE)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  agricultorId  String
+  categoryId    String
+  cartItems     CartItem[]
+  orderItems    OrderItem[]
+  agricultor    Agricultor    @relation(fields: [agricultorId], references: [id], onDelete: Cascade)
+  category      Category      @relation(fields: [categoryId], references: [id])
 
-  // Relaciones
-  campesinoId String
-  campesino   User     @relation(fields: [campesinoId], references: [id], onDelete: Cascade)
-  
-  categoryId  String
-  category    Category @relation(fields: [categoryId], references: [id])
-  
-  cartItems   CartItem[]
-  orderItems  OrderItem[]
-  reviews     Review[] @relation("ProductReviews") // Reseñas asociadas al producto
-
+  @@index([agricultorId], map: "products_agricultorId_fkey")
+  @@index([categoryId], map: "products_categoryId_fkey")
   @@map("products")
 }
 
-// Modelo del carrito de compras
 model CartItem {
   id        String   @id @default(cuid())
   quantity  Int      @default(1)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  // Relaciones
   userId    String
-  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
   productId String
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, productId]) // Un usuario no puede tener el mismo producto duplicado en carrito
+  @@unique([userId, productId])
+  @@index([productId], map: "cart_items_productId_fkey")
   @@map("cart_items")
 }
 
-// Modelo de pedidos
 model Order {
-  id          String      @id @default(cuid())
-  total       Decimal     @db.Decimal(10, 2)
-  status      OrderStatus @default(PENDIENTE)
-  notes       String?     // Notas del comprador
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id              String         @id
+  total           Decimal        @db.Decimal(10, 2)
+  status          OrderStatus    @default(PENDIENTE)
+  deliveryMethod  DeliveryMethod @default(ENTREGA_DIRECTA)
+  paymentMethod   PaymentMethod  @default(CONTRAENTREGA)
+  deliveryAddress String?
+  deliveryNotes   String?
+  notes           String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  buyerId         String
+  orderItems      OrderItem[]
+  buyer           User           @relation(fields: [buyerId], references: [id])
 
-  // Relaciones
-  buyerId     String
-  buyer       User        @relation(fields: [buyerId], references: [id])
-  
-  orderItems  OrderItem[]
-
+  @@index([buyerId], map: "orders_buyerId_fkey")
   @@map("orders")
 }
 
-// Items individuales de un pedido (relación many-to-many entre Order y Product)
 model OrderItem {
-  id        String  @id @default(cuid())
+  id        String  @id
   quantity  Int
-  price     Decimal @db.Decimal(10, 2) // Precio al momento del pedido
-  subtotal  Decimal @db.Decimal(10, 2) // quantity * price
-
-  // Relaciones
+  price     Decimal @db.Decimal(10, 2)
+  subtotal  Decimal @db.Decimal(10, 2)
   orderId   String
-  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  
   productId String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product   Product @relation(fields: [productId], references: [id])
 
+  @@index([orderId], map: "order_items_orderId_fkey")
+  @@index([productId], map: "order_items_productId_fkey")
   @@map("order_items")
 }
 
-// NextAuth.js models
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -194,10 +187,10 @@ model Account {
   scope             String?
   id_token          String? @db.Text
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@index([userId], map: "accounts_userId_fkey")
   @@map("accounts")
 }
 
@@ -208,6 +201,7 @@ model Session {
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId], map: "sessions_userId_fkey")
   @@map("sessions")
 }
 
@@ -218,4 +212,36 @@ model VerificationToken {
 
   @@unique([identifier, token])
   @@map("verification_tokens")
+}
+
+enum ProductStatus {
+  DISPONIBLE
+  AGOTADO
+  SUSPENDIDO
+}
+
+enum OrderStatus {
+  PENDIENTE
+  CONFIRMADO
+  EN_PREPARACION
+  EN_CAMINO
+  EN_PUNTO
+  ENTREGADO
+  CANCELADO
+  NO_ENTREGADO
+}
+
+enum DeliveryMethod {
+  ENTREGA_DIRECTA
+  PUNTO_ENCUENTRO
+  REPARTIDOR_ALIADO
+  EMPRESA_TRANSPORTADORA
+}
+
+enum PaymentMethod {
+  CONTRAENTREGA
+  TRANSFERENCIA
+  NEQUI
+  DAVIPLATA
+  PASARELA
 }

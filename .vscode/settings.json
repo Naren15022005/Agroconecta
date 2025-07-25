@@ -1,0 +1,18 @@
+{
+  "typescript.preferences.includePackageJsonAutoImports": "auto",
+  "typescript.suggest.autoImports": true,
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "typescript.preferences.includeInlayParameterNameHints": "all",
+  "typescript.preferences.includeInlayFunctionParameterTypeHints": true,
+  "typescript.preferences.includeInlayVariableTypeHints": true,
+  "typescript.preferences.includeInlayPropertyDeclarationTypeHints": true,
+  "typescript.preferences.includeInlayFunctionLikeReturnTypeHints": true,
+  "typescript.preferences.includeInlayEnumMemberValueHints": true,
+  "typescript.workspaceSymbols.scope": "allOpenProjects",
+  "typescript.format.enable": true,
+  "typescript.validate.enable": true,
+  "eslint.workingDirectories": ["./"],
+  "files.associations": {
+    "*.ts": "typescript"
+  }
+}

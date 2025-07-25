@@ -13,7 +13,7 @@ const transporter = nodemailer.createTransport({
 export async function sendWelcomeEmail(email: string, name: string, token?: string) {
   // Si hay token, se envía enlace de activación, si no, solo bienvenida
   const activationLink = token
-    ? `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/auth/activar?token=${token}`
+    ? `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/auth/activar/${token}`
     : null;
 
   const html = `

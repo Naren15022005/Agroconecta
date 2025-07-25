@@ -1,22 +1,23 @@
 // Repositorio para acceso a datos de Notificaciones
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
-
+// TODO: Implementar modelo de Notification en Prisma
 export class NotificacionesRepository {
   async listarPorUsuario(userId: string) {
-    return prisma.notification.findMany({ where: { userId } });
+    // TODO: Implementar cuando se cree el modelo de Notification
+    return [];
   }
 
   async crearNotificacion(data: any) {
-    return prisma.notification.create({ data });
+    // TODO: Implementar cuando se cree el modelo de Notification
+    return null;
   }
 
   async marcarComoLeida(id: string) {
-    return prisma.notification.update({ where: { id }, data: { read: true } });
+    // TODO: Implementar cuando se cree el modelo de Notification
+    return null;
   }
 
   async eliminarNotificacion(id: string) {
-    return prisma.notification.delete({ where: { id } });
+    // TODO: Implementar cuando se cree el modelo de Notification
+    return null;
   }
 }

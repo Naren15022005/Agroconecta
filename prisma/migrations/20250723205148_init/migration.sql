@@ -1,17 +1,15 @@
 -- CreateTable
 CREATE TABLE `users` (
     `id` VARCHAR(191) NOT NULL,
-    `email` VARCHAR(191) NOT NULL,
-    `password` VARCHAR(191) NOT NULL,
-    `name` VARCHAR(191) NOT NULL,
-    `phone` VARCHAR(191) NULL,
-    `address` VARCHAR(191) NULL,
-    `role` ENUM('CAMPESINO', 'EMPRESA', 'COMPRADOR', 'ADMIN') NOT NULL DEFAULT 'COMPRADOR',
+    `nombre` VARCHAR(191) NOT NULL,
+    `correo` VARCHAR(191) NOT NULL,
+    `contraseña` VARCHAR(191) NOT NULL,
+    `rol` ENUM('agricultor', 'cliente', 'empresa', 'admin') NOT NULL DEFAULT 'cliente',
     `isActive` BOOLEAN NOT NULL DEFAULT true,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
-    UNIQUE INDEX `users_email_key`(`email`),
+    UNIQUE INDEX `users_correo_key`(`correo`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -29,18 +27,69 @@ CREATE TABLE `categories` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
+CREATE TABLE `agricultores` (
+    `id` VARCHAR(191) NOT NULL,
+    `user_id` VARCHAR(191) NOT NULL,
+    `telefono` VARCHAR(191) NULL,
+    `ubicacion` TEXT NULL,
+    `descripcion` TEXT NULL,
+    `foto` TEXT NULL,
+    `verificado` BOOLEAN NOT NULL DEFAULT false,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    UNIQUE INDEX `agricultores_user_id_key`(`user_id`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `clientes` (
+    `id` VARCHAR(191) NOT NULL,
+    `user_id` VARCHAR(191) NOT NULL,
+    `telefono` VARCHAR(191) NULL,
+    `direccion` TEXT NULL,
+    `preferencias` TEXT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    UNIQUE INDEX `clientes_user_id_key`(`user_id`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `empresas` (
+    `id` VARCHAR(191) NOT NULL,
+    `user_id` VARCHAR(191) NOT NULL,
+    `razon_social` VARCHAR(191) NOT NULL,
+    `nit` VARCHAR(191) NOT NULL,
+    `telefono` VARCHAR(191) NULL,
+    `direccion` TEXT NULL,
+    `sector` VARCHAR(191) NULL,
+    `descripcion` TEXT NULL,
+    `logo` TEXT NULL,
+    `verificada` BOOLEAN NOT NULL DEFAULT false,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    UNIQUE INDEX `empresas_user_id_key`(`user_id`),
+    UNIQUE INDEX `empresas_nit_key`(`nit`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
 CREATE TABLE `products` (
     `id` VARCHAR(191) NOT NULL,
     `name` VARCHAR(191) NOT NULL,
     `description` VARCHAR(191) NULL,
     `price` DECIMAL(10, 2) NOT NULL,
     `stock` INTEGER NOT NULL DEFAULT 0,
+    `reservedStock` INTEGER NOT NULL DEFAULT 0,
     `unit` VARCHAR(191) NOT NULL,
     `imageUrl` VARCHAR(191) NULL,
     `status` ENUM('DISPONIBLE', 'AGOTADO', 'SUSPENDIDO') NOT NULL DEFAULT 'DISPONIBLE',
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
-    `campesinoId` VARCHAR(191) NOT NULL,
+    `agricultorId` VARCHAR(191) NOT NULL,
     `categoryId` VARCHAR(191) NOT NULL,
 
     PRIMARY KEY (`id`)
@@ -63,7 +112,11 @@ CREATE TABLE `cart_items` (
 CREATE TABLE `orders` (
     `id` VARCHAR(191) NOT NULL,
     `total` DECIMAL(10, 2) NOT NULL,
-    `status` ENUM('PENDIENTE', 'CONFIRMADO', 'EN_PROCESO', 'ENVIADO', 'ENTREGADO', 'CANCELADO') NOT NULL DEFAULT 'PENDIENTE',
+    `status` ENUM('PENDIENTE', 'CONFIRMADO', 'EN_PREPARACION', 'EN_CAMINO', 'EN_PUNTO', 'ENTREGADO', 'CANCELADO', 'NO_ENTREGADO') NOT NULL DEFAULT 'PENDIENTE',
+    `deliveryMethod` ENUM('ENTREGA_DIRECTA', 'PUNTO_ENCUENTRO', 'REPARTIDOR_ALIADO', 'EMPRESA_TRANSPORTADORA') NOT NULL DEFAULT 'ENTREGA_DIRECTA',
+    `paymentMethod` ENUM('CONTRAENTREGA', 'TRANSFERENCIA', 'NEQUI', 'DAVIPLATA', 'PASARELA') NOT NULL DEFAULT 'CONTRAENTREGA',
+    `deliveryAddress` TEXT NULL,
+    `deliveryNotes` TEXT NULL,
     `notes` VARCHAR(191) NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
@@ -125,7 +178,16 @@ CREATE TABLE `verification_tokens` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- AddForeignKey
-ALTER TABLE `products` ADD CONSTRAINT `products_campesinoId_fkey` FOREIGN KEY (`campesinoId`) REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `agricultores` ADD CONSTRAINT `agricultores_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `clientes` ADD CONSTRAINT `clientes_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `empresas` ADD CONSTRAINT `empresas_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `products` ADD CONSTRAINT `products_agricultorId_fkey` FOREIGN KEY (`agricultorId`) REFERENCES `agricultores`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `products` ADD CONSTRAINT `products_categoryId_fkey` FOREIGN KEY (`categoryId`) REFERENCES `categories`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;

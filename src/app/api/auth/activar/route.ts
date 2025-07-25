@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
   }
   // Activar el usuario
   await prisma.user.update({
-    where: { email: verification.identifier },
+    where: { correo: verification.identifier },
     data: { isActive: true },
   });
   // Eliminar el token para que no se reutilice

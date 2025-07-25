@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroConecta - Publicar Producto</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://unpkg.com/lucide@latest/dist/umd/lucide.js" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen py-8">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Header -->
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-gray-900">Publicar Producto</h1>
+                <div id="loadingMessage" class="mt-4 p-4 bg-blue-50 text-blue-800 rounded-lg">
+                    <div class="flex items-center">
+                        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                        Cargando categorías...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mensaje de estado -->
+            <div id="mensaje" class="mb-6 p-4 rounded-lg hidden">
+                <span id="mensajeTexto"></span>
+            </div>
+
+            <!-- Formulario -->
+            <form id="productoForm" class="space-y-8">
+                <!-- Información básica del producto -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-6">Información del Producto</h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Nombre del producto -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Nombre del producto *
+                            </label>
+                            <input
+                                type="text"
+                                id="name"
+                                name="name"
+                                class="w-full px-4 py-3 rounded-lg border border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                placeholder="Ej: Plátano Hartón Premium"
+                                required
+                            />
+                        </div>
+
+                        <!-- Categoría -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Categoría *
+                            </label>
+                            <select
+                                id="categoryId"
+                                name="categoryId"
+                                class="w-full px-4 py-3 rounded-lg border border-gray-300 text-gray-900 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                required
+                            >
+                                <option value="">Cargando categorías...</option>
+                            </select>
+                        </div>
+
+                        <!-- Descripción -->
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Descripción *
+                            </label>
+                            <textarea
+                                id="description"
+                                name="description"
+                                rows="4"
+                                class="w-full px-4 py-3 rounded-lg border border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                placeholder="Describe tu producto, cómo fue cultivado, características especiales..."
+                                required
+                            ></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Precio y stock -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-6">Precio y Disponibilidad</h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Precio -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Precio *
+                            </label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-3 text-gray-500">$</span>
+                                <input
+                                    type="number"
+                                    id="price"
+                                    name="price"
+                                    class="w-full pl-8 pr-4 py-3 rounded-lg border border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                    placeholder="2500"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <!-- Unidad -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Unidad de medida
+                            </label>
+                            <select
+                                id="unit"
+                                name="unit"
+                                class="w-full px-4 py-3 rounded-lg border border-gray-300 text-gray-900 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                            >
+                                <option value="kg">Kilogramo</option>
+                                <option value="g">Gramo</option>
+                                <option value="unidad">Unidad</option>
+                                <option value="lb">Libra</option>
+                                <option value="litro">Litro</option>
+                            </select>
+                        </div>
+
+                        <!-- Stock -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Stock disponible *
+                            </label>
+                            <input
+                                type="number"
+                                id="stock"
+                                name="stock"
+                                class="w-full px-4 py-3 rounded-lg border border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                placeholder="50"
+                                required
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ubicación -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-6">Ubicación</h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Municipio -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Municipio *
+                            </label>
+                            <input
+                                type="text"
+                                id="municipio"
+                                name="municipio"
+                                class="w-full px-4 py-3 rounded-lg border border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                placeholder="Ej: Medellín"
+                                required
+                            />
+                        </div>
+
+                        <!-- Vereda -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Vereda *
+                            </label>
+                            <input
+                                type="text"
+                                id="vereda"
+                                name="vereda"
+                                class="w-full px-4 py-3 rounded-lg border border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                placeholder="Ej: Santa Elena"
+                                required
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botón de envío -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <button
+                        type="submit"
+                        id="submitBtn"
+                        class="w-full flex items-center justify-center px-8 py-4 rounded-xl text-white font-semibold text-lg bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 transition-all duration-200"
+                    >
+                        Publicar Producto
+                    </button>
+                </div>
+            </form>
+
+            <!-- Debug Info -->
+            <div id="debugInfo" class="mt-6 p-4 bg-gray-100 rounded-lg">
+                <h3 class="font-bold mb-2">Debug Info:</h3>
+                <pre id="debugText" class="text-sm whitespace-pre-wrap"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let categorias = [];
+        let isSubmitting = false;
+
+        // Función para mostrar mensajes
+        function mostrarMensaje(texto, tipo = 'success') {
+            const mensaje = document.getElementById('mensaje');
+            const mensajeTexto = document.getElementById('mensajeTexto');
+            
+            mensaje.className = `mb-6 p-4 rounded-lg flex items-center ${
+                tipo === 'success' 
+                    ? 'bg-green-50 text-green-800 border border-green-200' 
+                    : 'bg-red-50 text-red-800 border border-red-200'
+            }`;
+            
+            mensajeTexto.textContent = texto;
+            mensaje.classList.remove('hidden');
+            
+            // Scroll hacia arriba para mostrar el mensaje
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Función para actualizar debug info
+        function updateDebug(info) {
+            document.getElementById('debugText').textContent = JSON.stringify(info, null, 2);
+        }
+
+        // Cargar categorías
+        async function cargarCategorias() {
+            try {
+                updateDebug({ action: 'Cargando categorías', timestamp: new Date().toISOString() });
+                
+                const response = await fetch('/api/categorias');
+                updateDebug({ 
+                    action: 'Respuesta recibida', 
+                    status: response.status, 
+                    ok: response.ok,
+                    timestamp: new Date().toISOString()
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const responseText = await response.text();
+                updateDebug({ 
+                    action: 'Texto de respuesta recibido', 
+                    length: responseText.length,
+                    content: responseText,
+                    timestamp: new Date().toISOString()
+                });
+
+                if (!responseText) {
+                    throw new Error('Respuesta vacía del servidor');
+                }
+
+                categorias = JSON.parse(responseText);
+                updateDebug({ 
+                    action: 'Categorías parseadas', 
+                    count: categorias.length,
+                    data: categorias,
+                    timestamp: new Date().toISOString()
+                });
+
+                // Llenar el select
+                const select = document.getElementById('categoryId');
+                select.innerHTML = '<option value="">Selecciona una categoría</option>';
+                
+                categorias.forEach(categoria => {
+                    const option = document.createElement('option');
+                    option.value = categoria.id;
+                    option.textContent = categoria.name;
+                    select.appendChild(option);
+                });
+
+                // Ocultar mensaje de carga
+                document.getElementById('loadingMessage').style.display = 'none';
+                
+                updateDebug({ 
+                    action: 'Categorías cargadas exitosamente', 
+                    timestamp: new Date().toISOString()
+                });
+
+            } catch (error) {
+                console.error('Error al cargar categorías:', error);
+                updateDebug({ 
+                    action: 'Error al cargar categorías', 
+                    error: error.message,
+                    timestamp: new Date().toISOString()
+                });
+
+                // Usar categorías por defecto
+                categorias = [
+                    { id: '1', name: 'Frutas' },
+                    { id: '2', name: 'Verduras' },
+                    { id: '3', name: 'Hortalizas' },
+                    { id: '4', name: 'Granos' },
+                    { id: '5', name: 'Tubérculos' }
+                ];
+
+                const select = document.getElementById('categoryId');
+                select.innerHTML = '<option value="">Selecciona una categoría</option>';
+                
+                categorias.forEach(categoria => {
+                    const option = document.createElement('option');
+                    option.value = categoria.id;
+                    option.textContent = categoria.name;
+                    select.appendChild(option);
+                });
+
+                // Mostrar mensaje de error pero permitir continuar
+                document.getElementById('loadingMessage').innerHTML = 
+                    '<div class="text-yellow-800 bg-yellow-50 p-3 rounded">Error al cargar categorías del servidor. Usando categorías por defecto.</div>';
+            }
+        }
+
+        // Manejar envío del formulario
+        async function manejarEnvio(event) {
+            event.preventDefault();
+            
+            if (isSubmitting) return;
+            
+            isSubmitting = true;
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `
+                <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-3"></div>
+                Publicando Producto...
+            `;
+
+            try {
+                // Recopilar datos del formulario
+                const formData = {
+                    name: document.getElementById('name').value,
+                    description: document.getElementById('description').value,
+                    categoryId: document.getElementById('categoryId').value,
+                    price: parseFloat(document.getElementById('price').value),
+                    unit: document.getElementById('unit').value,
+                    stock: parseInt(document.getElementById('stock').value),
+                    municipio: document.getElementById('municipio').value,
+                    vereda: document.getElementById('vereda').value,
+                    ubicacion: `${document.getElementById('vereda').value}, ${document.getElementById('municipio').value}`,
+                    farmerId: 'test-farmer',
+                    tipoCultivo: 'convencional',
+                    fechaCosecha: new Date().toISOString().split('T')[0],
+                    tiempoEntrega: 1
+                };
+
+                updateDebug({ 
+                    action: 'Enviando datos del producto', 
+                    data: formData,
+                    timestamp: new Date().toISOString()
+                });
+
+                const response = await fetch('/api/productos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                updateDebug({ 
+                    action: 'Respuesta del servidor recibida', 
+                    status: response.status,
+                    statusText: response.statusText,
+                    ok: response.ok,
+                    timestamp: new Date().toISOString()
+                });
+
+                const responseText = await response.text();
+                updateDebug({ 
+                    action: 'Texto de respuesta del servidor', 
+                    length: responseText.length,
+                    content: responseText,
+                    timestamp: new Date().toISOString()
+                });
+
+                if (response.ok) {
+                    const result = JSON.parse(responseText);
+                    mostrarMensaje('¡Producto publicado exitosamente!', 'success');
+                    
+                    // Resetear formulario
+                    document.getElementById('productoForm').reset();
+                    
+                    updateDebug({ 
+                        action: 'Producto publicado exitosamente', 
+                        result: result,
+                        timestamp: new Date().toISOString()
+                    });
+                } else {
+                    let errorMessage = 'Error al publicar producto';
+                    try {
+                        const errorData = JSON.parse(responseText);
+                        errorMessage = errorData.error || errorMessage;
+                    } catch (parseError) {
+                        errorMessage = `Error del servidor (${response.status}): ${response.statusText}`;
+                    }
+                    mostrarMensaje(errorMessage, 'error');
+                    
+                    updateDebug({ 
+                        action: 'Error al publicar producto', 
+                        error: errorMessage,
+                        timestamp: new Date().toISOString()
+                    });
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarMensaje('Error de red o servidor. Inténtalo de nuevo.', 'error');
+                
+                updateDebug({ 
+                    action: 'Error de red/servidor', 
+                    error: error.message,
+                    timestamp: new Date().toISOString()
+                });
+            } finally {
+                isSubmitting = false;
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Publicar Producto';
+            }
+        }
+
+        // Inicializar cuando la página se carga
+        document.addEventListener('DOMContentLoaded', function() {
+            updateDebug({ action: 'Página cargada', timestamp: new Date().toISOString() });
+            cargarCategorias();
+            document.getElementById('productoForm').addEventListener('submit', manejarEnvio);
+        });
+    </script>
+</body>
+</html>

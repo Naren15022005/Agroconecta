@@ -1,9 +1,9 @@
 "use client";
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
-export default function ActivarPage() {
+function ActivarContent() {
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<'pending' | 'success' | 'error'>('pending');
   const [message, setMessage] = useState('Activando tu cuenta...');
@@ -44,5 +44,13 @@ export default function ActivarPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function ActivarPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-green-50 flex items-center justify-center"><div>Cargando...</div></div>}>
+      <ActivarContent />
+    </Suspense>
   );
 }
