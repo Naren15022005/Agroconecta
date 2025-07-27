@@ -1,3 +1,66 @@
+---
+
+## 📅 Resumen de avances y cambios – 27 de julio de 2025
+
+### Contexto
+Entre el 26 y 27 de julio de 2025 se trabajó intensamente en la mejora y profesionalización del formulario de publicación de productos para el marketplace AgroConecta, enfocado en la experiencia de usuario, robustez técnica y alineación con los estándares del proyecto.
+
+### Principales tareas realizadas
+- **Reestructuración total del formulario de publicación de productos**: Se eliminó el código anterior y se creó una nueva base limpia, siguiendo el estilo profesional del modal de vista previa.
+- **Organización visual y funcional**: Se agruparon los campos en bloques temáticos (datos principales, precio y stock, calidad y certificaciones, entrega y ubicación, información adicional, galería de imágenes), usando Tailwind CSS y componentes modernos.
+- **Mejoras en la UI/UX**:
+  - Bordes pastel y delgados, colores suaves, agrupación clara de campos.
+  - Certificaciones y métodos de entrega en formato grid, con botones visuales y selección múltiple.
+  - Header con título a la izquierda y botón de previsualización a la derecha.
+  - Espaciado, tamaño de fuente y alineación refinados para facilitar la lectura y uso.
+- **Gestión robusta del estado**:
+  - Uso de `useState` y handlers tipados para todos los campos.
+  - Lógica para carga, eliminación y previsualización de imágenes.
+  - Manejo de selección/deselección de certificaciones y métodos de entrega.
+- **Campos select dinámicos**:
+  - Traducción de opciones a español y adaptación a la agricultura colombiana.
+  - Implementación de carga dinámica de categorías y subcategorías desde la base de datos vía API (`/api/categorias` y `/api/subcategorias`).
+  - Filtrado de subcategorías según la categoría seleccionada.
+- **Reordenamiento de campos**: Los campos principales se ordenaron según la estructura de la migración de la base de datos (nombre, categoría, subcategoría, unidad).
+- **Validación y corrección de errores**:
+  - Solución de errores de sintaxis y compilación.
+  - Refactorización de handlers y lógica de estado para evitar duplicados y errores.
+
+- **CRUD completo de productos para agricultores**:
+  - Implementación de la página `mis-productos` con visualización, búsqueda, filtrado y eliminación de productos.
+  - Endpoints API creados: `/api/agricultor/productos` (GET productos por agricultor), `/api/productos/[id]` (DELETE producto específico).
+  - Modal de edición preparado y lógica de actualización en desarrollo.
+  - Interfaz moderna y profesional, con confirmación para eliminar y feedback visual.
+  - Refactorización del componente `ProductosCatalogo` para cargar productos reales desde la API y fallback a datos demo.
+  - Manejo de estados de carga y error en la interfaz.
+
+- **Funcionalidad de edición de productos**:
+  - Modal de edición implementado en la interfaz, permitiendo modificar los datos de productos existentes.
+  - Lógica de actualización pendiente de integración final con el backend.
+  - Estructura lista para editar nombre, descripción, precio, stock y demás campos relevantes.
+  - Validaciones y feedback visual en el modal de edición.
+
+### Resultados
+El formulario ahora es profesional, visualmente organizado, robusto y alineado con los estándares de AgroConecta.
+Los selects de categoría y subcategoría se llenan dinámicamente desde la base de datos y se filtran correctamente.
+El CRUD de productos para agricultores está operativo, con interfaz moderna y funcionalidad de edición en proceso de integración.
+La experiencia de usuario es clara y amigable, incluso para usuarios con poca experiencia técnica.
+El sistema está listo para validaciones finales y nuevas mejoras.
+
+### Pendientes y tareas no finalizadas (al 27/07/2025)
+- Finalizar la lógica de actualización/edición de productos en el backend y conectar el modal de edición con la API.
+- Implementar validaciones avanzadas en el formulario de publicación y edición (campos obligatorios, formatos, límites, etc.).
+- Agregar estados de carga y error en todos los formularios y modales.
+- Mejorar la gestión de imágenes: permitir edición, validación y compresión antes de guardar.
+- Integrar notificaciones en tiempo real para cambios de estado y nuevas acciones.
+- Completar el sistema de carrito de compras y pedidos multi-vendedor.
+- Desarrollar paneles de estadísticas y reportes para agricultores y admin.
+- Implementar la lógica de stock reservado y su descuento automático en compras.
+- Mejorar la experiencia de edición en el modal (feedback visual, confirmaciones, etc.).
+- Documentar flujos y reglas de negocio en el frontend y backend.
+ - Terminar la integración completa de los selects de categoría y subcategoría en el formulario, asegurando que siempre se llenen con datos actualizados de la base de datos y gestionando correctamente los estados de carga y error.
+
+---
 # AgroConecta – Estado del Proyecto
 
 ## Estado del Proyecto AgroConecta - Día 25 julio de 2025
@@ -294,7 +357,6 @@ Este flujo está implementado y probado en el backend y frontend.
   - Finalizar y probar todos los endpoints CRUD de cada módulo.
   - Mejorar validaciones y manejo de errores.
   - Implementar tests unitarios y de integración.
-- **Autenticación y autorización avanzada**
   - Middleware por rol y permisos granulares.
 - **Carga y gestión de imágenes**
   - Subida de imágenes para productos (Cloudinary, S3 o local).
@@ -302,18 +364,15 @@ Este flujo está implementado y probado en el backend y frontend.
 - **Notificaciones**
   - Notificaciones internas y por correo.
   - (Opcional) Notificaciones en tiempo real (websockets/Pusher).
-- **Paneles de usuario**
   - Panel de agricultor: gestión de productos, stock, pedidos.
   - Panel de comprador: historial de compras, seguimiento de pedidos.
   - Panel de admin: gestión de usuarios, productos, pedidos, reportes.
 - **Gestión avanzada de stock y reservas**
   - Lógica de stock reservado y disponible.
   - Alertas de stock bajo.
-- **Sistema de pagos**
   - Métodos: contraentrega, transferencia, integración futura con pasarelas.
   - Validación y registro de pagos.
 - **Sistema de reseñas y reputación**
-  - Calificaciones y comentarios visibles en frontend.
 - **Historial y reportes**
   - Historial de pedidos, compras y pagos para cada usuario.
   - Reportes y estadísticas para admin.
@@ -324,7 +383,6 @@ Este flujo está implementado y probado en el backend y frontend.
 - **Logística y rutas inteligentes**
   - Planificación de rutas, agrupación de pedidos, gestión de transportistas (si se decide implementar).
 - **Despliegue y producción**
-  - Variables de entorno seguras.
   - Deploy en Vercel, Railway, Render, etc.
   - Backups y monitoreo.
 
@@ -332,35 +390,22 @@ Este flujo está implementado y probado en el backend y frontend.
 
 ## 🔜 Próximos pasos sugeridos
 
-1. **Completar y probar todos los endpoints backend.**
-2. **Agregar validaciones, autenticación avanzada y tests.**
-3. **Desarrollar paneles frontend por rol e integrar con backend.**
 4. **Implementar carga de imágenes y notificaciones.**
 5. **Desplegar una versión de pruebas y validar el flujo completo.**
 6. **Iterar y agregar módulos avanzados según prioridades.**
 
----
 
 ## 📅 Sesión 24 Julio 2025 - Sistema de Sidebar y Mejoras UI
 
-### 🕐 13:15 - Problema reportado: Sidebar con overlay oscuro
 - **Issue**: Al abrir el sidebar, se ponía oscura la pantalla y el contenido no se desplazaba correctamente
 - **Requerimiento**: Sidebar push-style donde el contenido se acopla al sidebar sin overlay
 
-### 🕐 13:20 - Implementación de sidebar push-style
-- **Archivo modificado**: `src/components/NavMenu.tsx`
 - **Cambios realizados**:
   - Eliminado completamente el sistema de overlay oscuro
-  - Implementado layout flex-based para desplazamiento real del contenido
   - Sidebar fijo con ancho variable: `w-0` (cerrado) → `w-80` (abierto)
   - Contenido principal se desplaza con `ml-0` → `ml-80`
   - Transiciones suaves con `transition-all duration-300`
-
-### 🕐 13:25 - Actualización del layout principal
-- **Archivo modificado**: `src/app/agricultor/layout.tsx`
-- **Cambios realizados**:
   - Simplificado estructura para trabajar con nuevo sistema de sidebar
-  - NavMenu ahora acepta `children` como prop
   - Eliminado padding-top redundante
 
 ### 🕐 13:30 - ✅ Problema resuelto: Sidebar push-style funcional

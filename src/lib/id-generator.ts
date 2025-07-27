@@ -6,7 +6,7 @@ export class AgroConectaIdGenerator {
    * @param type - Tipo de entidad (USR, PRD, ORD, etc.)
    * @returns ID único como AGRC_USR_001A2B
    */
-  static generateId(type: 'USR' | 'PRD' | 'ORD' | 'CAT' | 'AGR' | 'CLI' | 'EMP' | 'ROL'): string {
+  static generateId(type: 'USR' | 'PRD' | 'ORD' | 'CAT' | 'AGR' | 'CLI' | 'EMP' | 'ROL' | 'SUB'): string {
     const timestamp = Date.now().toString(36).toUpperCase() // Base36 del timestamp
     const random = Math.random().toString(36).substring(2, 6).toUpperCase() // 4 chars random
     

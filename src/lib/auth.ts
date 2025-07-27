@@ -31,6 +31,9 @@ export const authOptions: NextAuthOptions = {
         const user = await prisma.user.findUnique({
           where: {
             correo: credentials.email
+          },
+          include: {
+            role: true
           }
         });
         logToFile('AUTH: user encontrado ' + JSON.stringify(user));
@@ -69,13 +72,20 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           email: user.correo,
           name: user.nombre,
-          role: user.rol,
+          role: user.role.name,
         };
       }
     })
   ],
   session: {
-    strategy: 'jwt'
+    strategy: 'jwt',
+    // Configurar duración de sesión más práctica
+    maxAge: 30 * 24 * 60 * 60, // 30 días (en segundos)
+    updateAge: 24 * 60 * 60,   // Actualizar cada 24 horas
+  },
+  jwt: {
+    // JWT expira en 30 días
+    maxAge: 30 * 24 * 60 * 60,
   },
   callbacks: {
     async jwt({ token, user }) {

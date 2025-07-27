@@ -103,8 +103,12 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Enviar email de bienvenida
-    await sendWelcomeEmail(user.correo, user.nombre, token);
+    // Enviar email de bienvenida (no fallar si hay error)
+    try {
+      await sendWelcomeEmail(user.correo, user.nombre, token);
+    } catch (emailError) {
+      console.log('Error enviando email (no crítico):', emailError);
+    }
 
     return NextResponse.json({
       message: 'Registro exitoso. Revisa tu correo para activar la cuenta. Una vez activada, serás redirigido automáticamente para iniciar sesión.',
