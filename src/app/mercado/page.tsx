@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import PedidosCrudGestion from '../../components/PedidosCrudGestion';
 import { useSession } from 'next-auth/react';
 
 interface Product {
@@ -79,6 +80,32 @@ export default function MercadoPage() {
     );
   }
 
+
+  // Simulación de pedidos recibidos y su gestión CRUD
+  const [pedidoEjemplo, setPedidoEjemplo] = useState({
+    id: "PED123456",
+    estado: "pendiente",
+    cliente: { nombre: "María Gómez" },
+    total: 45000,
+    fechaPedido: "2025-07-28T10:30:00Z",
+    productos: [
+      { nombre: "Banano", cantidad: 10, precioUnitario: 2500 },
+      { nombre: "Yuca", cantidad: 5, precioUnitario: 3000 }
+    ],
+    metodoPago: "contra_entrega"
+  });
+
+  // Simular aceptar/rechazar pedido
+  const handleAccionPedido = (accion: 'aceptar' | 'rechazar') => {
+    setPedidoEjemplo((prev) => ({
+      ...prev,
+      estado: accion === 'aceptar' ? 'confirmado' : 'cancelado',
+    }));
+  };
+
+  // Para el CRUD, el pedido solo aparece si no está cancelado
+  const pedidosCrud = pedidoEjemplo.estado !== 'cancelado' ? [pedidoEjemplo] : [];
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -99,6 +126,37 @@ export default function MercadoPage() {
             )}
           </div>
         </div>
+
+        {/* Ejemplo de pedido recibido para agricultor */}
+        {session && pedidoEjemplo.estado === 'pendiente' && (
+          <div className="mb-8">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Pedidos Recibidos (Ejemplo)</h2>
+            <div className="bg-white rounded-lg shadow p-4 flex flex-col sm:flex-row items-center justify-between border-l-4 border-green-600">
+              <div>
+                <div className="font-bold text-gray-900 mb-1">Pedido #{pedidoEjemplo.id.slice(-6)}</div>
+                <div className="text-sm text-gray-600 mb-1">Cliente: {pedidoEjemplo.cliente.nombre}</div>
+                <div className="text-xs text-gray-500 mb-1">Fecha: {new Date(pedidoEjemplo.fechaPedido).toLocaleString()}</div>
+                <div className="text-xs text-gray-500 mb-1">
+                  Productos: {pedidoEjemplo.productos.map(p => `${p.nombre} (${p.cantidad})`).join(', ')}
+                </div>
+                <div className="text-xs text-gray-500 mb-1">Pago: Contra entrega</div>
+                <div className="text-sm font-bold text-green-700">Total: ${pedidoEjemplo.total.toLocaleString()}</div>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-2 mt-4 sm:mt-0">
+                <button className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700" onClick={() => handleAccionPedido('aceptar')}>Aceptar</button>
+                <button className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600" onClick={() => handleAccionPedido('rechazar')}>Rechazar</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* CRUD de gestión de pedidos */}
+        {session && (
+          <div className="mb-12">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Gestión de Pedidos (CRUD)</h2>
+            <PedidosCrudGestion pedidos={pedidosCrud} onVerDetalle={() => alert('Detalle de pedido (simulado)')} />
+          </div>
+        )}
 
         {/* Grid de productos */}
         {productos.length === 0 ? (

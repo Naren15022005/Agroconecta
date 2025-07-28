@@ -1,6 +1,254 @@
 ---
 
-## 📅 Resumen de avances y cambios – 27 de julio de 2025
+## 📅 Resumen de avances y cambios – 28 de julio de 2025 
+
+### Contexto
+Durante la sesión del 28 de julio de 2025 se trabajó en la alineación total del formulario de publicación de productos con el schema de la base de datos, asegurando que todos los campos relevantes estuvieran presentes y correctamente gestionados tanto en la UI como en el backend.
+
+### Principales tareas realizadas
+- **Análisis y diagnóstico inicial**:
+  - Se revisó la migración y el schema de la tabla `products` en la base de datos, identificando todos los campos requeridos para la publicación de productos.
+  - Se comparó minuciosamente la estructura del formulario en `src/app/agricultor/publicar/page.tsx` con la definición de la base de datos, detectando discrepancias y campos ausentes.
+- **Identificación de campos faltantes**:
+  - Se detectó que el campo `stock reservado` (`reservedStock`) existía en la base de datos pero no estaba implementado en el formulario ni en el payload enviado al backend.
+  - Se revisaron otros campos para asegurar que no hubiera más omisiones.
+- **Implementación y ajuste del formulario**:
+  - Se agregó el campo `reservedStock` al tipo `FormDataType` y al estado inicial del formulario, asegurando su gestión desde el frontend.
+  - Se añadió el input correspondiente en el bloque "Precio y Stock" de la UI, junto a stock mínimo y dimensiones, manteniendo la coherencia visual y la experiencia de usuario.
+  - Se actualizó el payload enviado al backend para incluir el valor de `reservedStock`, garantizando que la información llegue correctamente a la API y la base de datos.
+  - Se revisó y ajustó la lógica de manejo de estado y validación para contemplar el nuevo campo.
+- **Pruebas y validaciones**:
+  - Se realizaron pruebas manuales de publicación de productos, verificando que el campo `stock reservado` se almacene y recupere correctamente.
+  - Se comprobó que la UI no presentara errores y que la experiencia de usuario fuera fluida y clara.
+  - Se validó que el backend reciba y procese correctamente el nuevo campo, sin romper la lógica existente.
+- **Documentación y registro del proceso**:
+  - Se documentaron todos los pasos, decisiones y validaciones realizadas durante la jornada.
+  - Se actualizó el historial de cambios y el README de procesos para dejar constancia detallada del trabajo realizado.
+  - Se dejó asentado el procedimiento para futuras sincronizaciones entre frontend y backend.
+
+### Resultados
+- El formulario de publicación de productos ahora está 100% alineado con el schema de la base de datos, incluyendo el manejo de stock reservado y todos los campos relevantes.
+- Se mejora la robustez, escalabilidad y experiencia de usuario para agricultores y administradores.
+- El proceso seguido sirve como referencia detallada para futuras sincronizaciones y mejoras en la plataforma.
+
+### Pendientes y tareas no finalizadas (al 28/07/2025)
+- Finalizar la lógica de actualización/edición de productos en el backend y conectar el modal de edición con la API.
+- Implementar validaciones avanzadas en el formulario de publicación y edición (campos obligatorios, formatos, límites, etc.).
+- Agregar estados de carga y error en todos los formularios y modales.
+- Mejorar la gestión de imágenes: permitir edición, validación y compresión antes de guardar.
+- Integrar notificaciones en tiempo real para cambios de estado y nuevas acciones.
+- Completar el sistema de carrito de compras y pedidos multi-vendedor.
+- Desarrollar paneles de estadísticas y reportes para agricultores y admin.
+- Implementar la lógica de stock reservado y su descuento automático en compras.
+- Mejorar la experiencia de edición en el modal (feedback visual, confirmaciones, etc.).
+- Documentar flujos y reglas de negocio en el frontend y backend.
+- Terminar la integración completa de los selects de categoría y subcategoría en el formulario, asegurando que siempre se llenen con datos actualizados y gestionando correctamente los estados de carga y error.
+- Implementar middleware de autorización por roles y actualizar NextAuth.
+- Desarrollar dashboards específicos por tipo de usuario.
+- Mejorar la lógica de reserva de stock y flujo de estados de pedidos.
+- Actualizar endpoints y validaciones para los nuevos schemas.
+- Implementar sistema de notificaciones internas y por correo.
+- Mejorar el sistema de upload de imágenes (no solo URLs).
+- Implementar el sistema de pedidos end-to-end y el panel de estadísticas.
+- Desplegar una versión de pruebas y validar el flujo completo.
+
+---
+
+## 📅 Resumen de avances y cambios – Segunda parte del 28 de julio de 2025
+
+### Detalle completo de la optimización visual y funcional del mercado
+
+Durante esta sesión se trabajó de forma iterativa y con validación visual en la mejora de la experiencia de usuario y presentación del catálogo de productos (mercado), abordando los siguientes puntos:
+
+#### 1. Visualización de productos reales y robustez de la lógica
+- Se garantizó que el mercado siempre muestre productos reales agregados por el agricultor, integrando el fetch desde la API real y manteniendo un fallback automático a datos demo en caso de error o desconexión.
+- Se validó que la lógica de carga sea robusta y que nunca se muestre el mercado vacío por fallos de backend.
+
+#### 2. Iteraciones sobre la visualización de la imagen en la tarjeta
+- Se detectó que la imagen del producto no se mostraba correctamente en la tarjeta (por rutas relativas, URLs o ausencia de imagen).
+- Se implementó renderizado condicional: si hay URL absoluta o relativa válida, se muestra la imagen; si no, se muestra un emoji representativo.
+- Se corrigió la lógica para que las imágenes relativas se resuelvan correctamente usando el origen del sitio.
+- Se ajustó el tamaño y aspecto de la imagen en la vista grid para que sea cuadrada, centrada y con buen tamaño, usando Tailwind y aspect-ratio.
+
+#### 3. Mejoras visuales y compactación de tarjetas (grid)
+- Se rediseñó la tarjeta de producto en grid para que sea más compacta, elegante y profesional:
+  - Se eliminaron márgenes y anchos máximos innecesarios.
+  - Se ajustó el número de columnas (`lg:grid-cols-4`) y el gap entre tarjetas (`gap-3 md:gap-4 xl:gap-5`) para aprovechar mejor el espacio y mostrar más productos por fila.
+  - Se mantuvo la sombra, bordes redondeados y degradados suaves para un look moderno.
+
+#### 4. Iteraciones sobre la vista lista (list view)
+- Se identificó que la imagen en la vista lista se veía pequeña, flotando o desalineada.
+- Se realizaron varias pruebas y ajustes:
+  - Se aumentó el ancho del contenedor de la imagen (`md:w-44 min-w-[140px] max-w-[180px]`) y el tamaño mínimo (`min-h-[120px] min-w-[120px]`).
+  - Se mantuvo el aspecto cuadrado y el border-radius solo a la izquierda para integrarse con el diseño de la tarjeta.
+  - Se validó visualmente que la imagen ocupe todo el lateral, se vea grande y alineada con el contenido.
+- Se probó con imágenes reales y emojis para asegurar consistencia en todos los casos.
+
+#### 5. Feedback visual y pruebas de usuario
+- Cada cambio fue validado con capturas de pantalla y feedback inmediato, afinando detalles de tamaño, alineación y proporción según la percepción visual.
+- Se priorizó que la experiencia fuera profesional y agradable tanto en grid como en lista, pensando en usuarios con poca experiencia técnica.
+
+#### 6. Mantenimiento de la lógica de favoritos y acciones
+- Se mantuvo la funcionalidad de favoritos (corazón) en ambas vistas, con animaciones y feedback visual.
+- Se validó que los botones de acción y la información principal (nombre, precio, agricultor, ubicación, fecha) se mantuvieran claros y accesibles.
+
+#### 7. Documentación y registro del proceso
+- Se documentó detalladamente cada iteración, decisión y validación en este archivo, dejando constancia de los problemas detectados, soluciones aplicadas y resultados obtenidos.
+
+
+#### 8. Resultado final
+- El catálogo de productos ahora es más compacto, visualmente atractivo y profesional, tanto en grid como en lista.
+- Las imágenes de los productos se ven grandes, bien alineadas y el espacio de la pantalla se aprovecha mucho mejor.
+- Se mantiene la robustez de la lógica de carga de productos (API real + fallback demo) y la experiencia de usuario es más agradable y confiable.
+- **Nueva lógica de compra:** Si el usuario autenticado es agricultor y dueño del producto, el botón de "Comprar Ahora" no se muestra, quedando prohibida la compra de productos propios. Esto refuerza la regla de negocio y mejora la claridad visual para el agricultor.
+
+---
+
+## 📅 Resumen de avances y cambios – 28 de julio de 2025
+
+### Contexto
+Durante la sesión del 28 de julio de 2025 se trabajó en la alineación total del formulario de publicación de productos con el schema de la base de datos, asegurando que todos los campos relevantes estuvieran presentes y correctamente gestionados tanto en la UI como en el backend.
+
+### Principales tareas realizadas
+- **Análisis y diagnóstico inicial**:
+  - Se revisó la migración y el schema de la tabla `products` en la base de datos, identificando todos los campos requeridos para la publicación de productos.
+  - Se comparó minuciosamente la estructura del formulario en `src/app/agricultor/publicar/page.tsx` con la definición de la base de datos, detectando discrepancias y campos ausentes.
+- **Identificación de campos faltantes**:
+  - Se detectó que el campo `stock reservado` (`reservedStock`) existía en la base de datos pero no estaba implementado en el formulario ni en el payload enviado al backend.
+  - Se revisaron otros campos para asegurar que no hubiera más omisiones.
+- **Implementación y ajuste del formulario**:
+  - Se agregó el campo `reservedStock` al tipo `FormDataType` y al estado inicial del formulario, asegurando su gestión desde el frontend.
+  - Se añadió el input correspondiente en el bloque "Precio y Stock" de la UI, junto a stock mínimo y dimensiones, manteniendo la coherencia visual y la experiencia de usuario.
+  - Se actualizó el payload enviado al backend para incluir el valor de `reservedStock`, garantizando que la información llegue correctamente a la API y la base de datos.
+  - Se revisó y ajustó la lógica de manejo de estado y validación para contemplar el nuevo campo.
+- **Pruebas y validaciones**:
+  - Se realizaron pruebas manuales de publicación de productos, verificando que el campo `stock reservado` se almacene y recupere correctamente.
+  - Se comprobó que la UI no presentara errores y que la experiencia de usuario fuera fluida y clara.
+  - Se validó que el backend reciba y procese correctamente el nuevo campo, sin romper la lógica existente.
+- **Documentación y registro del proceso**:
+  - Se documentaron todos los pasos, decisiones y validaciones realizadas durante la jornada.
+  - Se actualizó el historial de cambios y el README de procesos para dejar constancia detallada del trabajo realizado.
+  - Se dejó asentado el procedimiento para futuras sincronizaciones entre frontend y backend.
+
+### Resultados
+- El formulario de publicación de productos ahora está 100% alineado con el schema de la base de datos, incluyendo el manejo de stock reservado y todos los campos relevantes.
+- Se mejora la robustez, escalabilidad y experiencia de usuario para agricultores y administradores.
+- El proceso seguido sirve como referencia detallada para futuras sincronizaciones y mejoras en la plataforma.
+
+### Pendientes y tareas no finalizadas (al 28/07/2025)
+- Finalizar la lógica de actualización/edición de productos en el backend y conectar el modal de edición con la API.
+- Implementar validaciones avanzadas en el formulario de publicación y edición (campos obligatorios, formatos, límites, etc.).
+- Agregar estados de carga y error en todos los formularios y modales.
+- Mejorar la gestión de imágenes: permitir edición, validación y compresión antes de guardar.
+- Integrar notificaciones en tiempo real para cambios de estado y nuevas acciones.
+- Completar el sistema de carrito de compras y pedidos multi-vendedor.
+- Desarrollar paneles de estadísticas y reportes para agricultores y admin.
+- Implementar la lógica de stock reservado y su descuento automático en compras.
+- Mejorar la experiencia de edición en el modal (feedback visual, confirmaciones, etc.).
+- Documentar flujos y reglas de negocio en el frontend y backend.
+- Terminar la integración completa de los selects de categoría y subcategoría en el formulario, asegurando que siempre se llenen con datos actualizados y gestionando correctamente los estados de carga y error.
+- Implementar middleware de autorización por roles y actualizar NextAuth.
+- Desarrollar dashboards específicos por tipo de usuario.
+- Mejorar la lógica de reserva de stock y flujo de estados de pedidos.
+- Actualizar endpoints y validaciones para los nuevos schemas.
+- Implementar sistema de notificaciones internas y por correo.
+- Mejorar el sistema de upload de imágenes (no solo URLs).
+- Implementar el sistema de pedidos end-to-end y el panel de estadísticas.
+- Desplegar una versión de pruebas y validar el flujo completo.
+
+---
+
+## 📅 Resumen de avances y cambios – Segunda parte del 28 de julio de 2025
+
+### Detalle completo de la optimización visual y funcional del mercado
+
+Durante esta sesión se trabajó de forma iterativa y con validación visual en la mejora de la experiencia de usuario y presentación del catálogo de productos (mercado), abordando los siguientes puntos:
+
+#### 1. Visualización de productos reales y robustez de la lógica
+
+## 📅 Sesión 24 Julio 2025 - Sistema de Sidebar y Mejoras UI
+
+- **Issue**: Al abrir el sidebar, se ponía oscura la pantalla y el contenido no se desplazaba correctamente
+- **Requerimiento**: Sidebar push-style donde el contenido se acopla al sidebar sin overlay
+
+- **Cambios realizados**:
+  - Eliminado completamente el sistema de overlay oscuro
+  - Sidebar fijo con ancho variable: `w-0` (cerrado) → `w-80` (abierto)
+  - Contenido principal se desplaza con `ml-0` → `ml-80`
+  - Transiciones suaves con `transition-all duration-300`
+  - Simplificado estructura para trabajar con nuevo sistema de sidebar
+  - Eliminado padding-top redundante
+
+### 🕐 13:30 - ✅ Problema resuelto: Sidebar push-style funcional
+- **Resultado**: Sidebar que empuja el contenido hacia la derecha sin overlay oscuro
+- **Características implementadas**:
+  - Topbar fijo con toggle button y logo
+  - Sidebar con información del usuario y navegación completa
+  - Botón de logout funcional con redirección
+  - Responsive design mantenido
+  - Iconos Lucide React consistentes
+
+### 🕐 13:35 - Mejoras en página de mercado
+- **Archivo modificado**: `src/app/agricultor/mercado/page.tsx`
+- **Problema**: Estadísticas innecesarias que duplicaban funcionalidad de vista específica
+- **Solución implementada**:
+  - Eliminadas cards de estadísticas redundantes
+  - Creado header mejorado con card contenedor
+  - Añadidas opciones de vista (Grid/List) con iconos Lucide
+  - Mejor jerarquía visual y espaciado optimizado
+
+### 🕐 13:45 - Sistema de vistas funcional (Grid/List)
+- **Archivo modificado**: `src/app/agricultor/mercado/page.tsx`
+- **Funcionalidades añadidas**:
+  - Estado `viewMode` con useState para controlar vista
+  - Iconos `Grid3X3` y `List` de Lucide React
+  - Toggle buttons con estados visuales activo/inactivo
+  - Pasaje de prop `viewMode` al componente ProductosCatalogo
+
+### 🕐 13:55 - Implementación completa de vistas en catálogo
+- **Archivo modificado**: `src/components/ProductosCatalogo.tsx`
+- **Cambios realizados**:
+  - Componente acepta prop `viewMode?: 'grid' | 'list'`
+  - **Vista Grid**: Layout original con cards verticales (1-2-3 columnas responsive)
+  - **Vista List**: Layout horizontal con imagen pequeña a la izquierda
+  - Información del agricultor inline en vista lista
+  - Responsive design para ambas vistas
+  - Transiciones suaves entre cambios de vista
+
+### 🕐 14:00 - Resultados finales implementados
+**✅ Sidebar push-style completamente funcional**
+- Sin overlay oscuro
+- Contenido se desplaza correctamente
+- Sidebar con altura completa y mejor anchura
+- Integración perfecta con topbar
+
+**✅ Sistema de vistas Grid/List operativo**
+- Toggle funcional entre vistas
+- Vista Grid: Cards tradicionales optimizadas
+- Vista List: Layout horizontal compacto
+- Responsive en ambos modos
+- UX consistente y profesional
+
+**✅ UI modernizada y limpia**
+- Eliminadas estadísticas redundantes del mercado
+- Header mejorado con card contenedor
+- Mejor uso del espacio disponible
+- Diseño más profesional y enfocado
+
+### 📋 Estado actual del sistema
+- Autenticación NextAuth completamente funcional
+- Marketplace con 8 productos demo en 6 categorías
+- Sistema de sidebar push-style implementado
+- Vistas Grid/List operativas
+- UI moderna y profesional
+- Responsive design completo
+- Todos los componentes integrados correctamente
+
+---
+
+---
+
+## 📅 Resumen de avances y cambios  – 26/27 de julio de 2025
 
 ### Contexto
 Entre el 26 y 27 de julio de 2025 se trabajó intensamente en la mejora y profesionalización del formulario de publicación de productos para el marketplace AgroConecta, enfocado en la experiencia de usuario, robustez técnica y alineación con los estándares del proyecto.
@@ -47,6 +295,37 @@ El CRUD de productos para agricultores está operativo, con interfaz moderna y f
 La experiencia de usuario es clara y amigable, incluso para usuarios con poca experiencia técnica.
 El sistema está listo para validaciones finales y nuevas mejoras.
 
+---
+
+## 📅 Resumen de avances y cambios  – 26/27 de julio de 2025
+
+### Contexto
+Entre el 26 y 27 de julio de 2025 se trabajó intensamente en la mejora y profesionalización del formulario de publicación de productos para el marketplace AgroConecta, enfocado en la experiencia de usuario, robustez técnica y alineación con los estándares del proyecto.
+
+### Principales tareas realizadas
+- **Reestructuración total del formulario de publicación de productos**: Se eliminó el código anterior y se creó una nueva base limpia, siguiendo el estilo profesional del modal de vista previa.
+- **Organización visual y funcional**: Se agruparon los campos en bloques temáticos (datos principales, precio y stock, calidad y certificaciones, entrega y ubicación, información adicional, galería de imágenes), usando Tailwind CSS y componentes modernos.
+- **Mejoras en la UI/UX**:
+  - Bordes pastel y delgados, colores suaves, agrupación clara de campos.
+  - Espaciado, tamaño de fuente y alineación refinados para facilitar la lectura y uso.
+- **Gestión robusta del estado**:
+  - Uso de `useState` y handlers tipados para todos los campos.
+  - Manejo de selección/deselección de certificaciones y métodos de entrega.
+- **Campos select dinámicos**:
+  - Traducción de opciones a español y adaptación a la agricultura colombiana.
+  - Filtrado de subcategorías según la categoría seleccionada.
+- **Reordenamiento de campos**: Los campos principales se ordenaron según la estructura de la migración de la base de datos (nombre, categoría, subcategoría, unidad).
+- **Validación y corrección de errores**:
+  - Solución de errores de sintaxis y compilación.
+  - Refactorización de handlers y lógica de estado para evitar duplicados y errores.
+
+### Resultados
+El formulario ahora es profesional, visualmente organizado, robusto y alineado con los estándares de AgroConecta.
+Los selects de categoría y subcategoría se llenan dinámicamente desde la base de datos y se filtran correctamente.
+El CRUD de productos para agricultores está operativo, con interfaz moderna y funcionalidad de edición en proceso de integración.
+La experiencia de usuario es clara y amigable, incluso para usuarios con poca experiencia técnica.
+El sistema está listo para validaciones finales y nuevas mejoras.
+
 ### Pendientes y tareas no finalizadas (al 27/07/2025)
 - Finalizar la lógica de actualización/edición de productos en el backend y conectar el modal de edición con la API.
 - Implementar validaciones avanzadas en el formulario de publicación y edición (campos obligatorios, formatos, límites, etc.).
@@ -58,10 +337,97 @@ El sistema está listo para validaciones finales y nuevas mejoras.
 - Implementar la lógica de stock reservado y su descuento automático en compras.
 - Mejorar la experiencia de edición en el modal (feedback visual, confirmaciones, etc.).
 - Documentar flujos y reglas de negocio en el frontend y backend.
- - Terminar la integración completa de los selects de categoría y subcategoría en el formulario, asegurando que siempre se llenen con datos actualizados de la base de datos y gestionando correctamente los estados de carga y error.
+- Terminar la integración completa de los selects de categoría y subcategoría en el formulario, asegurando que siempre se llenen con datos actualizados de la base de datos y gestionando correctamente los estados de carga y error.
 
 ---
-# AgroConecta – Estado del Proyecto
+
+
+
+## 📅 Sesión 25 Julio 2025 – Decisiones de Profundidad Lógica y Tareas
+
+### Decisiones y respuestas a puntos clave de lógica
+
+1. **Gestión de stock y unidades**
+   - El stock se descuenta automáticamente al confirmar cada compra.
+   - Se puede configurar la unidad por producto (kg, bulto, docena, etc.).
+   - El stock reservado se maneja para evitar sobreventa.
+
+2. **Validación de campesinos**
+   - El registro es libre, pero requiere activación por email.
+   - Se planea agregar verificación de identidad (documento/foto) en el futuro.
+
+3. **Fotos e imágenes de productos**
+   - Se permiten de 1 a 5 fotos por producto.
+   - Se validan formato (JPG/PNG) y peso (<5MB).
+   - Se planea compresión automática antes de guardar.
+
+4. **Métodos de pago**
+   - Actualmente: contraentrega y transferencia (Nequi/Daviplata/banco).
+   - Futuro: integración con pasarelas (Wompi, PayU, etc.).
+
+5. **Notificaciones**
+   - Agricultores reciben alerta al recibir pedido.
+   - Compradores son notificados en cada cambio de estado del pedido.
+   - Notificaciones internas y por correo.
+
+6. **Estados del pedido**
+   - Estados: pendiente, confirmado, en preparación, en camino/en punto, entregado, cancelado, no entregado.
+   - Solo el agricultor y admin pueden cambiar estados críticos; el cliente puede cancelar si está pendiente.
+
+7. **Carrito compartido y agrupado**
+   - Cada agricultor recibe notificación individual aunque el pedido sea múltiple.
+   - Se pueden tener múltiples pedidos en curso.
+
+8. **Entrega y logística**
+   - Entrega directa por agricultor, punto de encuentro o repartidor aliado.
+   - El cliente elige método según disponibilidad.
+
+9. **Sistema de reseñas y reputación**
+   - Los compradores pueden calificar productos y agricultores.
+   - La reputación afecta la visibilidad en el marketplace.
+
+10. **Paneles por rol (UI/UX)**
+   - Agricultor: gestión de productos, pedidos, ventas, estadísticas.
+   - Comprador: historial de compras, seguimiento de pedidos.
+   - Admin: gestión total, reportes, configuración.
+
+---
+
+### Tareas técnicas derivadas para hoy
+
+- [x] **Reestructurar tabla `users` y crear tablas específicas por rol**
+  - ✅ Tabla `users` optimizada con campos: id, nombre, correo, contraseña, rol
+  - ✅ Tabla `agricultores` con: user_id (FK), telefono, ubicacion, descripcion, foto, verificado
+  - ✅ Tabla `clientes` con: user_id (FK), telefono, direccion, preferencias
+  - ✅ Tabla `empresas` con: user_id (FK), razon_social, nit, telefono, direccion, sector, descripcion, logo, verificada
+  - ✅ Tabla `products` actualizada con `agricultorId` y campo `reservedStock` para stock reservado
+  - ✅ Tabla `orders` mejorada con campos de entrega y métodos de pago
+  - ✅ Relaciones FK correctamente establecidas entre todas las tablas
+
+- [ ] Implementar lógica de stock reservado y descontar stock automáticamente.
+- [ ] Validar y comprimir imágenes al subir productos.
+- [ ] Mejorar notificaciones internas y por correo (agricultor y comprador).
+- [ ] Revisar y asegurar transiciones de estados de pedido según reglas.
+- [ ] Probar agrupación de pedidos y notificaciones por agricultor.
+- [ ] Documentar en frontend los paneles diferenciados por rol.
+- [ ] Dejar sentada la base para integración futura de pasarelas de pago.
+
+---
+
+## ✅ SESIÓN DEL 25 DE JULIO DE 2025 - IMPLEMENTACIÓN COMPLETA DE CRUD Y MARKETPLACE
+
+### 📋 **RESUMEN EJECUTIVO DE LA SESIÓN**
+
+**Duración**: Sesión completa de desarrollo
+**Objetivo Principal**: Implementar funcionalidad completa de gestión de productos para agricultores
+**Estado Final**: ✅ **EXITOSO** - Sistema funcional completo con CRUD de productos y marketplace operativo
+
+---
+
+### 🎯 **PROBLEMAS RESUELTOS HOY**
+
+#### **1. ✅ Problemas de Conexión a Base de Datos**
+...existing code...
 
 ## Estado del Proyecto AgroConecta - Día 25 julio de 2025
 
@@ -731,3 +1097,450 @@ src/
 ---
 
 **✅ SESIÓN EXITOSA - SISTEMA FUNCIONAL COMPLETO PARA GESTIÓN DE PRODUCTOS**
+
+---
+
+## 📅 Resumen de avances y cambios – 28 de julio de 2025 
+
+### Contexto
+Durante la sesión del 28 de julio de 2025 se trabajó en la alineación total del formulario de publicación de productos con el schema de la base de datos, asegurando que todos los campos relevantes estuvieran presentes y correctamente gestionados tanto en la UI como en el backend.
+
+### Principales tareas realizadas
+- **Análisis y diagnóstico inicial**:
+  - Se revisó la migración y el schema de la tabla `products` en la base de datos, identificando todos los campos requeridos para la publicación de productos.
+  - Se comparó minuciosamente la estructura del formulario en `src/app/agricultor/publicar/page.tsx` con la definición de la base de datos, detectando discrepancias y campos ausentes.
+- **Identificación de campos faltantes**:
+  - Se detectó que el campo `stock reservado` (`reservedStock`) existía en la base de datos pero no estaba implementado en el formulario ni en el payload enviado al backend.
+  - Se revisaron otros campos para asegurar que no hubiera más omisiones.
+- **Implementación y ajuste del formulario**:
+  - Se agregó el campo `reservedStock` al tipo `FormDataType` y al estado inicial del formulario, asegurando su gestión desde el frontend.
+  - Se añadió el input correspondiente en el bloque "Precio y Stock" de la UI, junto a stock mínimo y dimensiones, manteniendo la coherencia visual y la experiencia de usuario.
+  - Se actualizó el payload enviado al backend para incluir el valor de `reservedStock`, garantizando que la información llegue correctamente a la API y la base de datos.
+  - Se revisó y ajustó la lógica de manejo de estado y validación para contemplar el nuevo campo.
+- **Pruebas y validaciones**:
+  - Se realizaron pruebas manuales de publicación de productos, verificando que el campo `stock reservado` se almacene y recupere correctamente.
+  - Se comprobó que la UI no presentara errores y que la experiencia de usuario fuera fluida y clara.
+  - Se validó que el backend reciba y procese correctamente el nuevo campo, sin romper la lógica existente.
+- **Documentación y registro del proceso**:
+  - Se documentaron todos los pasos, decisiones y validaciones realizadas durante la jornada.
+  - Se actualizó el historial de cambios y el README de procesos para dejar constancia detallada del trabajo realizado.
+  - Se dejó asentado el procedimiento para futuras sincronizaciones entre frontend y backend.
+
+### Resultados
+- El formulario de publicación de productos ahora está 100% alineado con el schema de la base de datos, incluyendo el manejo de stock reservado y todos los campos relevantes.
+- Se mejora la robustez, escalabilidad y experiencia de usuario para agricultores y administradores.
+- El proceso seguido sirve como referencia detallada para futuras sincronizaciones y mejoras en la plataforma.
+
+### Pendientes y tareas no finalizadas (al 28/07/2025)
+- Finalizar la lógica de actualización/edición de productos en el backend y conectar el modal de edición con la API.
+- Implementar validaciones avanzadas en el formulario de publicación y edición (campos obligatorios, formatos, límites, etc.).
+- Agregar estados de carga y error en todos los formularios y modales.
+- Mejorar la gestión de imágenes: permitir edición, validación y compresión antes de guardar.
+- Integrar notificaciones en tiempo real para cambios de estado y nuevas acciones.
+- Completar el sistema de carrito de compras y pedidos multi-vendedor.
+- Desarrollar paneles de estadísticas y reportes para agricultores y admin.
+- Implementar la lógica de stock reservado y su descuento automático en compras.
+- Mejorar la experiencia de edición en el modal (feedback visual, confirmaciones, etc.).
+- Documentar flujos y reglas de negocio en el frontend y backend.
+- Terminar la integración completa de los selects de categoría y subcategoría en el formulario, asegurando que siempre se llenen con datos actualizados y gestionando correctamente los estados de carga y error.
+- Implementar middleware de autorización por roles y actualizar NextAuth.
+- Desarrollar dashboards específicos por tipo de usuario.
+- Mejorar la lógica de reserva de stock y flujo de estados de pedidos.
+- Actualizar endpoints y validaciones para los nuevos schemas.
+- Implementar sistema de notificaciones internas y por correo.
+- Mejorar el sistema de upload de imágenes (no solo URLs).
+- Implementar el sistema de pedidos end-to-end y el panel de estadísticas.
+- Desplegar una versión de pruebas y validar el flujo completo.
+
+---
+
+## 📅 Resumen de avances y cambios – Segunda parte del 28 de julio de 2025
+
+### Detalle completo de la optimización visual y funcional del mercado
+
+Durante esta sesión se trabajó de forma iterativa y con validación visual en la mejora de la experiencia de usuario y presentación del catálogo de productos (mercado), abordando los siguientes puntos:
+
+#### 1. Visualización de productos reales y robustez de la lógica
+- Se garantizó que el mercado siempre muestre productos reales agregados por el agricultor, integrando el fetch desde la API real y manteniendo un fallback automático a datos demo en caso de error o desconexión.
+- Se validó que la lógica de carga sea robusta y que nunca se muestre el mercado vacío por fallos de backend.
+
+#### 2. Iteraciones sobre la visualización de la imagen en la tarjeta
+- Se detectó que la imagen del producto no se mostraba correctamente en la tarjeta (por rutas relativas, URLs o ausencia de imagen).
+- Se implementó renderizado condicional: si hay URL absoluta o relativa válida, se muestra la imagen; si no, se muestra un emoji representativo.
+- Se corrigió la lógica para que las imágenes relativas se resuelvan correctamente usando el origen del sitio.
+- Se ajustó el tamaño y aspecto de la imagen en la vista grid para que sea cuadrada, centrada y con buen tamaño, usando Tailwind y aspect-ratio.
+
+#### 3. Mejoras visuales y compactación de tarjetas (grid)
+- Se rediseñó la tarjeta de producto en grid para que sea más compacta, elegante y profesional:
+  - Se eliminaron márgenes y anchos máximos innecesarios.
+  - Se ajustó el número de columnas (`lg:grid-cols-4`) y el gap entre tarjetas (`gap-3 md:gap-4 xl:gap-5`) para aprovechar mejor el espacio y mostrar más productos por fila.
+  - Se mantuvo la sombra, bordes redondeados y degradados suaves para un look moderno.
+
+#### 4. Iteraciones sobre la vista lista (list view)
+- Se identificó que la imagen en la vista lista se veía pequeña, flotando o desalineada.
+- Se realizaron varias pruebas y ajustes:
+  - Se aumentó el ancho del contenedor de la imagen (`md:w-44 min-w-[140px] max-w-[180px]`) y el tamaño mínimo (`min-h-[120px] min-w-[120px]`).
+  - Se mantuvo el aspecto cuadrado y el border-radius solo a la izquierda para integrarse con el diseño de la tarjeta.
+  - Se validó visualmente que la imagen ocupe todo el lateral, se vea grande y alineada con el contenido.
+- Se probó con imágenes reales y emojis para asegurar consistencia en todos los casos.
+
+#### 5. Feedback visual y pruebas de usuario
+- Cada cambio fue validado con capturas de pantalla y feedback inmediato, afinando detalles de tamaño, alineación y proporción según la percepción visual.
+- Se priorizó que la experiencia fuera profesional y agradable tanto en grid como en lista, pensando en usuarios con poca experiencia técnica.
+
+#### 6. Mantenimiento de la lógica de favoritos y acciones
+- Se mantuvo la funcionalidad de favoritos (corazón) en ambas vistas, con animaciones y feedback visual.
+- Se validó que los botones de acción y la información principal (nombre, precio, agricultor, ubicación, fecha) se mantuvieran claros y accesibles.
+
+#### 7. Documentación y registro del proceso
+- Se documentó detalladamente cada iteración, decisión y validación en este archivo, dejando constancia de los problemas detectados, soluciones aplicadas y resultados obtenidos.
+
+
+#### 8. Resultado final
+- El catálogo de productos ahora es más compacto, visualmente atractivo y profesional, tanto en grid como en lista.
+- Las imágenes de los productos se ven grandes, bien alineadas y el espacio de la pantalla se aprovecha mucho mejor.
+- Se mantiene la robustez de la lógica de carga de productos (API real + fallback demo) y la experiencia de usuario es más agradable y confiable.
+- **Nueva lógica de compra:** Si el usuario autenticado es agricultor y dueño del producto, el botón de "Comprar Ahora" no se muestra, quedando prohibida la compra de productos propios. Esto refuerza la regla de negocio y mejora la claridad visual para el agricultor.
+
+---
+
+### 9. Simulación y validación visual del flujo de pedidos recibidos y gestión CRUD para agricultores
+
+- Se implementó una lógica de simulación para la vista de "Mis pedidos" del agricultor (`/agricultor/pedidos`), permitiendo probar el flujo completo de gestión de pedidos aunque no existan pedidos reales en la base de datos.
+- Si el backend no retorna pedidos, se inyecta automáticamente un pedido de ejemplo en la UI, con datos realistas (cliente, productos, total, fecha, etc.).
+- El pedido de ejemplo aparece en la pestaña "Pedidos Recibidos" como una tarjeta horizontal, con botones de "Aceptar" y "No aceptar" (rechazar), exactamente igual a un pedido real.
+- Al aceptar el pedido de ejemplo:
+  - Desaparece de la sección de recibidos.
+  - Aparece en la tabla CRUD de gestión de pedidos, con estado "confirmado".
+- Al rechazar el pedido de ejemplo:
+  - Desaparece completamente de ambas vistas, simulando la lógica real de rechazo/cancelación.
+- El CRUD de gestión de pedidos siempre muestra la tabla, aunque esté vacía, y refleja el estado actualizado del pedido de ejemplo.
+- Esta simulación permite validar la experiencia visual, los flujos de cambio de estado y la interacción de botones, sin necesidad de datos reales ni afectar la base de datos.
+- Cuando existan pedidos reales, la simulación desaparece automáticamente y se muestran los datos reales del backend.
+- Se documentó el flujo y la lógica implementada, asegurando que el sistema es demostrable y testeable en cualquier entorno, incluso sin datos productivos.
+
+### Pendientes para la próxima sesión (al cierre del 28/07/2025)
+
+- Implementar la lógica real de carga de pedidos desde el backend y conectar la UI de "Mis pedidos" del agricultor a la API real.
+- Desarrollar el flujo completo de cambio de estado de pedidos (aceptar, rechazar, preparar, entregar, cancelar) con persistencia en base de datos.
+- Integrar notificaciones en tiempo real para agricultores y compradores al recibir o actualizar pedidos.
+- Mejorar la tabla CRUD de pedidos: agregar filtros por estado, búsqueda y paginación.
+- Validar la experiencia con pedidos reales y ajustar la simulación para que solo se active en entornos de desarrollo o sin datos.
+- Documentar el flujo de negocio y reglas de cambio de estado de pedidos en el README_LOGICA.md.
+- Probar la integración de la gestión de stock reservado al aceptar/cancelar pedidos.
+- Mejorar la experiencia visual y de feedback en la UI de gestión de pedidos (modales, confirmaciones, loading states).
+- Revisar y asegurar la seguridad y autorización en los endpoints de pedidos (solo el agricultor dueño puede gestionar sus pedidos).
+- Dejar sentada la base para la integración futura de métodos de pago y logística avanzada en el flujo de pedidos.
+
+## 📅 Resumen de avances y cambios  – 26/27 de julio de 2025
+
+### Contexto
+Entre el 26 y 27 de julio de 2025 se trabajó intensamente en la mejora y profesionalización del formulario de publicación de productos para el marketplace AgroConecta, enfocado en la experiencia de usuario, robustez técnica y alineación con los estándares del proyecto.
+
+### Principales tareas realizadas
+- **Reestructuración total del formulario de publicación de productos**: Se eliminó el código anterior y se creó una nueva base limpia, siguiendo el estilo profesional del modal de vista previa.
+- **Organización visual y funcional**: Se agruparon los campos en bloques temáticos (datos principales, precio y stock, calidad y certificaciones, entrega y ubicación, información adicional, galería de imágenes), usando Tailwind CSS y componentes modernos.
+- **Mejoras en la UI/UX**:
+  - Bordes pastel y delgados, colores suaves, agrupación clara de campos.
+  - Certificaciones y métodos de entrega en formato grid, con botones visuales y selección múltiple.
+  - Header con título a la izquierda y botón de previsualización a la derecha.
+  - Espaciado, tamaño de fuente y alineación refinados para facilitar la lectura y uso.
+- **Gestión robusta del estado**:
+  - Uso de `useState` y handlers tipados para todos los campos.
+  - Lógica para carga, eliminación y previsualización de imágenes.
+  - Manejo de selección/deselección de certificaciones y métodos de entrega.
+- **Campos select dinámicos**:
+  - Traducción de opciones a español y adaptación a la agricultura colombiana.
+  - Implementación de carga dinámica de categorías y subcategorías desde la base de datos vía API (`/api/categorias` y `/api/subcategorias`).
+  - Filtrado de subcategorías según la categoría seleccionada.
+- **Reordenamiento de campos**: Los campos principales se ordenaron según la estructura de la migración de la base de datos (nombre, categoría, subcategoría, unidad).
+- **Validación y corrección de errores**:
+  - Solución de errores de sintaxis y compilación.
+  - Refactorización de handlers y lógica de estado para evitar duplicados y errores.
+
+- **CRUD completo de productos para agricultores**:
+  - Implementación de la página `mis-productos` con visualización, búsqueda, filtrado y eliminación de productos.
+  - Endpoints API creados: `/api/agricultor/productos` (GET productos por agricultor), `/api/productos/[id]` (DELETE producto específico).
+  - Modal de edición preparado y lógica de actualización en desarrollo.
+  - Interfaz moderna y profesional, con confirmación para eliminar y feedback visual.
+  - Refactorización del componente `ProductosCatalogo` para cargar productos reales desde la API y fallback a datos demo.
+  - Manejo de estados de carga y error en la interfaz.
+
+- **Funcionalidad de edición de productos**:
+  - Modal de edición implementado en la interfaz, permitiendo modificar los datos de productos existentes.
+  - Lógica de actualización pendiente de integración final con el backend.
+  - Estructura lista para editar nombre, descripción, precio, stock y demás campos relevantes.
+  - Validaciones y feedback visual en el modal de edición.
+
+### Resultados
+El formulario ahora es profesional, visualmente organizado, robusto y alineado con los estándares de AgroConecta.
+Los selects de categoría y subcategoría se llenan dinámicamente desde la base de datos y se filtran correctamente.
+El CRUD de productos para agricultores está operativo, con interfaz moderna y funcionalidad de edición en proceso de integración.
+La experiencia de usuario es clara y amigable, incluso para usuarios con poca experiencia técnica.
+El sistema está listo para validaciones finales y nuevas mejoras.
+
+### Pendientes y tareas no finalizadas (al 27/07/2025)
+- Finalizar la lógica de actualización/edición de productos en el backend y conectar el modal de edición con la API.
+- Implementar validaciones avanzadas en el formulario de publicación y edición (campos obligatorios, formatos, límites, etc.).
+- Agregar estados de carga y error en todos los formularios y modales.
+- Mejorar la gestión de imágenes: permitir edición, validación y compresión antes de guardar.
+- Integrar notificaciones en tiempo real para cambios de estado y nuevas acciones.
+- Completar el sistema de carrito de compras y pedidos multi-vendedor.
+- Desarrollar paneles de estadísticas y reportes para agricultores y admin.
+- Implementar la lógica de stock reservado y su descuento automático en compras.
+- Mejorar la experiencia de edición en el modal (feedback visual, confirmaciones, etc.).
+- Documentar flujos y reglas de negocio en el frontend y backend.
+ - Terminar la integración completa de los selects de categoría y subcategoría en el formulario, asegurando que siempre se llenen con datos actualizados de la base de datos y gestionando correctamente los estados de carga y error.
+
+---
+# AgroConecta – Estado del Proyecto
+
+## Estado del Proyecto AgroConecta - Día 25 julio de 2025
+
+### ✅ COMPLETADAS - Sistema de Registro y Activación de Agricultor
+
+#### **1. Migración de Roles de Enum a Tabla**
+- ✅ **Problema resuelto**: Roles estaban como enum, limitando escalabilidad
+- ✅ **Solución implementada**: Tabla `roles` con estructura normalizada
+- ✅ **Estructura final**:
+  - `id`: ID único personalizado (AGRC_ROL_*)
+  - `name`: Nombre interno (agricultor, cliente, empresa, admin)
+  - `displayName`: Nombre mostrable (Agricultor, Cliente, Empresa, Administrador)
+  - `description`: Descripción del rol
+  - `isActive`: Estado del rol
+- ✅ **Migración personalizada**: Script de migración para preservar datos existentes
+- ✅ **Relaciones actualizadas**: `users.roleId` → `roles.id` (FK)
+
+#### **2. Sistema de Registro Optimizado**
+- ✅ **Endpoint mejorado**: `/api/auth/register`
+- ✅ **Validación de roles**: Solo acepta roles válidos desde tabla `roles`
+- ✅ **Normalización automática**: 
+  - `CAMPESINO` → `agricultor`
+  - `COMPRADOR` → `cliente`
+  - `EMPRESA` → `empresa`
+- ✅ **Campos seguros**: Solo campos permitidos en tabla `users`
+- ✅ **Perfiles específicos**: Creación automática de perfil según rol
+- ✅ **Transacciones seguras**: Rollback si falla creación de perfil
+
+#### **3. UX Mejorada en Formulario de Registro**
+- ✅ **Flujo inteligente**: 
+  - Página principal → "Soy Campesino" → `/auth/registro?role=CAMPESINO`
+  - Formulario preselecciona automáticamente "Campesino/Agricultor"
+  - Campo de rol se muestra como fijo (no editable) con emoji 🚜
+- ✅ **Campos condicionales**: 
+  - Teléfono y Dirección SOLO para "Comprador" y "Empresa"
+  - Agricultor: Solo campos básicos (Nombre, Email, Contraseña)
+- ✅ **Coherencia de flujo**: Elimina incongruencia de cambiar tipo después de seleccionar
+
+#### **4. Sistema de Activación por Email Completo**
+- ✅ **Generación de tokens**: Tokens únicos de 32 bytes hex
+- ✅ **Expiración controlada**: Tokens válidos por 24 horas
+- ✅ **Tabla de verificación**: `verificationToken` con campos:
+  - `identifier`: Email del usuario
+  - `token`: Token único generado
+  - `expires`: Fecha de expiración
+- ✅ **Endpoint de activación**: `/api/auth/activate/[token]`
+- ✅ **Validaciones completas**:
+  - Token existe y no expiró
+  - Usuario existe y no está ya activo
+  - Limpieza automática de tokens usados/expirados
+- ✅ **Página de activación**: `/auth/activar/[token]` con UX completa
+- ✅ **Estados manejados**:
+  - ✅ Activación exitosa → Redirect a login
+  - ❌ Token inválido → Mensaje de error
+  - ❌ Token expirado → Eliminación automática
+  - ❌ Cuenta ya activa → Mensaje informativo
+
+#### **5. Corrección de Enlaces de Email**
+- ✅ **Email de bienvenida**: Actualizado en `src/lib/email.ts`
+- ✅ **Enlace corregido**: `/auth/activar/${token}` (antes era query param)
+- ✅ **Template responsive**: HTML mejorado con enlaces seguros
+
+### ✅ FLUJO COMPLETO AGRICULTOR IMPLEMENTADO
+
+```mermaid
+graph TD
+    A[Usuario hace clic 'Soy Campesino'] --> B["/auth/registro?role=CAMPESINO"]
+    B --> C[Formulario pre-configurado para Agricultor]
+    C --> D[Usuario llena: Nombre, Email, Contraseña]
+    D --> E[POST /api/auth/register]
+    E --> F[Crear usuario con roleId]
+    F --> G[Crear perfil agricultor]
+    G --> H[Generar token activación]
+    H --> I[Enviar email con enlace]
+    I --> J[Usuario hace clic en email]
+    J --> K["/auth/activar/[token]"]
+    K --> L[Validar token y activar cuenta]
+    L --> M[Redirect a login]
+```
+
+### ✅ ANTERIORMENTE COMPLETADAS - Reestructuración de Base de Datos
+
+1. **Estructura de Usuarios Actualizada**
+   - ✅ Tabla `users` reestructurada con campos: `nombre`, `correo`, `contraseña`, `rol`
+   - ✅ Enums actualizados: `UserRole` (agricultor, cliente, empresa, admin)
+   - ✅ Eliminación de campos innecesarios (phone, address desde user base)
+
+2. **Tablas Específicas por Rol Creadas**
+   - ✅ Tabla `agricultores` con campos específicos: telefono, ubicacion, descripcion, foto, verificado
+   - ✅ Tabla `clientes` con campos específicos: telefono, direccion, preferencias  
+   - ✅ Tabla `empresas` con campos específicos: razon_social, nit, telefono, direccion, sector, descripcion, logo, verificada
+
+3. **Sistema de Productos Mejorado**
+   - ✅ Campo `reservedStock` agregado para manejo de stock reservado
+   - ✅ Relación actualizada: `productos.agricultorId` → `agricultores.id`
+   - ✅ Estados de producto expandidos: DISPONIBLE, AGOTADO, SUSPENDIDO
+
+4. **Sistema de Pedidos Expandido**
+   - ✅ Nuevos estados: PENDIENTE, CONFIRMADO, EN_PREPARACION, EN_CAMINO, EN_PUNTO, ENTREGADO, CANCELADO, NO_ENTREGADO
+   - ✅ Métodos de entrega: ENTREGA_DIRECTA, PUNTO_ENCUENTRO, REPARTIDOR_ALIADO, EMPRESA_TRANSPORTADORA
+   - ✅ Métodos de pago: CONTRAENTREGA, TRANSFERENCIA, NEQUI, DAVIPLATA, PASARELA
+   - ✅ Campos adicionales: deliveryAddress, deliveryNotes
+
+5. **Migración y Schema Sincronizados**
+   - ✅ Archivo `migration.sql` completamente actualizado
+   - ✅ Archivo `schema.prisma` regenerado y sincronizado
+   - ✅ Cliente Prisma regenerado exitosamente
+   - ✅ Base de datos migrada y reseteada
+   - ✅ Archivo `seed.ts` actualizado con nuevos campos
+
+6. **Relaciones y Constraints**
+   - ✅ Foreign keys establecidas correctamente
+   - ✅ Cascading deletes configurados apropiadamente
+   - ✅ Unique constraints en campos críticos (correo, nit)
+
+### ✅ ERRORES RESUELTOS EN EL ARCHIVO SEED
+
+#### **Problemas Identificados y Solucionados:**
+
+1. **❌ Faltaba la dependencia `bcrypt`**
+   - **Error**: `Cannot find module 'bcrypt'`
+   - **Solución**: ✅ Instalamos `npm install bcrypt @types/bcrypt`
+
+2. **❌ Cliente de Prisma desactualizado**
+   - **Error**: El cliente no reconocía los nuevos campos (`nombre`, `correo`, `rol`, etc.)
+   - **Solución**: ✅ Eliminamos completamente el cliente y lo regeneramos
+
+3. **❌ Estructura de datos no sincronizada**
+   - **Error**: Los tipos TypeScript no coincidían con el schema actual
+   - **Solución**: ✅ Regeneración completa del cliente de Prisma
+
+### ✅ SISTEMA DE IDs PERSONALIZADOS IMPLEMENTADO
+
+#### **Nueva Funcionalidad - IDs con Prefijo AGRC:**
+
+- ✅ **Generador de IDs personalizado**: Clase `AgroConectaIdGenerator` en `src/lib/id-generator.ts`
+- ✅ **Formato de IDs**: `AGRC_[TIPO]_[TIMESTAMP][RANDOM]`
+- ✅ **Tipos implementados**:
+  - `AGRC_USR_*` para usuarios
+  - `AGRC_AGR_*` para agricultores  
+  - `AGRC_CLI_*` para clientes
+  - `AGRC_EMP_*` para empresas
+  - `AGRC_PRD_*` para productos
+  - `AGRC_CAT_*` para categorías
+  - `AGRC_ORD_*` para pedidos
+
+#### **Ejemplos de IDs Generados:**
+```
+Usuarios: AGRC_USR_MDIV07AHE29Y, AGRC_USR_MDIV07CNZC56
+Productos: AGRC_PRD_MDIV07F6EF25, AGRC_PRD_MDIV07F6PK0W
+Categorías: AGRC_CAT_MDIV0716ER7E, AGRC_CAT_MDIV078AM5GZ
+```
+
+#### **Funcionalidades del Generador:**
+- ✅ Validación de formato con `isValidAgroConectaId()`
+- ✅ Extracción de tipo de entidad con `extractEntityType()`
+- ✅ Métodos específicos para cada tipo de entidad
+- ✅ IDs únicos globalmente y ordenables por tiempo
+- ✅ Identidad propia de AgroConecta en cada registro
+
+#### **Verificación de Datos Exitosa:**
+
+- ✅ **3 usuarios** creados correctamente (admin, agricultor, cliente)
+- ✅ **10 categorías** de productos
+- ✅ **1 perfil de agricultor** con información detallada
+- ✅ **8 productos** con stock y stock reservado funcionando
+- ✅ **Todas las relaciones** entre tablas funcionando correctamente
+
+#### **El archivo seed ahora:**
+
+- ✅ Se ejecuta sin errores
+- ✅ Crea usuarios con la nueva estructura (nombre, correo, contraseña, rol)
+- ✅ Crea perfiles específicos por rol (agricultor, cliente)
+- ✅ Maneja correctamente el stock reservado en productos
+- ✅ Establece todas las relaciones entre tablas
+- ✅ Utiliza bcrypt para hash de contraseñas
+- ✅ Implementa upsert para evitar duplicados en re-ejecuciones
+
+### 🎯 PRÓXIMAS TAREAS - Funcionalidades de Aplicación
+
+1. **Autenticación y Autorización**
+   - ⏳ Actualizar NextAuth configuration para nuevos campos
+   - ⏳ Implementar middleware de autorización por roles
+   - ⏳ Actualizar páginas de login/registro
+
+2. **Interfaces de Usuario**
+   - ⏳ Dashboard específico por tipo de usuario
+   - ⏳ Formularios de registro por rol
+   - ⏳ Interfaces de gestión de productos
+
+3. **Lógica de Negocio**
+   - ⏳ Sistema de reserva de stock
+   - ⏳ Flujo de estados de pedidos
+   - ⏳ Notificaciones por estado
+
+4. **APIs y Servicios**
+   - ⏳ Endpoints actualizados para nuevos schemas
+   - ⏳ Validaciones de datos
+   - ⏳ Servicios de email/notificaciones
+
+### 📋 NOTAS TÉCNICAS
+
+- **Base de Datos**: MySQL con Prisma ORM
+- **Estructura Actual**: Sistema role-based con tablas separadas
+- **Migración**: `20250723205148_init` aplicada exitosamente
+- **Datos de Prueba**: Seed ejecutado con usuarios de ejemplo por cada rol
+
+### 📊 DATOS DE PRUEBA CREADOS
+
+#### **Usuarios de Prueba:**
+- **Admin**: `admin@agroconecta.co` (contraseña: admin123)
+- **Agricultor**: `juan.agricultor@gmail.com` (contraseña: agricultor123)
+- **Cliente**: `maria.cliente@gmail.com` (contraseña: cliente123)
+
+#### **Datos Generados:**
+- **6 categorías principales**: Frutas, Verduras, Hortalizas, Legumbres, Hierbas Aromáticas, Cereales
+- **4 productos de ejemplo**: Mango Tommy, Aguacate Hass, Lechuga Crespa, Tomate Cherry
+- **1 perfil de agricultor**: Juan Rodríguez con ubicación y descripción
+- **1 perfil de cliente**: María González con dirección y preferencias
+- **Stock reservado funcionando**: Algunos productos tienen stock reservado de ejemplo
+
+#### **Comandos para Ejecutar Seed:**
+```bash
+npx prisma db seed
+# o
+npx tsx prisma/seed.ts
+```
+
+---
+
+## HISTORIAL DE DESARROLLO
+
+Este documento resume el avance actual del proyecto AgroConecta, destacando los módulos y funcionalidades ya implementados y las tareas pendientes para mantener el desarrollo organizado y enfocado.
+
+---
+________________________________________________________________________________________________________________
+
+## ✅ Funcionalidades y módulos implementados
+
+### Registro y activación de usuarios por email (flujo moderno y seguro)
+
+// se hizo el 24-07-25 a las 12:34
+
+- **Registro:**
+  - El usuario completa el formulario de registro y envía sus datos.
+  - El backend valida los campos y verifica que el email no exista.
+  - Si es nuevo, se crea el usuario en la tabla `User` con `isActive: false` (inactivo).
+  - Se genera un token único de activación y se guarda en la tabla `VerificationToken` junto con el email y fecha de expiración (24h).
+  - Se envía un correo al usuario con un enlace de activación que incluye el token.
+  - El usuario ve un mensaje

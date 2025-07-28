@@ -1,6 +1,8 @@
+
 "use client";
 import { useState, useEffect } from 'react';
 import { Heart, Star, MapPin, Calendar, User, X } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 
 interface Producto {
   id: number;
@@ -143,6 +145,7 @@ export default function ProductosCatalogo({
   ordenPor?: string;
   busqueda?: string;
 }) {
+  const { data: session } = useSession();
   const [productos, setProductos] = useState<Producto[]>([]);
   const [loading, setLoading] = useState(true);
   const [showToast, setShowToast] = useState(false);
@@ -380,20 +383,34 @@ export default function ProductosCatalogo({
       {/* Grid/Lista de productos */}
       {/* Grid/Lista de productos */}
       {viewMode === 'grid' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {productosFiltrados.map((producto) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 xl:gap-5">
+          {productosFiltrados.map((producto) => {
+            // Determinar si el usuario autenticado es agricultor y dueño del producto
+            const isOwnerAgricultor = session?.user?.role === 'agricultor' && session?.user?.name === producto.agricultor;
+            return (
             <div
               key={producto.id}
-              className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 overflow-hidden group"
+              className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-green-400 overflow-hidden group w-full ring-1 ring-gray-50 hover:ring-green-100"
+              style={{ minWidth: '0', maxWidth: '100%' }}
             >
               {/* Imagen del producto */}
-              <div className="relative bg-gradient-to-br from-green-50 to-orange-50 p-8 text-center">
-                <div className="text-6xl mb-4 hover:scale-110 transition-transform duration-300 cursor-pointer">
-                  {producto.imagen}
-                </div>
+              <div className="relative bg-gradient-to-br from-green-50 to-amber-50 pt-0 pb-0 px-0 text-center">
+                {producto.imagen && (producto.imagen.startsWith('http') || producto.imagen.startsWith('/')) ? (
+                  <img
+                    src={producto.imagen.startsWith('http') ? producto.imagen : `${typeof window !== 'undefined' ? window.location.origin : ''}${producto.imagen}`}
+                    alt={producto.nombre}
+                    className="w-full h-36 object-cover rounded-t-2xl hover:scale-105 transition-transform duration-300 cursor-pointer border-b border-gray-100 bg-white mx-auto shadow-sm"
+                    style={{ objectPosition: 'center' }}
+                    onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
+                ) : (
+                  <div className="text-5xl flex items-center justify-center w-full h-36 bg-gradient-to-br from-green-50 to-amber-50 rounded-t-2xl">
+                    {producto.imagen}
+                  </div>
+                )}
                 <button
                   onClick={() => toggleFavorite(producto.id)}
-                  className={`absolute top-4 right-4 p-2 rounded-full transition-all duration-300 hover:scale-110 active:scale-95 ${
+                  className={`absolute top-3 right-3 p-2 rounded-full transition-all duration-300 hover:scale-110 active:scale-95 ${
                     producto.isFavorite
                       ? 'bg-red-500 text-white shadow-lg hover:bg-red-600'
                       : 'bg-white text-gray-400 hover:text-red-500 hover:bg-red-50 shadow-md'
@@ -404,70 +421,87 @@ export default function ProductosCatalogo({
               </div>
 
               {/* Contenido del producto */}
-              <div className="p-6 space-y-4">
+              <div className="p-4 space-y-3">
                 {/* Header con nombre y precio */}
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <h3 className="text-xl font-bold text-gray-900 mb-1 hover:text-green-600 transition-colors duration-200 cursor-pointer">
+                <div className="flex justify-between items-start gap-2">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1 hover:text-green-600 transition-colors duration-200 cursor-pointer truncate">
                       {producto.nombre}
                     </h3>
-                    <div className="flex items-center space-x-1 mb-2">
+                    <div className="flex items-center space-x-1 mb-1">
                       {renderStars(producto.rating)}
-                      <span className="text-sm text-gray-600 ml-2">({producto.rating})</span>
+                      <span className="text-xs text-gray-500 ml-1">({producto.rating})</span>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-green-600 hover:text-green-700 transition-colors duration-200">
+                  <div className="text-right flex-shrink-0">
+                    <div className="text-xl font-bold text-green-600 hover:text-green-700 transition-colors duration-200">
                       {formatearPrecio(producto.precio)}
                     </div>
-                    <div className="text-sm text-gray-500">por {producto.unidad}</div>
+                    <div className="text-xs text-gray-400">por {producto.unidad}</div>
                   </div>
                 </div>
 
                 {/* Descripción */}
-                <p className="text-gray-600 text-sm leading-relaxed line-clamp-2">
+                <p className="text-gray-500 text-xs leading-relaxed line-clamp-2 mb-1">
                   {producto.descripcion}
                 </p>
 
                 {/* Información del agricultor */}
-                <div className="space-y-2 pt-2 border-t border-gray-100">
-                  <div className="flex items-center space-x-2 text-sm text-gray-600">
+                <div className="space-y-1 pt-2 border-t border-gray-100">
+                  <div className="flex items-center space-x-2 text-xs text-gray-500">
                     <User className="w-4 h-4 text-green-500" />
-                    <span className="font-medium">{producto.agricultor}</span>
+                    <span className="font-medium truncate">{producto.agricultor}</span>
                   </div>
-                  <div className="flex items-center space-x-2 text-sm text-gray-600">
+                  <div className="flex items-center space-x-2 text-xs text-gray-500">
                     <MapPin className="w-4 h-4 text-orange-500" />
-                    <span>{producto.ubicacion}</span>
+                    <span className="truncate">{producto.ubicacion}</span>
                   </div>
-                  <div className="flex items-center space-x-2 text-sm text-gray-600">
+                  <div className="flex items-center space-x-2 text-xs text-gray-400">
                     <Calendar className="w-4 h-4 text-blue-500" />
                     <span>{producto.fecha}</span>
                   </div>
                 </div>
 
                 {/* Botón de acción */}
-                <div className="pt-4">
-                  <button className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-3 px-4 rounded-xl transition-colors duration-200 shadow-lg hover:shadow-xl">
-                    Comprar Ahora
-                  </button>
+                <div className="pt-3">
+                  {!isOwnerAgricultor && (
+                    <button
+                      className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-2 px-3 rounded-xl transition-colors duration-200 shadow-md hover:shadow-lg text-sm"
+                    >
+                      Comprar Ahora
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
-          ))}
+          );
+          })}
         </div>
       ) : (
         <div className="space-y-4">
-          {productosFiltrados.map((producto) => (
+          {productosFiltrados.map((producto) => {
+            const isOwnerAgricultor = session?.user?.role === 'agricultor' && session?.user?.name === producto.agricultor;
+            return (
             <div
               key={producto.id}
               className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden"
             >
               <div className="flex flex-col md:flex-row">
                 {/* Imagen en vista lista */}
-                <div className="relative bg-gradient-to-br from-green-50 to-orange-50 p-6 md:w-48 flex items-center justify-center">
-                  <div className="text-4xl hover:scale-110 transition-transform duration-300 cursor-pointer">
-                    {producto.imagen}
-                  </div>
+                <div className="relative bg-gradient-to-br from-green-50 to-orange-50 pt-0 pb-0 px-0 md:w-44 min-w-[140px] max-w-[180px] flex items-stretch justify-center">
+                  {producto.imagen && (producto.imagen.startsWith('http') || producto.imagen.startsWith('/')) ? (
+                    <img
+                      src={producto.imagen.startsWith('http') ? producto.imagen : `${typeof window !== 'undefined' ? window.location.origin : ''}${producto.imagen}`}
+                      alt={producto.nombre}
+                      className="w-full h-full min-h-[120px] min-w-[120px] object-cover rounded-l-2xl rounded-tr-none rounded-br-none hover:scale-105 transition-transform duration-300 cursor-pointer border border-gray-100 bg-white shadow-sm"
+                      style={{ objectPosition: 'center', aspectRatio: '1/1' }}
+                      onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                    />
+                  ) : (
+                    <div className="text-4xl flex items-center justify-center w-full h-full min-h-[120px] min-w-[120px] bg-white rounded-l-2xl rounded-tr-none rounded-br-none">
+                      {producto.imagen}
+                    </div>
+                  )}
                   <button
                     onClick={() => toggleFavorite(producto.id)}
                     className={`absolute top-3 right-3 p-2 rounded-full transition-all duration-300 hover:scale-110 active:scale-95 ${
@@ -481,7 +515,7 @@ export default function ProductosCatalogo({
                 </div>
 
                 {/* Contenido en vista lista */}
-                <div className="flex-1 p-6">
+                <div className="flex-1 p-4">
                   <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
                     {/* Información principal */}
                     <div className="flex-1">
@@ -525,15 +559,20 @@ export default function ProductosCatalogo({
 
                     {/* Botón de acción */}
                     <div className="lg:ml-6">
-                      <button className="w-full lg:w-auto bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200 shadow-lg hover:shadow-xl whitespace-nowrap">
-                        Comprar Ahora
-                      </button>
+                      {!isOwnerAgricultor && (
+                        <button
+                          className="w-full lg:w-auto bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200 shadow-lg hover:shadow-xl whitespace-nowrap"
+                        >
+                          Comprar Ahora
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          ))}
+          );
+          })}
         </div>
       )}
 

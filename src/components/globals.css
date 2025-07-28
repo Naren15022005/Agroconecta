@@ -1,3 +1,11 @@
+/* Oculta scrollbars visualmente, pero permite el scroll */
+.scrollbar-hide {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE 10+ */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Webkit */
+}
 body {
   margin: 0;
   font-family: system-ui, sans-serif;

@@ -26,7 +26,11 @@ export async function GET(request: NextRequest) {
       orderBy: { name: "asc" },
     });
 
-    return NextResponse.json(subcategorias);
+    return NextResponse.json(subcategorias, {
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+      },
+    });
   } catch (error) {
     console.error('Error al obtener subcategorías:', error);
     return NextResponse.json(

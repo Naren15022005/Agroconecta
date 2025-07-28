@@ -1,3 +1,4 @@
+console.log('Cargando API productos...');
 // API Route para productos
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
@@ -22,9 +23,10 @@ export async function GET() {
         }
       }
     });
-    
+    console.log('[API productos] productos desde Prisma:', productos);
     return NextResponse.json(productos);
   } catch (error) {
+    console.error('[API productos] error:', error);
     return NextResponse.json({ 
       error: "Error interno del servidor",
       details: error instanceof Error ? error.message : 'Error desconocido'

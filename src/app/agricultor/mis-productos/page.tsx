@@ -22,8 +22,11 @@ import {
   Leaf,
   Camera,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Info
 } from 'lucide-react';
+
+import { subcategorias } from './subcategorias-cache';
 
 interface Product {
   id: string;
@@ -102,6 +105,8 @@ const metodosEntregaDisponibles = [
 export default function MisProductosPage() {
   const { data: session } = useSession();
   const [productos, setProductos] = useState<Product[]>([]);
+  // Modal de previsualización de producto
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [categorias, setCategorias] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -150,6 +155,7 @@ export default function MisProductosPage() {
     unit: '',
     categoryId: '',
     imageUrl: '',
+    imagePreview: '',
     status: 'DISPONIBLE' as 'DISPONIBLE' | 'AGOTADO' | 'SUSPENDIDO',
     // Campos adicionales para mantener consistencia con publicar
     stockMinimo: '',
@@ -244,13 +250,13 @@ export default function MisProductosPage() {
       unit: producto.unit,
       categoryId: producto.categoryId,
       imageUrl: producto.imageUrl || '',
+      imagePreview: producto.imageUrl || '',
       status: producto.status,
-      // Usar valores reales de la base de datos
       stockMinimo: producto.stockMinimo?.toString() || '10',
       tipoCultivo: producto.tipoCultivo === 'ORGANICO' ? 'organico' : 'convencional',
       municipio: producto.municipio || '',
       vereda: producto.vereda || '',
-      fechaCosecha: producto.fechaCosecha ? producto.fechaCosecha.split('T')[0] : '', // Convertir fecha a formato YYYY-MM-DD
+      fechaCosecha: producto.fechaCosecha ? producto.fechaCosecha.split('T')[0] : '',
       tiempoEntrega: producto.tiempoEntrega || '1',
       pesoAproximado: producto.pesoAproximado?.toString() || '',
       dimensiones: producto.dimensiones || '',
@@ -319,6 +325,7 @@ export default function MisProductosPage() {
       unit: '',
       categoryId: '',
       imageUrl: '',
+      imagePreview: '',
       status: 'DISPONIBLE',
       stockMinimo: '',
       tipoCultivo: 'convencional',
@@ -752,31 +759,155 @@ export default function MisProductosPage() {
                           {/* Ver detalles */}
                           <button
                             onClick={() => {
-                              const info = `
-DETALLES DEL PRODUCTO
-
-📦 ${producto.name}
-📝 ${producto.description}
-�️ ${producto.category?.name || 'Sin categoría'}
-
-💰 PRECIO: $${Number(producto.price).toLocaleString('es-CO')} por ${producto.unit}
-📊 STOCK: ${producto.stock} ${producto.unit}
-${producto.reservedStock > 0 ? `🔒 RESERVADO: ${producto.reservedStock} ${producto.unit}` : ''}
-
-📈 ESTADO: ${producto.status === 'DISPONIBLE' ? 'Disponible' : 'Agotado'}
-
-📅 PUBLICADO: ${new Date(producto.createdAt).toLocaleDateString('es-ES')}
-🔄 ACTUALIZADO: ${new Date(producto.updatedAt).toLocaleDateString('es-ES')}
-
-🆔 ID: ${producto.id}
-                              `;
-                              alert(info.trim());
+                              setSelectedProduct(producto);
+                              setShowPreviewModal(true);
                             }}
                             className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-200"
                             title="Ver detalles completos"
                           >
                             <Eye className="h-4 w-4" />
                           </button>
+
+
+
+        {/* Modal de previsualización de producto */}
+        {showPreviewModal && selectedProduct && (
+          <div className="fixed inset-0 bg-gray-200/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all">
+            <div className="bg-white rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto scrollbar-hide">
+              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <h3 className="text-xl font-semibold text-gray-900">Vista Previa del Producto</h3>
+                <button
+                  onClick={() => setShowPreviewModal(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <Info className="w-6 h-6" />
+                </button>
+              </div>
+              <div className="p-6 flex flex-col items-center">
+                {/* Card extendida con todos los datos del producto */}
+                <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden w-full">
+                  {/* Imagen del producto */}
+                  <div className="h-48 bg-gray-200 relative">
+                    {selectedProduct.imageUrl ? (
+                      <img
+                        src={selectedProduct.imageUrl}
+                        alt={selectedProduct.name || 'Producto'}
+                        className="w-full h-full object-cover"
+                        onError={e => { e.currentTarget.src = '/placeholder-product.jpg'; }}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-400">
+                        <span className="text-4xl">🥬</span>
+                      </div>
+                    )}
+                  </div>
+                  {/* Contenido de la tarjeta */}
+                  <div className="p-4">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-1">
+                      {selectedProduct.name || 'Nombre del producto'}
+                    </h3>
+                    {/* Etiquetas de categoría y subcategoría debajo del nombre */}
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {selectedProduct.category?.name && (
+                        <span className="bg-green-600 text-white text-xs px-2 py-1 rounded-full">
+                          {selectedProduct.category.name}
+                        </span>
+                      )}
+                      {selectedProduct.subcategoryId && (
+                        <span className="bg-green-200 text-green-800 text-xs px-2 py-1 rounded-full">
+                          {subcategorias.find(s => s.id === selectedProduct.subcategoryId)?.name || 'Subcategoría'}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                      {selectedProduct.description || 'Sin descripción.'}
+                    </p>
+                    {/* Precio y stock */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="text-2xl font-bold text-green-600">
+                        {selectedProduct.price ? `$${Number(selectedProduct.price).toLocaleString()}` : '$0'}
+                        <span className="text-sm font-normal text-gray-500">
+                          /{selectedProduct.unit || 'unidad'}
+                        </span>
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        Stock: {selectedProduct.stock || 0}
+                      </div>
+                    </div>
+                    {/* Agricultor (simulado) */}
+                    <div className="text-xs text-gray-500 mb-1">
+                      Por: Tú (previsualización)
+                    </div>
+                    {/* Ubicación */}
+                    <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
+                      <MapPin className="w-4 h-4" />
+                      <span>{selectedProduct.municipio || 'Municipio'}</span>
+                      {selectedProduct.vereda && <span>- {selectedProduct.vereda}</span>}
+                    </div>
+                    {/* Certificaciones */}
+                    {selectedProduct.certificaciones && selectedProduct.certificaciones.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {selectedProduct.certificaciones.map(cert => (
+                          <span key={cert} className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-medium border border-green-200">{cert}</span>
+                        ))}
+                      </div>
+                    )}
+                    {/* Tipo de cultivo, fecha de cosecha, peso, dimensiones */}
+                    <div className="grid grid-cols-2 gap-2 text-xs text-gray-600 mb-2">
+                      <div><span className="font-semibold">Cultivo:</span> {selectedProduct.tipoCultivo || 'N/A'}</div>
+                      <div><span className="font-semibold">Cosecha:</span> {selectedProduct.fechaCosecha || 'N/A'}</div>
+                      <div><span className="font-semibold">Peso:</span> {selectedProduct.pesoAproximado || 'N/A'} kg</div>
+                      <div><span className="font-semibold">Dimensiones:</span> {selectedProduct.dimensiones || 'N/A'}</div>
+                    </div>
+                    {/* Condiciones de almacenamiento */}
+                    {selectedProduct.condicionesAlmacenamiento && (
+                      <div className="text-xs text-gray-600 mb-2">
+                        <span className="font-semibold">Almacenamiento:</span> {selectedProduct.condicionesAlmacenamiento}
+                      </div>
+                    )}
+                    {/* Métodos de entrega */}
+                    {selectedProduct.metodosEntrega && selectedProduct.metodosEntrega.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {selectedProduct.metodosEntrega.map(metodo => (
+                          <span key={metodo} className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-medium border border-blue-200">
+                            {metodo}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    {/* Notas especiales */}
+                    {selectedProduct.notasEspeciales && (
+                      <div className="text-xs text-gray-600 mb-2">
+                        <span className="font-semibold">Notas:</span> {selectedProduct.notasEspeciales}
+                      </div>
+                    )}
+                    {/* Botón de acción (deshabilitado en preview) */}
+                    <button className="w-full bg-green-600 text-white py-2 px-4 rounded-lg opacity-60 cursor-not-allowed font-medium mt-2" disabled>
+                      Agregar al Carrito
+                    </button>
+                  </div>
+                </div>
+                <div className="mt-4 p-3 bg-blue-50 rounded-lg w-full">
+                  <div className="flex items-start">
+                    <Info className="w-5 h-5 text-blue-600 mr-2 flex-shrink-0 mt-0.5" />
+                    <div className="text-sm text-blue-800">
+                      <p className="font-medium">Vista previa</p>
+                      <p>Así es como los compradores verán tu producto en el marketplace.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50">
+                <button
+                  onClick={() => setShowPreviewModal(false)}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  Cerrar Vista Previa
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
                           {/* Editar */}
                           <button
@@ -823,34 +954,31 @@ ${producto.reservedStock > 0 ? `🔒 RESERVADO: ${producto.reservedStock} ${prod
 
         {/* Modal de confirmación de eliminación */}
         {showDeleteModal && selectedProduct && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-              <div className="mt-3 text-center">
-                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
-                  <Trash2 className="h-6 w-6 text-red-600" />
+          <div className="fixed inset-0 bg-gray-200/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all">
+            <div className="bg-white rounded-xl max-w-md w-full shadow-xl flex flex-col items-center p-10">
+              <div className="mb-4">
+                <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100">
+                  <Trash2 className="h-8 w-8 text-red-600" />
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mt-4">Eliminar Producto</h3>
-                <div className="mt-2 px-4 py-3 bg-gray-50 rounded-md">
-                  <p className="text-sm font-medium text-gray-900">{selectedProduct.name}</p>
-                  <p className="text-sm text-gray-500">Esta acción no se puede deshacer</p>
-                </div>
-                <div className="flex justify-center space-x-4 mt-6">
-                  <button
-                    onClick={() => {
-                      setShowDeleteModal(false);
-                      setSelectedProduct(null);
-                    }}
-                    className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    onClick={() => handleEliminar(selectedProduct.id)}
-                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
-                  >
-                    Eliminar
-                  </button>
-                </div>
+              </div>
+              <h2 className="text-xl font-bold text-red-700 mb-2 text-center">¿Eliminar producto?</h2>
+              <p className="text-gray-700 text-center mb-2">¿Estás seguro de que deseas eliminar <span className='font-semibold'>{selectedProduct.name}</span>? Esta acción no se puede deshacer.</p>
+              <div className="flex gap-4 mt-4 w-full">
+                <button
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setSelectedProduct(null);
+                  }}
+                  className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-all"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={() => handleEliminar(selectedProduct.id)}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-all"
+                >
+                  Eliminar
+                </button>
               </div>
             </div>
           </div>
@@ -940,7 +1068,7 @@ ${producto.reservedStock > 0 ? `🔒 RESERVADO: ${producto.reservedStock} ${prod
                           <select
                             value={editForm.categoryId}
                             onChange={(e) => setEditForm({ ...editForm, categoryId: e.target.value })}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all bg-white text-gray-900 font-medium"
+                            className="w-full border border-green-200 rounded-lg px-4 py-2 bg-white text-gray-900 focus:border-green-400 transition-all"
                           >
                             <option value="">Seleccionar categoría</option>
                             {categorias.map((categoria) => (
@@ -1020,7 +1148,7 @@ ${producto.reservedStock > 0 ? `🔒 RESERVADO: ${producto.reservedStock} ${prod
                           <select
                             value={editForm.unit}
                             onChange={(e) => setEditForm({ ...editForm, unit: e.target.value })}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all bg-white text-gray-900 font-medium"
+                            className="w-full border border-green-200 rounded-lg px-4 py-2 bg-white text-gray-900 focus:border-green-400 transition-all"
                           >
                             <option value="">Seleccionar unidad</option>
                             {unidades.map((unidad) => (
@@ -1222,7 +1350,7 @@ ${producto.reservedStock > 0 ? `🔒 RESERVADO: ${producto.reservedStock} ${prod
                       <select
                         value={editForm.status}
                         onChange={(e) => setEditForm({ ...editForm, status: e.target.value as 'DISPONIBLE' | 'AGOTADO' })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all bg-white text-gray-900 font-medium"
+                        className="w-full border border-green-200 rounded-lg px-4 py-2 bg-white text-gray-900 focus:border-green-400 transition-all"
                       >
                         <option value="DISPONIBLE">✅ Disponible</option>
                         <option value="AGOTADO">❌ Agotado</option>
@@ -1236,19 +1364,34 @@ ${producto.reservedStock > 0 ? `🔒 RESERVADO: ${producto.reservedStock} ${prod
                         Imagen del Producto
                       </h4>
                       <div className="space-y-4">
-                        {editForm.imageUrl && (
+                        {editForm.imagePreview && (
                           <div className="aspect-w-16 aspect-h-9 bg-gray-100 rounded-lg overflow-hidden">
                             <img
-                              src={editForm.imageUrl}
+                              src={editForm.imagePreview}
                               alt="Vista previa"
                               className="w-full h-32 object-cover rounded-lg"
                             />
                           </div>
                         )}
                         <input
+                          type="file"
+                          accept="image/*"
+                          onChange={e => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onloadend = () => {
+                                setEditForm(f => ({ ...f, imagePreview: reader.result as string, imageUrl: '' }));
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-900 font-medium"
+                        />
+                        <input
                           type="url"
                           value={editForm.imageUrl}
-                          onChange={(e) => setEditForm({ ...editForm, imageUrl: e.target.value })}
+                          onChange={e => setEditForm(f => ({ ...f, imageUrl: e.target.value, imagePreview: e.target.value }))}
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all bg-white text-gray-900 font-medium"
                           placeholder="https://ejemplo.com/imagen.jpg"
                         />
