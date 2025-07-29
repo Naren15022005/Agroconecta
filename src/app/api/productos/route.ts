@@ -35,64 +35,66 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  try {
     const data = await req.json();
+    console.log('[API productos] data recibido:', data);
+  try {
     
     // Validaciones básicas
     if (!data.name || typeof data.name !== "string") {
       return NextResponse.json({ error: "Nombre requerido" }, { status: 400 });
     }
+    // Permitir price como string o number
+    if (typeof data.price === "string") {
+      const parsed = Number(data.price);
+      if (isNaN(parsed)) {
+        return NextResponse.json({ error: "Precio inválido" }, { status: 400 });
+      }
+      data.price = parsed;
+    }
     if (!data.price || typeof data.price !== "number") {
       return NextResponse.json({ error: "Precio requerido" }, { status: 400 });
     }
-    if (!data.categoryId || typeof data.categoryId !== "string") {
-      return NextResponse.json({ error: "Categoría requerida" }, { status: 400 });
-    }
-    
-    // Validar agricultorId recibido
-    const userId = data.farmerId;
-    if (!userId || typeof userId !== "string") {
-      return NextResponse.json({ error: "userId (farmerId) requerido" }, { status: 400 });
-    }
-
-    console.log(`Buscando usuario con ID: ${userId}`);
-
-    // Buscar o crear el agricultor asociado al usuario
-    let agricultor = await prisma.agricultor.findUnique({ 
-      where: { user_id: userId } 
-    });
-    
-    // Si no existe el agricultor, crearlo automáticamente
-    if (!agricultor) {
-      console.log(`Agricultor no encontrado para usuario ${userId}, buscando usuario...`);
-      
-      const user = await prisma.user.findUnique({
-        where: { id: userId }
-      });
-      
-      console.log(`Usuario encontrado:`, user ? 'SÍ' : 'NO');
-      
-      if (!user) {
-        console.log(`Usuario ${userId} no existe en la base de datos`);
-        return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 });
+    // Permitir categoryId como string o number
+    if (typeof data.categoryId !== "string") {
+      if (typeof data.categoryId === "number") {
+        data.categoryId = String(data.categoryId);
+      } else {
+        return NextResponse.json({ error: "Categoría requerida" }, { status: 400 });
       }
-
-      console.log(`Creando agricultor para usuario ${user.nombre}...`);
-      
-      agricultor = await prisma.agricultor.create({
-        data: {
-          id: AgroConectaIdGenerator.generateAgricultorId(),
-          user_id: userId,
-          telefono: null,
-          ubicacion: null,
-          descripcion: `Agricultor registrado automáticamente para ${user.nombre}`,
-          verificado: false
-        }
-      });
-      
-      console.log(`Agricultor creado con ID: ${agricultor.id}`);
+    }
+    
+    // Permitir agricultorId directo o farmerId (userId)
+    let agricultorId = data.agricultorId;
+    let agricultor = null;
+    if (agricultorId && typeof agricultorId === "string") {
+      // Buscar agricultor por id
+      agricultor = await prisma.agricultor.findUnique({ where: { id: agricultorId } });
+      if (!agricultor) {
+        return NextResponse.json({ error: "Agricultor no encontrado" }, { status: 404 });
+      }
     } else {
-      console.log(`Agricultor existente encontrado: ${agricultor.id}`);
+      // Fallback: buscar/crear agricultor por userId (farmerId)
+      const userId = data.farmerId;
+      if (!userId || typeof userId !== "string") {
+        return NextResponse.json({ error: "Debe enviar agricultorId o farmerId (userId)" }, { status: 400 });
+      }
+      agricultor = await prisma.agricultor.findUnique({ where: { user_id: userId } });
+      if (!agricultor) {
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) {
+          return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 });
+        }
+        agricultor = await prisma.agricultor.create({
+          data: {
+            id: AgroConectaIdGenerator.generateAgricultorId(),
+            user_id: userId,
+            telefono: null,
+            ubicacion: null,
+            descripcion: `Agricultor registrado automáticamente para ${user.nombre}`,
+            verificado: false
+          }
+        });
+      }
     }
 
     // Procesar fecha de cosecha
@@ -102,17 +104,31 @@ export async function POST(req: NextRequest) {
     }
 
     // Procesar tipo de cultivo - convertir a mayúsculas para que coincida con el enum
-    let tipoCultivo = 'CONVENCIONAL'; // valor por defecto
+    let tipoCultivo: 'ORGANICO' | 'CONVENCIONAL' | null = 'CONVENCIONAL'; // valor por defecto
     if (data.tipoCultivo) {
-      tipoCultivo = data.tipoCultivo.toUpperCase();
-      // Validar que sea un valor válido del enum
-      if (!['ORGANICO', 'CONVENCIONAL'].includes(tipoCultivo)) {
-        tipoCultivo = 'CONVENCIONAL'; // fallback al valor por defecto
+      const tipo = data.tipoCultivo.toUpperCase();
+      if (tipo === 'ORGANICO' || tipo === 'CONVENCIONAL') {
+        tipoCultivo = tipo;
+      } else {
+        tipoCultivo = null;
       }
     }
 
     // Crear producto en la base de datos con todos los campos
     const productoId = AgroConectaIdGenerator.generateProductId();
+    // Serializar campos que deben ser string
+    let certificaciones = null;
+    if (Array.isArray(data.certificaciones)) {
+      certificaciones = JSON.stringify(data.certificaciones);
+    } else if (typeof data.certificaciones === 'string') {
+      certificaciones = data.certificaciones;
+    }
+    let metodosEntrega = null;
+    if (Array.isArray(data.metodosEntrega)) {
+      metodosEntrega = JSON.stringify(data.metodosEntrega);
+    } else if (typeof data.metodosEntrega === 'string') {
+      metodosEntrega = data.metodosEntrega;
+    }
     const producto = await prisma.product.create({
       data: {
         id: productoId,
@@ -132,8 +148,8 @@ export async function POST(req: NextRequest) {
         pesoAproximado: data.pesoAproximado || null,
         dimensiones: data.dimensiones || null,
         condicionesAlmacenamiento: data.condicionesAlmacenamiento || null,
-        certificaciones: data.certificaciones || [],
-        metodosEntrega: data.metodosEntrega || [],
+        certificaciones: certificaciones,
+        metodosEntrega: metodosEntrega,
         horariosDisponibles: data.horariosDisponibles || null,
         notasEspeciales: data.notasEspeciales || null,
         municipio: data.municipio || null,
@@ -146,6 +162,13 @@ export async function POST(req: NextRequest) {
     
   } catch (error) {
     console.error('Error creating product:', error);
+    try {
+      if (typeof data !== 'undefined') {
+        console.error('[API productos] data al fallar:', data);
+      }
+    } catch (e) {
+      // data no está definido
+    }
     return NextResponse.json({ 
       error: "Error interno del servidor",
       details: error instanceof Error ? error.message : 'Error desconocido'

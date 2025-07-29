@@ -1,5 +1,68 @@
 ---
 
+## 📅 Resumen de avances y cambios – 29 de julio de 2025
+
+### Contexto general
+En esta jornada se abordaron y resolvieron múltiples problemas críticos de integración entre frontend y backend, robusteciendo el flujo de publicación de productos, la gestión de roles y la experiencia de usuario para agricultores y compradores. Se priorizó la alineación de tipos, la robustez de la API y la experiencia post-registro/login.
+
+### Cronología y detalles de los procesos
+
+#### 🕐 09:00 - Diagnóstico de error 500 al publicar productos
+- Se detecta que el formulario de publicación de productos arroja error 500.
+- Se revisa el endpoint POST `/api/productos` y el modelo Prisma, identificando incompatibilidad de tipos en los campos `certificaciones` y `metodosEntrega` (arrays vs string).
+- Se valida que el frontend serializa correctamente, pero el backend no deserializa ni convierte los tipos.
+
+#### 🕐 09:30 - Corrección de serialización/deserialización en backend
+- Se modifica el endpoint para aceptar ambos formatos (array o string) y serializar siempre a string antes de guardar en la base de datos.
+- Se valida que el error 500 persiste, por lo que se revisan logs y se detecta doble lectura de `req.json()` en el handler, lo que causa el error "Body is unusable: Body has already been read".
+
+#### 🕐 10:00 - Solución a doble lectura de body y validación de tipos
+- Se elimina la doble lectura de `req.json()` y se centraliza la variable `data`.
+- Se robustecen las validaciones para aceptar `price` y `categoryId` como string o number, convirtiendo automáticamente el tipo correcto.
+- Se agregan logs detallados para depuración directa del objeto recibido y del error.
+
+#### 🕐 10:30 - Detección y solución de error de columna faltante
+- El error 500 persiste y, tras revisar los logs, se detecta que la columna `isActive` no existe en la tabla `product`.
+- Se genera y ejecuta el SQL: `ALTER TABLE product ADD COLUMN isActive BOOLEAN NOT NULL DEFAULT TRUE;`.
+- Se valida que la publicación de productos funciona correctamente tras la migración.
+
+#### 🕐 11:00 - Validación de flujo de login y redirección de roles
+- Se prueba el registro y login de un usuario con rol cliente.
+- Se detecta que, tras loguearse, el sistema lo redirige a la vista de inicio en vez de al mercado.
+- Se revisa el código y se identifica que el rol esperado en el frontend es `comprador`, pero en la base de datos y sesión el rol es `cliente`.
+- Se ajusta la lógica de redirección en `signin/page.tsx` para que `if (role === 'cliente' || role === 'empresa')` redirija correctamente a `/comprador/mercado`.
+
+#### 🕐 11:30 - Validación de experiencia de usuario y robustez
+- Se valida que el flujo de registro, login y publicación de productos funciona correctamente para todos los roles.
+- Se documenta el proceso y se deja constancia de los problemas, soluciones y aprendizajes.
+
+### Resultados y aprendizajes
+- El sistema ahora permite publicar productos sin errores de tipo ni de base de datos.
+- La experiencia de login y redirección es coherente con los roles reales de la base de datos.
+- Se robusteció la validación de tipos y la gestión de errores en la API.
+- Se documentó el proceso con lujo de detalles para referencia futura.
+
+### Pendientes y tareas abiertas al 29/07/2025
+- Validar y refactorizar el flujo de registro y login para todos los roles, asegurando que la redirección sea siempre coherente con el rol real del usuario (cliente, empresa, agricultor, admin).
+- Unificar y documentar los nombres de roles en frontend y backend para evitar confusiones (`cliente` vs `comprador`).
+- Implementar tests automáticos para el flujo de publicación de productos y login por rol.
+- Mejorar los mensajes de error y feedback visual en el frontend para errores de API y validaciones de formulario.
+- Agregar validaciones avanzadas en el backend para todos los campos del producto (longitud, formatos, valores permitidos).
+- Terminar la integración de edición y actualización de productos para agricultores.
+- Implementar lógica de stock reservado y su descuento automático en compras.
+- Mejorar la gestión de imágenes: edición, validación y compresión antes de guardar.
+- Integrar notificaciones en tiempo real para cambios de estado y nuevas acciones.
+- Completar el sistema de carrito de compras y pedidos multi-vendedor.
+- Desarrollar paneles de estadísticas y reportes para agricultores y admin.
+- Documentar flujos y reglas de negocio en el frontend y backend.
+- Mejorar la experiencia de edición en el modal (feedback visual, confirmaciones, etc.).
+- Terminar la integración completa de los selects de categoría y subcategoría en el formulario, asegurando que siempre se llenen con datos actualizados y gestionando correctamente los estados de carga y error.
+- Implementar middleware de autorización por roles y actualizar NextAuth.
+- Desplegar una versión de pruebas y validar el flujo completo.
+
+---
+---
+
 ## 📅 Resumen de avances y cambios – 28 de julio de 2025 
 
 ### Contexto

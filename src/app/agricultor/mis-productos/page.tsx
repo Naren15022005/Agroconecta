@@ -174,9 +174,24 @@ export default function MisProductosPage() {
   });
 
   // Cargar productos del agricultor
+
+  // Nuevo estado para el id del agricultor
+  const [agricultorId, setAgricultorId] = useState<string | null>(null);
+
   useEffect(() => {
     if (session?.user?.id) {
-      cargarMisProductos();
+      // Primero obtener el id del agricultor usando el user_id
+      fetch(`/api/agricultor/por-user?userId=${session.user.id}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.id) {
+            setAgricultorId(data.id);
+            cargarMisProductos(data.id);
+          } else {
+            setError('No se encontró el perfil de agricultor');
+          }
+        })
+        .catch(() => setError('Error al buscar agricultor'));
       cargarCategorias();
     }
   }, [session]);
@@ -193,16 +208,20 @@ export default function MisProductosPage() {
     }
   };
 
-  const cargarMisProductos = async () => {
+  const cargarMisProductos = async (agricultorIdParam: string) => {
     try {
       setLoading(true);
-      const res = await fetch(`/api/agricultor/productos?userId=${session?.user?.id}`);
-      
-      if (res.ok) {
-        const data = await res.json();
+      const res = await fetch(`/api/agricultor/productos?agricultorId=${agricultorIdParam}`);
+      const data = await res.json();
+      if (Array.isArray(data)) {
         setProductos(data);
+        setError('');
+      } else if (data && data.error) {
+        // Solo mostrar error si el backend retorna un campo error explícito
+        setError(data.error);
       } else {
-        setError('Error al cargar productos');
+        setProductos([]);
+        setError('');
       }
     } catch (err) {
       setError('Error de conexión');
@@ -210,6 +229,7 @@ export default function MisProductosPage() {
       setLoading(false);
     }
   };
+
 
   // Filtrar productos
   const productosFiltrados = productos.filter(producto => {
@@ -220,6 +240,9 @@ export default function MisProductosPage() {
                        (filtroEstado === 'agotado' && producto.status === 'AGOTADO');
     return matchBusqueda && matchEstado;
   });
+
+  // Si no hay productos y no hay error, mostrar mensaje amigable
+  const mostrarSinProductos = !loading && !error && productos.length === 0;
 
   const handleEliminar = async (productId: string) => {
     try {

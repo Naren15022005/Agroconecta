@@ -34,15 +34,23 @@ export default function SignInPage() {
       const res = await signIn('credentials', {
         email,
         password,
-        redirect: false,
-        callbackUrl: '/agricultor/mercado'
+        redirect: false
       });
-      
       setLoading(false);
-      
       if (res?.ok && !res?.error) {
-        // Login exitoso
-        window.location.href = '/agricultor/mercado';
+        // Obtener la sesión para saber el rol
+        const sessionRes = await fetch('/api/auth/session');
+        const session = await sessionRes.json();
+        const role = session?.user?.role;
+        if (role === 'comprador' || role === 'empresa') {
+          window.location.href = '/comprador/mercado';
+        } else if (role === 'agricultor') {
+          window.location.href = '/agricultor/mercado';
+        } else if (role === 'admin') {
+          window.location.href = '/admin';
+        } else {
+          window.location.href = '/';
+        }
       } else {
         setError('Credenciales incorrectas o usuario inactivo');
       }

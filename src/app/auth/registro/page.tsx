@@ -1,4 +1,6 @@
 "use client";
+import dynamic from 'next/dynamic';
+const StakeholderSelect = dynamic(() => import('@/components/StakeholderSelect'), { ssr: false });
 import Link from 'next/link'
 import { Tractor } from 'lucide-react'
 import { useState, useEffect } from 'react'
@@ -61,9 +63,7 @@ export default function RegistroPage() {
     const formData = new FormData(e.currentTarget);
     const name = formData.get('name') as string;
     const email = formData.get('email') as string;
-    const phone = formData.get('phone') as string;
     const role = formData.get('role') as string;
-    const address = formData.get('address') as string;
     const password = formData.get('password') as string;
     const confirmPassword = formData.get('confirm-password') as string;
     if (password !== confirmPassword) {
@@ -75,7 +75,7 @@ export default function RegistroPage() {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, phone, role, address, password }),
+        body: JSON.stringify({ name, email, role, password }),
       });
       let result: any = {};
       const contentType = res.headers.get('content-type');
@@ -113,7 +113,7 @@ export default function RegistroPage() {
             Únete a AgroConecta
           </h2>
           <p className="text-center text-lg text-gray-600 mb-4">
-            Conecta directamente con productores y compradores
+            Conecta directamente con productores y clientes
           </p>
           <p className="text-center text-sm text-gray-500">
             ¿Ya tienes cuenta?{' '}
@@ -183,63 +183,19 @@ export default function RegistroPage() {
               />
             </div>
 
-            {(role === 'COMPRADOR' || role === 'EMPRESA') && (
-              <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-                  Teléfono
-                </label>
-                <input
-                  id="phone"
-                  name="phone"
-                  type="tel"
-                  className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
-                  placeholder="+57 300 123 4567"
-                />
-              </div>
-            )}
+
 
             <div>
               <label htmlFor="role" className="block text-sm font-medium text-gray-700">
                 Tipo de usuario
               </label>
-              {role ? (
-                <div className="mt-1 block w-full px-3 py-2 border border-gray-300 bg-gray-50 rounded-md shadow-sm text-gray-700 sm:text-sm">
-                  {role === 'CAMPESINO' && '🚜 Campesino/Agricultor'}
-                  {role === 'COMPRADOR' && '🛒 Comprador Individual'}
-                  {role === 'EMPRESA' && '🏢 Empresa'}
-                  <input type="hidden" name="role" value={role} />
-                </div>
-              ) : (
-                <select
-                  id="role"
-                  name="role"
-                  required
-                  value={role}
-                  onChange={e => setRole(e.target.value)}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
-                >
-                  <option value="">Selecciona tu tipo de usuario</option>
-                  <option value="CAMPESINO">Campesino/Agricultor</option>
-                  <option value="COMPRADOR">Comprador Individual</option>
-                  <option value="EMPRESA">Empresa</option>
-                </select>
-              )}
+               <div className="mt-1">
+                 <input type="hidden" name="role" value={role} />
+                 <StakeholderSelect value={role} onChange={setRole} />
+               </div>
             </div>
 
-            {(role === 'COMPRADOR' || role === 'EMPRESA') && (
-              <div>
-                <label htmlFor="address" className="block text-sm font-medium text-gray-700">
-                  Dirección
-                </label>
-                <textarea
-                  id="address"
-                  name="address"
-                  rows={2}
-                  className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
-                  placeholder="Tu dirección completa"
-                />
-              </div>
-            )}
+
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">

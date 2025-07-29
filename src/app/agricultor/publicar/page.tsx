@@ -42,6 +42,23 @@ const metodosEntregaDisponibles = [
 
 export default function PublicarPage() {
   const userId = useUserId();
+  const [agricultorId, setAgricultorId] = useState<string | null>(null);
+
+  // Obtener agricultorId si existe
+  useEffect(() => {
+    if (userId) {
+      fetch(`/api/agricultor/por-user?userId=${userId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.id) {
+            setAgricultorId(data.id);
+          } else {
+            setAgricultorId(null);
+          }
+        })
+        .catch(() => setAgricultorId(null));
+    }
+  }, [userId]);
   // Estados para categorías y subcategorías
   const [categorias, setCategorias] = useState<{ id: string; name: string }[]>([]);
   const [subcategorias, setSubcategorias] = useState<{ id: string; name: string; categoryId: string }[]>([]);
@@ -243,27 +260,27 @@ export default function PublicarPage() {
     const payload = {
       name: formData.name,
       description: formData.description,
-      price: Number(formData.price),
+      price: formData.price === '' ? null : Number(formData.price),
       unit: formData.unit,
       categoryId: formData.category,
-      subcategoryId: formData.subcategory,
-      stock: Number(formData.stock) || 0,
-      stockMinimo: Number(formData.stockMinimo) || 0,
-      reservedStock: Number(formData.reservedStock) || 0,
+      subcategoryId: formData.subcategory || null,
+      stock: formData.stock === '' ? 0 : Number(formData.stock),
+      stockMinimo: formData.stockMinimo === '' ? null : Number(formData.stockMinimo),
+      reservedStock: formData.reservedStock === '' ? 0 : Number(formData.reservedStock),
       imageUrl: imageUrlToSend,
-      farmerId: userId,
-      fechaCosecha: formData.fechaCosecha,
-      tiempoEntrega: formData.tiempoEntrega ? Number(formData.tiempoEntrega) : 1,
-      pesoAproximado: formData.pesoAproximado,
-      dimensiones: formData.dimensiones,
-      condicionesAlmacenamiento: formData.condicionesAlmacenamiento,
-      certificaciones: formData.certificaciones,
-      metodosEntrega: formData.metodosEntrega,
-      horariosDisponibles: formData.horariosDisponibles,
-      notasEspeciales: formData.notasEspeciales,
-      municipio: formData.municipio,
-      vereda: formData.vereda,
-      tipoCultivo: formData.tipoCultivo,
+      fechaCosecha: formData.fechaCosecha === '' ? null : formData.fechaCosecha,
+      tiempoEntrega: formData.tiempoEntrega === '' ? null : formData.tiempoEntrega.toString(),
+      pesoAproximado: formData.pesoAproximado === '' ? null : Number(formData.pesoAproximado),
+      dimensiones: formData.dimensiones === '' ? null : formData.dimensiones,
+      condicionesAlmacenamiento: formData.condicionesAlmacenamiento === '' ? null : formData.condicionesAlmacenamiento,
+      certificaciones: formData.certificaciones && formData.certificaciones.length > 0 ? JSON.stringify(formData.certificaciones) : null,
+      metodosEntrega: formData.metodosEntrega && formData.metodosEntrega.length > 0 ? JSON.stringify(formData.metodosEntrega) : null,
+      horariosDisponibles: formData.horariosDisponibles === '' ? null : formData.horariosDisponibles,
+      notasEspeciales: formData.notasEspeciales === '' ? null : formData.notasEspeciales,
+      municipio: formData.municipio === '' ? null : formData.municipio,
+      vereda: formData.vereda === '' ? null : formData.vereda,
+      tipoCultivo: formData.tipoCultivo === '' ? null : formData.tipoCultivo,
+      ...(agricultorId ? { agricultorId } : { farmerId: userId }),
     };
     try {
       const res = await fetch("/api/productos", {
