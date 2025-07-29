@@ -1004,7 +1004,7 @@ export default function MisProductosPage() {
                   <div>
                     <h3 className="text-2xl font-bold text-gray-900">Editar Producto</h3>
                     <p className="text-sm text-gray-600 mt-1">
-                      Modifica la información de tu producto "{selectedProduct.name}"
+                      Modifica la información de tu producto &quot;{selectedProduct.name}&quot;
                     </p>
                   </div>
                   <button
