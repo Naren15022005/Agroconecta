@@ -142,6 +142,7 @@ model Product {
   municipio                 String?
   vereda                    String?
   tipoCultivo               TipoCultivo?  @default(CONVENCIONAL)
+  isActive                  Boolean       @default(true)
   createdAt                 DateTime      @default(now())
   updatedAt                 DateTime      @updatedAt
   agricultorId              String

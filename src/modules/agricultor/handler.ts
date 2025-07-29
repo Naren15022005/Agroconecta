@@ -30,3 +30,23 @@ export async function PUT(req: NextRequest) {
   const result = await controller.actualizarPerfil(agricultorId, data);
   return NextResponse.json(result);
 }
+
+// Eliminación lógica de producto o cuenta agricultor
+export async function DELETE(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  const { searchParams } = new URL(req.url);
+  const productoId = searchParams.get("productoId");
+  const agricultorId = searchParams.get("agricultorId");
+  const eliminarCuenta = searchParams.get("eliminarCuenta");
+
+  if (productoId) {
+    const result = await controller.eliminarProducto(productoId);
+    return NextResponse.json(result);
+  }
+  if (eliminarCuenta === "true" && agricultorId) {
+    const result = await controller.eliminarCuentaAgricultor(agricultorId);
+    return NextResponse.json(result);
+  }
+  return NextResponse.json({ error: "Parámetros requeridos" }, { status: 400 });
+}

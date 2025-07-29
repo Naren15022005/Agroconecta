@@ -148,7 +148,7 @@ export default function PublicarPage() {
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    let newFiles: File[] = [];
+    const newFiles: File[] = [];
     files.forEach(file => {
       const reader = new FileReader();
       reader.onloadend = () => {

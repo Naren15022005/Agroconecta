@@ -14,4 +14,12 @@ export class AgricultorController {
   async actualizarPerfil(agricultorId: string, data: any) {
     return this.service.actualizarPerfil(agricultorId, data);
   }
+
+  async eliminarProducto(productId: string) {
+    return this.service.eliminarProducto(productId);
+  }
+
+  async eliminarCuentaAgricultor(userId: string) {
+    return this.service.eliminarCuentaAgricultor(userId);
+  }
 }

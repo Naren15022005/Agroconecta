@@ -7,3 +7,12 @@
 [2025-07-28T13:39:11.992Z] AUTH: hash en base de datos: $2b$10$76Q9A/g9jJabQagKL5WGfuXTzIpo1N5CExlzpngkcpkmBJHHgo7q2
 [2025-07-28T13:39:12.106Z] AUTH: isValidPassword true
 [2025-07-28T13:39:12.107Z] AUTH: Login exitoso
+[2025-07-29T13:22:25.625Z] AUTH: credentials {"email":"alfonsonavarroch@gmail.com","password":"1063616908","redirect":"false","callbackUrl":"/agricultor/mercado","csrfToken":"4faa3997e18f26c55880be89e3d25c66ce557ec3577e957e8b503322660539d9","json":"true"}
+[2025-07-29T13:22:37.853Z] AUTH: credentials {"email":"alfonsonavarroch@gmail.com","password":"1063616908","redirect":"false","callbackUrl":"/agricultor/mercado","csrfToken":"4faa3997e18f26c55880be89e3d25c66ce557ec3577e957e8b503322660539d9","json":"true"}
+[2025-07-29T13:22:48.462Z] AUTH: credentials {"email":"alfonsonavarroch@gmail.com","password":"12345678","redirect":"false","callbackUrl":"/agricultor/mercado","csrfToken":"4faa3997e18f26c55880be89e3d25c66ce557ec3577e957e8b503322660539d9","json":"true"}
+[2025-07-29T13:23:21.253Z] AUTH: credentials {"email":"alfonsonavarroch@gmail.com","password":"1063616908","redirect":"false","callbackUrl":"/agricultor/mercado","csrfToken":"4faa3997e18f26c55880be89e3d25c66ce557ec3577e957e8b503322660539d9","json":"true"}
+[2025-07-29T13:23:21.355Z] AUTH: user encontrado {"id":"AGRC_USR_MDN5KFCJSPSF","nombre":"naren","correo":"alfonsonavarroch@gmail.com","contraseña":"$2b$10$76Q9A/g9jJabQagKL5WGfuXTzIpo1N5CExlzpngkcpkmBJHHgo7q2","isActive":true,"createdAt":"2025-07-28T13:37:33.621Z","updatedAt":"2025-07-28T13:38:48.612Z","roleId":"AGRC_ROL_AGRICULTOR","role":{"id":"AGRC_ROL_AGRICULTOR","name":"agricultor","displayName":"Agricultor","description":"Productor agrícola que vende productos","isActive":true,"createdAt":"2025-07-26T10:57:09.000Z","updatedAt":"2025-07-26T10:57:09.000Z"}}
+[2025-07-29T13:23:21.355Z] AUTH: contraseña ingresada: 1063616908
+[2025-07-29T13:23:21.356Z] AUTH: hash en base de datos: $2b$10$76Q9A/g9jJabQagKL5WGfuXTzIpo1N5CExlzpngkcpkmBJHHgo7q2
+[2025-07-29T13:23:21.488Z] AUTH: isValidPassword true
+[2025-07-29T13:23:21.488Z] AUTH: Login exitoso
