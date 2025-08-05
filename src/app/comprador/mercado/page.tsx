@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { useCartStore } from '@/store/cart';
+import { ShoppingCart, Plus, Minus, Heart } from 'lucide-react';
 
 interface Product {
   id: string;
@@ -29,7 +31,26 @@ export default function CompradorMercadoPage() {
   const [productos, setProductos] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  
+  const { addItem, items, getTotalItems, toggleCart } = useCartStore();
 
+  useEffect(() => {
+    const cargarProductos = async () => {
+      try {
+        const res = await fetch('/api/productos');
+        if (res.ok) {
+          const data = await res.json();
+          setProductos(data);
+        } else {
+          setError('Error al cargar productos');
+        }
+      } catch (err) {
+        setError('Error de conexión');
+      } finally {
+        setLoading(false);
+      }
+    };
   useEffect(() => {
     const cargarProductos = async () => {
       try {
@@ -48,6 +69,35 @@ export default function CompradorMercadoPage() {
     };
     cargarProductos();
   }, []);
+
+  const handleAddToCart = (producto: Product) => {
+    addItem({
+      id: producto.id,
+      name: producto.name,
+      price: producto.price,
+      stock: producto.stock,
+      unit: producto.unit,
+      campesinoId: producto.agricultor.id,
+      campesinoName: producto.agricultor.user.nombre,
+      imageUrl: producto.imageUrl
+    });
+  };
+
+  const toggleFavorite = (productId: string) => {
+    setFavorites(prev => {
+      const newFavorites = new Set(prev);
+      if (newFavorites.has(productId)) {
+        newFavorites.delete(productId);
+      } else {
+        newFavorites.add(productId);
+      }
+      return newFavorites;
+    });
+  };
+
+  const getItemInCart = (productId: string) => {
+    return items.find(item => item.id === productId);
+  };
 
   if (loading) {
     return (
@@ -77,13 +127,29 @@ export default function CompradorMercadoPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Mercado AgroConecta</h1>
-          <p className="mt-2 text-lg text-gray-600">
-            Descubre productos frescos directamente de nuestros agricultores
-          </p>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header con carrito */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Mercado AgroConecta</h1>
+              <p className="mt-1 text-gray-600">
+                Productos frescos directamente de nuestros agricultores
+              </p>
+            </div>
+            <button
+              onClick={toggleCart}
+              className="relative bg-green-600 text-white p-3 rounded-full hover:bg-green-700 transition-colors"
+            >
+              <ShoppingCart size={24} />
+              {getTotalItems() > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center">
+                  {getTotalItems()}
+                </span>
+              )}
+            </button>
+          </div>
           <div className="mt-4 flex items-center space-x-4">
             <span className="text-sm text-gray-500">
               {productos.length} productos disponibles
@@ -95,6 +161,10 @@ export default function CompradorMercadoPage() {
             )}
           </div>
         </div>
+      </div>
+
+      {/* Contenido principal */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {productos.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-gray-400 text-6xl mb-4">🥕</div>
@@ -107,59 +177,99 @@ export default function CompradorMercadoPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {productos.map((producto) => (
-              <div 
-                key={producto.id} 
-                className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden"
-              >
-                <div className="h-48 bg-gray-200 relative">
-                  {producto.imageUrl ? (
-                    <img
-                      src={producto.imageUrl}
-                      alt={producto.name}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.src = '/placeholder-product.jpg';
-                      }}
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                      <span className="text-4xl">🥬</span>
+            {productos.map((producto) => {
+              const itemInCart = getItemInCart(producto.id);
+              return (
+                <div 
+                  key={producto.id} 
+                  className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden"
+                >
+                  <div className="h-48 bg-gray-200 relative">
+                    {producto.imageUrl ? (
+                      <img
+                        src={producto.imageUrl.startsWith('http') 
+                          ? producto.imageUrl 
+                          : `${window.location.origin}${producto.imageUrl}`}
+                        alt={producto.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                        }}
+                      />
+                    ) : null}
+                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-4xl hidden">
+                      🥬
                     </div>
-                  )}
-                  <div className="absolute top-2 left-2">
-                    <span className="bg-green-600 text-white text-xs px-2 py-1 rounded-full">
-                      {producto.category.name}
-                    </span>
-                  </div>
-                </div>
-                <div className="p-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-1">
-                    {producto.name}
-                  </h3>
-                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                    {producto.description}
-                  </p>
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="text-2xl font-bold text-green-600">
-                      ${producto.price.toLocaleString()}
-                      <span className="text-sm font-normal text-gray-500">
-                        /{producto.unit}
+                    <div className="absolute top-2 left-2">
+                      <span className="bg-green-600 text-white text-xs px-2 py-1 rounded-full">
+                        {producto.category.name}
                       </span>
                     </div>
-                    <div className="text-sm text-gray-500">
-                      Stock: {producto.stock}
+                    <button
+                      onClick={() => toggleFavorite(producto.id)}
+                      className="absolute top-2 right-2 p-2 bg-white rounded-full shadow-md hover:bg-gray-50 transition-colors"
+                    >
+                      <Heart 
+                        size={16} 
+                        className={favorites.has(producto.id) ? 'text-red-500 fill-current' : 'text-gray-400'}
+                      />
+                    </button>
+                  </div>
+                  <div className="p-4">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-1">
+                      {producto.name}
+                    </h3>
+                    <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                      {producto.description}
+                    </p>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="text-2xl font-bold text-green-600">
+                        ${producto.price.toLocaleString()}
+                        <span className="text-sm font-normal text-gray-500">
+                          /{producto.unit}
+                        </span>
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        Stock: {producto.stock}
+                      </div>
                     </div>
+                    <div className="text-xs text-gray-500 mb-3">
+                      Por: {producto.agricultor.user.nombre}
+                    </div>
+                    
+                    {producto.stock === 0 ? (
+                      <button 
+                        disabled 
+                        className="w-full bg-gray-400 text-white py-2 px-4 rounded-lg cursor-not-allowed font-medium"
+                      >
+                        Sin Stock
+                      </button>
+                    ) : itemInCart ? (
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-green-600 font-medium">
+                          En carrito: {itemInCart.quantity}
+                        </span>
+                        <button
+                          onClick={() => handleAddToCart(producto)}
+                          className="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium"
+                        >
+                          Agregar más
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => handleAddToCart(producto)}
+                        className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium flex items-center justify-center gap-2"
+                      >
+                        <Plus size={16} />
+                        Agregar al Carrito
+                      </button>
+                    )}
                   </div>
-                  <div className="text-xs text-gray-500 mb-3">
-                    Por: {producto.agricultor.user.nombre}
-                  </div>
-                  <button className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium">
-                    Agregar al Carrito
-                  </button>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

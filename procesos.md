@@ -1,6 +1,135 @@
 ---
 
-## 📅 Resumen de avances y cambios – 29 de julio de 2025
+## 📅 Resumen de avances y cambios – 04-05 de agosto de 2025
+
+### Contexto general
+En esta sesión se implementó el sistema completo de carrito de compras y pedidos para conectar clientes y agricultores, estableciendo un flujo funcional de comercio electrónico con carrito de compras, gestión de pedidos por agricultor y seguimiento en tiempo real.
+
+### Principales funcionalidades implementadas
+
+#### 🛒 Sistema de Carrito de Compras Completo
+- **Store de Zustand**: Implementación completa del store del carrito con persistencia local
+- **Funcionalidades del carrito**:
+  - Agregar productos al carrito con validación de stock
+  - Actualizar cantidades con controles + y -
+  - Eliminar productos individuales
+  - Limpiar carrito completo
+  - Agrupación automática por agricultor
+  - Cálculo de totales por vendedor y general
+- **CartSidebar**: Componente lateral deslizable con:
+  - Vista agrupada por agricultor
+  - Controles de cantidad por producto
+  - Resumen de totales
+  - Botón de checkout funcional
+
+#### 🛍️ Página de Mercado del Comprador Mejorada
+- **Interfaz moderna**: Layout responsivo con header fijo y carrito flotante
+- **Funcionalidades de producto**:
+  - Visualización de productos con imágenes y detalles
+  - Sistema de favoritos con persistencia
+  - Indicador de productos en carrito
+  - Botones contextuales (agregar/agregar más)
+  - Validación de stock en tiempo real
+- **Integración de carrito**: Botón flotante con contador de productos
+
+#### 📦 Sistema de Pedidos End-to-End
+- **Creación de pedidos**: Conversión automática del carrito a pedidos por agricultor
+- **API de pedidos**: Endpoints funcionales para crear y consultar pedidos
+- **Página de pedidos del comprador**:
+  - Lista completa de pedidos con estados
+  - Agrupación por agricultor
+  - Información detallada de productos
+  - Seguimiento de estado en tiempo real
+  - Datos de entrega y pago
+- **Estados de pedido**: Sistema completo con iconos y colores según estado
+
+#### 🧭 Navegación y Layout del Comprador
+- **Layout completo**: Barra de navegación con menú responsivo
+- **Navegación principal**:
+  - Inicio/Dashboard
+  - Mercado
+  - Mis Pedidos
+  - Perfil de usuario
+- **Autenticación**: Verificación automática y redirección a login
+- **Navegación móvil**: Menú inferior para dispositivos móviles
+
+#### 📊 Dashboard del Comprador
+- **Estadísticas en tiempo real**:
+  - Total de pedidos realizados
+  - Pedidos activos/pendientes
+  - Productos en carrito actual
+  - Total gastado histórico
+- **Acciones rápidas**: Acceso directo a funciones principales
+- **Estado del carrito**: Alerta visual cuando hay productos en carrito
+- **Tips y guías**: Información útil para nuevos usuarios
+
+### Mejoras técnicas implementadas
+
+#### 🔧 Arquitectura Robusta
+- **Zustand Store**: Gestión de estado global del carrito con persistencia
+- **TypeScript**: Tipado completo para todos los componentes y datos
+- **API Integration**: Conexión real con base de datos para productos y pedidos
+- **Error Handling**: Manejo robusto de errores y estados de carga
+
+#### 🎨 UI/UX Moderna
+- **Tailwind CSS**: Diseño responsive y consistente
+- **Lucide Icons**: Iconografía moderna y clara
+- **Animations**: Transiciones suaves y feedback visual
+- **Mobile First**: Diseño optimizado para dispositivos móviles
+
+#### 🔐 Autenticación y Autorización
+- **NextAuth Integration**: Verificación automática de sesiones
+- **Role-based Access**: Acceso diferenciado por tipo de usuario
+- **Protected Routes**: Redirección automática para usuarios no autenticados
+
+### Flujo completo cliente-agricultor implementado
+
+#### 1. Descubrimiento de Productos
+- Cliente navega el mercado (/comprador/mercado)
+- Ve productos agrupados por categorías
+- Puede marcar favoritos y ver detalles
+
+#### 2. Gestión del Carrito
+- Agregar productos con validación de stock
+- Ver carrito agrupado por agricultor
+- Modificar cantidades y eliminar productos
+
+#### 3. Proceso de Checkout
+- Conversión automática a pedidos por agricultor
+- Creación de pedidos separados por vendedor
+- Confirmación y limpieza del carrito
+
+#### 4. Seguimiento de Pedidos
+- Vista completa de pedidos realizados
+- Estados en tiempo real por pedido
+- Información detallada de entrega
+
+#### 5. Notificación a Agricultores
+- Los agricultores reciben pedidos automáticamente
+- Pueden gestionar estados desde su panel
+- Comunicación bidireccional establecida
+
+### Preparación para Ngrok y testing
+- **Script de ngrok**: Configurado para permitir acceso externo
+- **Testing multi-usuario**: Preparado para probar flujo completo
+- **URLs públicas**: Facilitará testing entre diferentes dispositivos
+
+### Resultados y validación
+- **Flujo completo funcional**: Cliente puede comprar y agricultor recibir pedidos
+- **UI/UX profesional**: Interfaz moderna y fácil de usar
+- **Arquitectura escalable**: Base sólida para nuevas funcionalidades
+- **Real-time updates**: Sincronización en tiempo real entre usuarios
+
+### Pendientes y próximos pasos
+- Probar flujo completo con ngrok entre cliente y agricultor
+- Implementar notificaciones push para agricultores
+- Agregar gestión de direcciones de entrega
+- Mejorar sistema de contacto directo agricultor-cliente
+- Implementar sistema de calificaciones y reseñas
+- Agregar pasarelas de pago (Wompi, PayU)
+- Testing exhaustivo del flujo multi-vendedor
+
+---
 
 ### Contexto general
 En esta jornada se abordaron y resolvieron múltiples problemas críticos de integración entre frontend y backend, robusteciendo el flujo de publicación de productos, la gestión de roles y la experiencia de usuario para agricultores y compradores. Se priorizó la alineación de tipos, la robustez de la API y la experiencia post-registro/login.
