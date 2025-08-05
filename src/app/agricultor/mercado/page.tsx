@@ -1,10 +1,12 @@
 
 "use client";
 import { Suspense, useState, useEffect, useRef } from 'react';
+import { useSession } from 'next-auth/react';
 import ProductosCatalogo from '../../../components/ProductosCatalogo';
 import { Search, Filter, Plus, Grid3X3, List, ChevronDown } from 'lucide-react';
 
 export default function MercadoPage() {
+  const { data: session } = useSession();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [filtroCategoria, setFiltroCategoria] = useState<string>("Todos");
   const [ordenPor, setOrdenPor] = useState<string>("recientes");
@@ -109,14 +111,16 @@ export default function MercadoPage() {
               </div>
             </div>
             
-            {/* Botón de publicar producto (esquina derecha) */}
-            <a
-              href="/agricultor/publicar"
-              className="inline-flex items-center space-x-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 text-sm whitespace-nowrap"
-            >
-              <Plus className="w-5 h-5" />
-              <span>Publicar Producto</span>
-            </a>
+            {/* Botón de publicar producto (esquina derecha) solo para agricultor */}
+            {session?.user?.role === 'agricultor' && (
+              <a
+                href="/agricultor/publicar"
+                className="inline-flex items-center space-x-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 text-sm whitespace-nowrap"
+              >
+                <Plus className="w-5 h-5" />
+                <span>Publicar Producto</span>
+              </a>
+            )}
           </div>
         </div>
       </section>

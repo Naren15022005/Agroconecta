@@ -5,11 +5,16 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import CartSidebar from '@/components/CartSidebar';
-import { ShoppingBag, Package, User, LogOut, Home } from 'lucide-react';
+import MiniCart from '@/components/MiniCart';
+import { ShoppingBag, Package, User, LogOut, Home, ShoppingCart } from 'lucide-react';
+import { useCartStore } from '@/store/cart';
+import { useState } from 'react';
 
 export default function CompradorLayout({ children }: { children: ReactNode }) {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const cart = useCartStore();
+  const [miniCartOpen, setMiniCartOpen] = useState(false);
 
   // Verificar autenticación
   if (status === 'loading') {
@@ -28,6 +33,23 @@ export default function CompradorLayout({ children }: { children: ReactNode }) {
     return null;
   }
 
+  // Verificar que el usuario tenga el rol correcto
+  if (session?.user?.role && session.user.role !== 'cliente' && session.user.role !== 'empresa') {
+    // Si el usuario es agricultor, redirigir a su dashboard
+    if (session.user.role === 'agricultor') {
+      router.push('/agricultor');
+      return null;
+    }
+    // Si es admin, redirigir a admin
+    if (session.user.role === 'admin') {
+      router.push('/admin');
+      return null;
+    }
+    // Para cualquier otro rol, redirigir a inicio
+    router.push('/');
+    return null;
+  }
+
   const handleLogout = () => {
     router.push('/api/auth/signout');
   };
@@ -35,7 +57,7 @@ export default function CompradorLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Top Navigation Bar */}
-      <nav className="bg-white shadow-sm border-b">
+      <nav className="bg-white shadow-sm border-b relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
@@ -71,8 +93,23 @@ export default function CompradorLayout({ children }: { children: ReactNode }) {
               </Link>
             </div>
 
-            {/* User Menu */}
-            <div className="flex items-center space-x-4">
+            {/* User Menu + Cart */}
+            <div className="flex items-center space-x-4 relative">
+              {/* Carrito de compra */}
+              <Link
+                id="cart-sidebar-btn"
+                href="/comprador/carrito"
+                className="relative p-2 rounded-full hover:bg-green-50 transition-colors"
+                aria-label="Ver carrito"
+              >
+                <ShoppingCart size={24} className="text-green-600" />
+                {cart.getTotalItems() > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 font-bold">
+                    {cart.getTotalItems()}
+                  </span>
+                )}
+              </Link>
+              <MiniCart open={miniCartOpen} onClose={() => setMiniCartOpen(false)} />
               <div className="hidden md:flex items-center space-x-2 text-sm">
                 <User size={16} className="text-gray-400" />
                 <span className="text-gray-700">

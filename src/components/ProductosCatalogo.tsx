@@ -1,27 +1,30 @@
-
 "use client";
 import { useState, useEffect } from 'react';
 import { Heart, Star, MapPin, Calendar, User, X } from 'lucide-react';
 import { useSession } from 'next-auth/react';
+import { useCartStore } from '@/store/cart';
+import { ShoppingCart } from 'lucide-react';
 
 interface Producto {
-  id: number;
+  id: string; // Cambiar a string para productos reales
   nombre: string;
   descripcion: string;
   precio: number;
   unidad: string;
   categoria: string;
   agricultor: string;
+  agricultorId?: string;
   ubicacion: string;
   fecha: string;
   imagen: string;
+  stock: number;
   rating: number;
   isFavorite: boolean;
 }
 
 const productosDemo: Producto[] = [
   {
-    id: 1,
+    id: "1",
     nombre: "Plátano Hartón Premium",
     descripcion: "Plátanos frescos y maduros, ideales para cocinar. Cultivados de forma orgánica en las montañas de Antioquia.",
     precio: 2500,
@@ -31,11 +34,12 @@ const productosDemo: Producto[] = [
     ubicacion: "Medellín, Antioquia",
     fecha: "Hace 2 horas",
     imagen: "🍌",
+    stock: 99,
     rating: 4.8,
     isFavorite: false
   },
   {
-    id: 2,
+    id: "2",
     nombre: "Yuca Criolla Fresca",
     descripcion: "Yuca recién cosechada, perfecta para preparaciones tradicionales. Sin químicos, cultivo natural.",
     precio: 1800,
@@ -45,11 +49,12 @@ const productosDemo: Producto[] = [
     ubicacion: "Cali, Valle del Cauca",
     fecha: "Hace 5 horas",
     imagen: "🥔",
+    stock: 99,
     rating: 4.6,
     isFavorite: true
   },
   {
-    id: 3,
+    id: "3",
     nombre: "Café Especial Arábica",
     descripcion: "Granos de café premium, tostado medio. Aroma intenso y sabor único de la región cafetera.",
     precio: 15000,
@@ -59,11 +64,12 @@ const productosDemo: Producto[] = [
     ubicacion: "Manizales, Caldas",
     fecha: "Hace 1 día",
     imagen: "☕",
+    stock: 99,
     rating: 4.9,
     isFavorite: false
   },
   {
-    id: 4,
+    id: "4",
     nombre: "Aguacate Hass Orgánico",
     descripcion: "Aguacates cremosos y nutritivos, cultivados sin pesticidas. Perfectos para guacamole y ensaladas.",
     precio: 3200,
@@ -73,11 +79,12 @@ const productosDemo: Producto[] = [
     ubicacion: "Bogotá, Cundinamarca",
     fecha: "Hace 3 horas",
     imagen: "🥑",
+    stock: 99,
     rating: 4.7,
     isFavorite: true
   },
   {
-    id: 5,
+    id: "5",
     nombre: "Cilantro Fresco",
     descripcion: "Cilantro aromático recién cortado, ideal para sazonar comidas típicas colombianas.",
     precio: 800,
@@ -87,11 +94,12 @@ const productosDemo: Producto[] = [
     ubicacion: "Bucaramanga, Santander",
     fecha: "Hace 6 horas",
     imagen: "🌿",
+    stock: 99,
     rating: 4.5,
     isFavorite: false
   },
   {
-    id: 6,
+    id: "6",
     nombre: "Maíz Amarillo Tierno",
     descripcion: "Mazorcas de maíz dulce y tierno, perfectas para arepas y sopas tradicionales.",
     precio: 1200,
@@ -101,11 +109,12 @@ const productosDemo: Producto[] = [
     ubicacion: "Barranquilla, Atlántico",
     fecha: "Hace 4 horas",
     imagen: "🌽",
+    stock: 99,
     rating: 4.4,
     isFavorite: false
   },
   {
-    id: 7,
+    id: "7",
     nombre: "Queso Campesino Fresco",
     descripcion: "Queso artesanal elaborado con leche fresca de vacas criollas. Sabor auténtico y textura cremosa.",
     precio: 8500,
@@ -115,11 +124,12 @@ const productosDemo: Producto[] = [
     ubicacion: "Boyacá, Cundinamarca",
     fecha: "Hace 1 hora",
     imagen: "🧀",
+    stock: 99,
     rating: 4.8,
     isFavorite: false
   },
   {
-    id: 8,
+    id: "8",
     nombre: "Leche Fresca de Vaca",
     descripcion: "Leche entera recién ordeñada, sin procesar. Rica en nutrientes y con el sabor tradicional del campo.",
     precio: 3500,
@@ -129,6 +139,7 @@ const productosDemo: Producto[] = [
     ubicacion: "Ubaté, Cundinamarca",
     fecha: "Hace 30 minutos",
     imagen: "🥛",
+    stock: 99,
     rating: 4.9,
     isFavorite: true
   }
@@ -152,45 +163,50 @@ export default function ProductosCatalogo({
   const [toastMessage, setToastMessage] = useState("");
   const [toastColor, setToastColor] = useState("");
   const [toastIcon, setToastIcon] = useState("");
+  const cart = useCartStore();
+  const [miniCartOpen, setMiniCartOpen] = useState(false);
+  const [apiError, setApiError] = useState(false);
 
   // Cargar productos desde la API
   useEffect(() => {
     const cargarProductos = async () => {
       try {
         const res = await fetch('/api/productos');
-        
         if (res.ok) {
           const productosAPI = await res.json();
-          
-          // Convertir formato de API al formato esperado por el componente
-          const productosFormateados = productosAPI.map((p: any, index: number) => ({
-            id: index + 1,
+          console.log('API productos:', productosAPI);
+          const productosFormateados = productosAPI.map((p: any) => ({
+            id: p.id,
             nombre: p.name,
             descripcion: p.description,
             precio: p.price,
             unidad: p.unit,
             categoria: p.category?.name || 'Sin categoría',
             agricultor: p.agricultor?.user?.nombre || 'Agricultor desconocido',
-            ubicacion: 'Colombia', // Por ahora hardcoded
-            fecha: 'Hace unas horas', // Por ahora hardcoded
+            agricultorId: p.agricultorId || '',
+            ubicacion: 'Colombia',
+            fecha: 'Hace unas horas',
             imagen: p.imageUrl || '🌿',
-            rating: 4.5, // Por ahora hardcoded
+            stock: p.stock ?? 0,
+            rating: 4.5,
             isFavorite: false
           }));
-          
+          console.log('Productos formateados:', productosFormateados);
           setProductos(productosFormateados);
+          setApiError(false);
         } else {
-          // En caso de error, usar productos demo como fallback
-          setProductos(productosDemo);
+          setApiError(true);
+          setProductos([]);
+          console.error('Error al cargar productos desde la API, usando productos demo');
         }
       } catch (error) {
-        // En caso de error, usar productos demo como fallback
-        setProductos(productosDemo);
+        setApiError(true);
+        setProductos([]);
+        console.error('Error al cargar productos desde la API:', error);
       } finally {
         setLoading(false);
       }
     };
-
     cargarProductos();
   }, []);
   const [prevOrdenPor, setPrevOrdenPor] = useState(ordenPor);
@@ -284,12 +300,38 @@ export default function ProductosCatalogo({
     }, 3000);
   };
 
-  const toggleFavorite = (id: number) => {
-    setProductos(prev => 
-      prev.map(producto => 
+  const toggleFavorite = (id: string) => {
+    setProductos(prev =>
+      prev.map(producto =>
         producto.id === id ? { ...producto, isFavorite: !producto.isFavorite } : producto
       )
     );
+  };
+
+  // Función para agregar producto al carrito
+  const handleAddToCart = (producto: any) => {
+    if (apiError) {
+      mostrarToast('No se puede agregar productos demo al carrito. Intenta recargar la página cuando la conexión se restablezca.', 'bg-red-50 border-red-200 text-red-600', '⚠️');
+      return;
+    }
+    // Validar stock real
+    const existing = cart.items.find(item => item.id === producto.id);
+    if (existing && existing.quantity >= producto.stock) {
+      mostrarToast(`Solo quedan ${producto.stock} unidades disponibles de este producto`, 'bg-red-50 border-red-200 text-red-600', '⚠️');
+      return;
+    }
+    cart.addItem({
+      id: producto.id,
+      name: producto.nombre,
+      price: producto.precio,
+      stock: producto.stock, // Stock real
+      unit: producto.unidad,
+      campesinoId: producto.agricultorId || 'desconocido',
+      campesinoName: producto.agricultor || 'desconocido',
+      imageUrl: producto.imagen,
+    });
+    setMiniCartOpen(true);
+    mostrarToast('Producto agregado al carrito', 'bg-green-50 border-green-200 text-green-600', '🛒');
   };
 
   const productosFiltrados = productos
@@ -466,9 +508,10 @@ export default function ProductosCatalogo({
                 <div className="pt-3">
                   {!isOwnerAgricultor && (
                     <button
-                      className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-2 px-3 rounded-xl transition-colors duration-200 shadow-md hover:shadow-lg text-sm"
+                      className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-2 px-3 rounded-xl transition-colors duration-200 shadow-md hover:shadow-lg text-sm flex items-center justify-center gap-2"
+                      onClick={() => handleAddToCart(producto)}
                     >
-                      Comprar Ahora
+                      <ShoppingCart className="w-4 h-4 mr-1" /> Comprar Ahora
                     </button>
                   )}
                 </div>
@@ -561,9 +604,10 @@ export default function ProductosCatalogo({
                     <div className="lg:ml-6">
                       {!isOwnerAgricultor && (
                         <button
-                          className="w-full lg:w-auto bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200 shadow-lg hover:shadow-xl whitespace-nowrap"
+                          className="w-full lg:w-auto bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200 shadow-lg hover:shadow-xl whitespace-nowrap flex items-center justify-center gap-2"
+                          onClick={() => handleAddToCart(producto)}
                         >
-                          Comprar Ahora
+                          <ShoppingCart className="w-4 h-4 mr-1" /> Comprar Ahora
                         </button>
                       )}
                     </div>
@@ -591,6 +635,14 @@ export default function ProductosCatalogo({
             <p>• Cambia los filtros aplicados</p>
             <p>• Explora otras categorías</p>
           </div>
+        </div>
+      )}
+
+      {/* Mostrar mensaje si la API falla */}
+      {apiError && (
+        <div className="bg-red-100 border border-red-300 text-red-700 rounded-lg p-4 mb-6 text-center">
+          Error al cargar productos desde el servidor. No es posible comprar productos demo. Intenta recargar la página.<br />
+          <span className="font-bold">No podrás agregar productos al carrito hasta que la conexión se restablezca.</span>
         </div>
       )}
         </>

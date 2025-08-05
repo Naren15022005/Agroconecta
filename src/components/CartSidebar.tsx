@@ -5,12 +5,14 @@ import { X, Plus, Minus, Trash2, ShoppingBag } from 'lucide-react';
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { Dialog } from '@radix-ui/react-dialog';
 
 export default function CartSidebar() {
   const { data: session } = useSession();
   const router = useRouter();
   const [isProcessing, setIsProcessing] = useState(false);
-  
+  const [modal, setModal] = useState<{ open: boolean; success?: boolean; message?: string }>({ open: false });
+
   const { 
     items, 
     isOpen, 
@@ -38,55 +40,34 @@ export default function CartSidebar() {
       router.push('/auth/signin?callbackUrl=/comprador/mercado');
       return;
     }
-
     setIsProcessing(true);
     try {
-      // Crear pedidos por agricultor
-      const pedidosPorAgricultor = Object.entries(itemsByVendor).map(([agricultorId, vendor]) => ({
-        agricultorId,
-        campesinoName: vendor.campesinoName,
-        items: vendor.items,
-        total: vendor.items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+      // Unificar todos los items en un solo array para el endpoint
+      const allItems = items.map(item => ({
+        productoId: item.id,
+        nombre: item.name,
+        cantidad: item.quantity,
+        precioUnitario: item.price,
+        agricultorId: item.campesinoId,
+        stockDisponible: item.stock,
+        metodoEntrega: 'ENTREGA_DIRECTA',
+        metodoPago: 'CONTRAENTREGA',
       }));
-
-      // Procesar cada pedido
-      for (const pedido of pedidosPorAgricultor) {
-        const response = await fetch('/api/pedidos', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            buyerId: session.user?.id || session.user?.email,
-            agricultorId: pedido.agricultorId,
-            items: pedido.items.map(item => ({
-              productId: item.id,
-              productName: item.name,
-              quantity: item.quantity,
-              price: item.price,
-              unit: item.unit
-            })),
-            total: pedido.total,
-            address: 'Dirección por definir', // TODO: Implementar gestión de direcciones
-            deliveryMethod: 'ENTREGA_DIRECTA',
-            paymentMethod: 'CONTRAENTREGA',
-            notes: `Pedido realizado desde el marketplace AgroConecta`
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`Error al crear pedido para ${pedido.campesinoName}`);
-        }
+      const response = await fetch('/api/carrito/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: allItems }),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        setModal({ open: true, success: false, message: error.error || 'Error al procesar el pedido.' });
+        return;
       }
-
-      // Limpiar carrito y notificar éxito
       clearCart();
       toggleCart();
-      alert(`¡Pedidos creados exitosamente! Se han enviado ${pedidosPorAgricultor.length} pedido(s) a los agricultores.`);
-      
+      setModal({ open: true, success: true, message: '¡Tus pedidos fueron creados exitosamente! Pronto recibirás notificaciones.' });
     } catch (error) {
-      console.error('Error al procesar pedidos:', error);
-      alert('Error al procesar los pedidos. Por favor, inténtalo de nuevo.');
+      setModal({ open: true, success: false, message: 'Error inesperado al procesar el pedido. Intenta de nuevo.' });
     } finally {
       setIsProcessing(false);
     }
@@ -96,6 +77,40 @@ export default function CartSidebar() {
 
   return (
     <>
+      {/* Modal de confirmación y error */}
+      <Dialog open={modal.open} onOpenChange={open => setModal(m => ({ ...m, open }))}>
+        {modal.open && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-40">
+            <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center">
+              {modal.success ? (
+                <>
+                  <div className="text-green-600 text-4xl mb-2">✔️</div>
+                  <h2 className="text-xl font-bold mb-2">¡Pedido realizado!</h2>
+                  <p className="mb-4">{modal.message}</p>
+                  <button
+                    className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                    onClick={() => setModal({ open: false })}
+                  >
+                    Cerrar
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div className="text-red-500 text-4xl mb-2">❌</div>
+                  <h2 className="text-xl font-bold mb-2">Ocurrió un error</h2>
+                  <p className="mb-4">{modal.message}</p>
+                  <button
+                    className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400"
+                    onClick={() => setModal({ open: false })}
+                  >
+                    Cerrar
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+      </Dialog>
       {/* Overlay */}
       <div 
         className="fixed inset-0 bg-black bg-opacity-50 z-40"

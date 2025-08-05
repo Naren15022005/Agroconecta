@@ -1,278 +1,130 @@
 "use client";
-
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
-import { useCartStore } from '@/store/cart';
-import { ShoppingCart, Plus, Minus, Heart } from 'lucide-react';
+import ProductosCatalogo from '../../../components/ProductosCatalogo';
+import { Search, Filter, Grid3X3, List, ChevronDown } from 'lucide-react';
 
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  unit: string;
-  imageUrl: string;
-  stock: number;
-  category: {
-    id: string;
-    name: string;
-  };
-  agricultor: {
-    id: string;
-    user: {
-      nombre: string;
-      correo: string;
-    };
-  };
-}
-
-export default function CompradorMercadoPage() {
+export default function MercadoCompradorPage() {
   const { data: session } = useSession();
-  const [productos, setProductos] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [favorites, setFavorites] = useState<Set<string>>(new Set());
-  
-  const { addItem, items, getTotalItems, toggleCart } = useCartStore();
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [filtroCategoria, setFiltroCategoria] = useState<string>("Todos");
+  const [ordenPor, setOrdenPor] = useState<string>("recientes");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [busqueda, setBusqueda] = useState<string>("");
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const opcionesOrden = [
+    { value: "recientes", label: "Más recientes" },
+    { value: "precio-asc", label: "Precio: menor a mayor" },
+    { value: "precio-desc", label: "Precio: mayor a menor" },
+    { value: "rating", label: "Mejor calificados" }
+  ];
 
   useEffect(() => {
-    const cargarProductos = async () => {
-      try {
-        const res = await fetch('/api/productos');
-        if (res.ok) {
-          const data = await res.json();
-          setProductos(data);
-        } else {
-          setError('Error al cargar productos');
-        }
-      } catch (err) {
-        setError('Error de conexión');
-      } finally {
-        setLoading(false);
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
       }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
     };
-  useEffect(() => {
-    const cargarProductos = async () => {
-      try {
-        const res = await fetch('/api/productos');
-        if (res.ok) {
-          const data = await res.json();
-          setProductos(data);
-        } else {
-          setError('Error al cargar productos');
-        }
-      } catch (err) {
-        setError('Error de conexión');
-      } finally {
-        setLoading(false);
-      }
-    };
-    cargarProductos();
   }, []);
 
-  const handleAddToCart = (producto: Product) => {
-    addItem({
-      id: producto.id,
-      name: producto.name,
-      price: producto.price,
-      stock: producto.stock,
-      unit: producto.unit,
-      campesinoId: producto.agricultor.id,
-      campesinoName: producto.agricultor.user.nombre,
-      imageUrl: producto.imageUrl
-    });
-  };
-
-  const toggleFavorite = (productId: string) => {
-    setFavorites(prev => {
-      const newFavorites = new Set(prev);
-      if (newFavorites.has(productId)) {
-        newFavorites.delete(productId);
-      } else {
-        newFavorites.add(productId);
-      }
-      return newFavorites;
-    });
-  };
-
-  const getItemInCart = (productId: string) => {
-    return items.find(item => item.id === productId);
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Cargando productos...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600">{error}</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-          >
-            Reintentar
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const categorias = [
+    { id: "Todos", nombre: "Todos" },
+    { id: "Frutas", nombre: "Frutas" },
+    { id: "Verduras", nombre: "Verduras" },
+    { id: "Tubérculos", nombre: "Tubérculos" },
+    { id: "Café", nombre: "Café" },
+    { id: "Hierbas", nombre: "Hierbas" },
+    { id: "Cereales", nombre: "Cereales" },
+    { id: "Lácteos", nombre: "Lácteos" },
+  ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header con carrito */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Mercado AgroConecta</h1>
-              <p className="mt-1 text-gray-600">
-                Productos frescos directamente de nuestros agricultores
-              </p>
+    <main className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 pt-8 pb-2">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+          <div className="flex-1 flex items-center gap-2">
+            <div className="relative w-full max-w-xs">
+              <Search className="absolute left-3 top-2.5 text-gray-400 w-5 h-5" />
+              <input
+                type="text"
+                className="pl-10 pr-4 py-2 w-full rounded-lg border border-gray-200 focus:ring-2 focus:ring-green-200 focus:border-green-400 outline-none text-gray-700 bg-white shadow-sm"
+                placeholder="Buscar productos, agricultores..."
+                value={busqueda}
+                onChange={e => setBusqueda(e.target.value)}
+              />
             </div>
-            <button
-              onClick={toggleCart}
-              className="relative bg-green-600 text-white p-3 rounded-full hover:bg-green-700 transition-colors"
-            >
-              <ShoppingCart size={24} />
-              {getTotalItems() > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center">
-                  {getTotalItems()}
-                </span>
+            <div className="ml-2 relative" ref={dropdownRef}>
+              <button
+                className="flex items-center gap-1 px-3 py-2 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-100"
+                onClick={() => setIsDropdownOpen(v => !v)}
+              >
+                <Filter className="w-4 h-4 mr-1" />
+                {opcionesOrden.find(o => o.value === ordenPor)?.label || 'Ordenar'}
+                <ChevronDown className="w-4 h-4 ml-1" />
+              </button>
+              {isDropdownOpen && (
+                <div className="absolute z-10 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg">
+                  {opcionesOrden.map(op => (
+                    <button
+                      key={op.value}
+                      className={`block w-full text-left px-4 py-2 hover:bg-green-50 ${ordenPor === op.value ? 'text-green-700 font-semibold' : ''}`}
+                      onClick={() => { setOrdenPor(op.value); setIsDropdownOpen(false); }}
+                    >
+                      {op.label}
+                    </button>
+                  ))}
+                </div>
               )}
+            </div>
+          </div>
+          <div className="flex gap-2 items-center">
+            <button
+              className={`p-2 rounded-lg border ${viewMode === 'grid' ? 'bg-green-100 border-green-400 text-green-700' : 'bg-white border-gray-200 text-gray-400'} transition`}
+              onClick={() => setViewMode('grid')}
+            >
+              <Grid3X3 className="w-5 h-5" />
+            </button>
+            <button
+              className={`p-2 rounded-lg border ${viewMode === 'list' ? 'bg-green-100 border-green-400 text-green-700' : 'bg-white border-gray-200 text-gray-400'} transition`}
+              onClick={() => setViewMode('list')}
+            >
+              <List className="w-5 h-5" />
             </button>
           </div>
-          <div className="mt-4 flex items-center space-x-4">
-            <span className="text-sm text-gray-500">
-              {productos.length} productos disponibles
-            </span>
-            {session && (
-              <span className="text-sm text-green-600">
-                Bienvenido, {session.user?.name}
-              </span>
-            )}
-          </div>
+        </div>
+        <div className="flex flex-wrap gap-2 mb-6">
+          {categorias.map(cat => (
+            <button
+              key={cat.id}
+              className={`px-4 py-2 rounded-full border text-sm font-medium transition ${filtroCategoria === cat.nombre ? 'bg-green-600 text-white border-green-600' : 'bg-white text-gray-700 border-gray-200 hover:bg-green-50'}`}
+              onClick={() => setFiltroCategoria(cat.nombre)}
+            >
+              {cat.nombre}
+            </button>
+          ))}
         </div>
       </div>
-
-      {/* Contenido principal */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {productos.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="text-gray-400 text-6xl mb-4">🥕</div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              No hay productos disponibles
-            </h3>
-            <p className="text-gray-500">
-              Los agricultores aún no han publicado productos. ¡Vuelve pronto!
-            </p>
+      <Suspense fallback={
+        <div className="flex justify-center items-center py-20">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500 mr-4"></div>
+          <div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Cargando productos frescos</h3>
+            <p className="text-gray-500">Conectando con agricultores de toda Colombia...</p>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {productos.map((producto) => {
-              const itemInCart = getItemInCart(producto.id);
-              return (
-                <div 
-                  key={producto.id} 
-                  className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden"
-                >
-                  <div className="h-48 bg-gray-200 relative">
-                    {producto.imageUrl ? (
-                      <img
-                        src={producto.imageUrl.startsWith('http') 
-                          ? producto.imageUrl 
-                          : `${window.location.origin}${producto.imageUrl}`}
-                        alt={producto.name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                        }}
-                      />
-                    ) : null}
-                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-4xl hidden">
-                      🥬
-                    </div>
-                    <div className="absolute top-2 left-2">
-                      <span className="bg-green-600 text-white text-xs px-2 py-1 rounded-full">
-                        {producto.category.name}
-                      </span>
-                    </div>
-                    <button
-                      onClick={() => toggleFavorite(producto.id)}
-                      className="absolute top-2 right-2 p-2 bg-white rounded-full shadow-md hover:bg-gray-50 transition-colors"
-                    >
-                      <Heart 
-                        size={16} 
-                        className={favorites.has(producto.id) ? 'text-red-500 fill-current' : 'text-gray-400'}
-                      />
-                    </button>
-                  </div>
-                  <div className="p-4">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-1">
-                      {producto.name}
-                    </h3>
-                    <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                      {producto.description}
-                    </p>
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="text-2xl font-bold text-green-600">
-                        ${producto.price.toLocaleString()}
-                        <span className="text-sm font-normal text-gray-500">
-                          /{producto.unit}
-                        </span>
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        Stock: {producto.stock}
-                      </div>
-                    </div>
-                    <div className="text-xs text-gray-500 mb-3">
-                      Por: {producto.agricultor.user.nombre}
-                    </div>
-                    
-                    {producto.stock === 0 ? (
-                      <button 
-                        disabled 
-                        className="w-full bg-gray-400 text-white py-2 px-4 rounded-lg cursor-not-allowed font-medium"
-                      >
-                        Sin Stock
-                      </button>
-                    ) : itemInCart ? (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-green-600 font-medium">
-                          En carrito: {itemInCart.quantity}
-                        </span>
-                        <button
-                          onClick={() => handleAddToCart(producto)}
-                          className="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium"
-                        >
-                          Agregar más
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => handleAddToCart(producto)}
-                        className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium flex items-center justify-center gap-2"
-                      >
-                        <Plus size={16} />
-                        Agregar al Carrito
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    </div>
+        </div>
+      }>
+        <ProductosCatalogo
+          viewMode={viewMode}
+          filtroCategoria={filtroCategoria}
+          ordenPor={ordenPor}
+          busqueda={busqueda}
+        />
+      </Suspense>
+    </main>
   );
 }

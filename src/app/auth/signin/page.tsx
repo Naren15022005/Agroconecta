@@ -42,13 +42,20 @@ export default function SignInPage() {
         const sessionRes = await fetch('/api/auth/session');
         const session = await sessionRes.json();
         const role = session?.user?.role;
-        if (role === 'comprador' || role === 'empresa') {
+        
+        console.log('Login exitoso. Rol del usuario:', role);
+        
+        if (role === 'cliente' || role === 'empresa') {
+          console.log('Redirigiendo a /comprador/mercado');
           window.location.href = '/comprador/mercado';
         } else if (role === 'agricultor') {
+          console.log('Redirigiendo a /agricultor/mercado');
           window.location.href = '/agricultor/mercado';
         } else if (role === 'admin') {
+          console.log('Redirigiendo a /admin');
           window.location.href = '/admin';
         } else {
+          console.log('Rol no reconocido, redirigiendo a inicio');
           window.location.href = '/';
         }
       } else {
