@@ -14,10 +14,17 @@ export default function CarritoPage() {
   // Limpia productos inválidos automáticamente
   useCleanInvalidCartItems();
 
+  const hasInvalidItems = cart.items.some(item => !item.id.startsWith('AGRC_PRD_'));
+
   const handleCheckout = async () => {
     setIsProcessing(true);
     setError(null);
     setSuccess(null);
+    if (hasInvalidItems) {
+      setError('Tu carrito contiene productos inválidos. Por favor elimínalos antes de finalizar la compra.');
+      setIsProcessing(false);
+      return;
+    }
     try {
       const allItems = cart.items.map(item => ({
         productoId: item.id,
@@ -133,6 +140,11 @@ export default function CarritoPage() {
             <span className="font-semibold text-lg">Total:</span>
             <span className="text-2xl font-bold text-green-700">${cart.getTotalPrice().toLocaleString()}</span>
           </div>
+          {hasInvalidItems && (
+            <div className="text-red-600 font-semibold mb-4">
+              ⚠️ Hay productos inválidos en tu carrito. Elimínalos para poder comprar.
+            </div>
+          )}
           {error && <div className="text-red-600 mb-4">{error}</div>}
           {success && <div className="text-green-600 mb-4">{success}</div>}
           <button

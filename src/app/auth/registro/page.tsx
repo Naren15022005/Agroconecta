@@ -85,7 +85,12 @@ export default function RegistroPage() {
         const text = await res.text();
         result.error = text;
       }
-      if (!res.ok) throw new Error(result.error || 'Error en el registro');
+      if (!result.success) {
+        setError(result.error || 'Error en el registro');
+        setShowErrorModal(true);
+        setLoading(false);
+        return;
+      }
       setError(null);
       setRegisteredEmail(email); // Guardar email para verificar activación
       setRegisteredName(name); // Guardar nombre para el modal

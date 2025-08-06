@@ -2,254 +2,265 @@
 
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { ShoppingBag, Package, Users, TrendingUp, Heart, Clock } from 'lucide-react';
+import { ShoppingBag, Leaf, Heart, Star, ArrowRight, Users, Truck, CheckCircle } from 'lucide-react';
 import { useCartStore } from '@/store/cart';
 import { useState, useEffect } from 'react';
-
-interface DashboardStats {
-  totalPedidos: number;
-  pedidosPendientes: number;
-  productosEnCarrito: number;
-  totalGastado: number;
-}
 
 export default function CompradorHome() {
   const { data: session } = useSession();
   const { getTotalItems, getTotalPrice } = useCartStore();
-  const [stats, setStats] = useState<DashboardStats>({
-    totalPedidos: 0,
-    pedidosPendientes: 0,
-    productosEnCarrito: getTotalItems(),
-    totalGastado: 0
-  });
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const cargarEstadisticas = async () => {
-      try {
-        if (session?.user?.id || session?.user?.email) {
-          const buyerId = session.user.id || session.user.email;
-          const res = await fetch(`/api/pedidos?buyerId=${buyerId}`);
-          
-          if (res.ok) {
-            const pedidos = await res.json();
-            const totalPedidos = pedidos.length;
-            const pedidosPendientes = pedidos.filter((p: any) => 
-              ['PENDIENTE', 'CONFIRMADO', 'EN_PREPARACION', 'EN_CAMINO', 'EN_PUNTO'].includes(p.status)
-            ).length;
-            const totalGastado = pedidos
-              .filter((p: any) => p.status === 'ENTREGADO')
-              .reduce((sum: number, p: any) => sum + p.total, 0);
-            
-            setStats({
-              totalPedidos,
-              pedidosPendientes,
-              productosEnCarrito: getTotalItems(),
-              totalGastado
-            });
-          }
-        }
-      } catch (error) {
-        console.error('Error cargando estadísticas:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    cargarEstadisticas();
-  }, [session, getTotalItems]);
-
-  // Actualizar stats cuando cambie el carrito
-  useEffect(() => {
-    setStats(prev => ({
-      ...prev,
-      productosEnCarrito: getTotalItems()
-    }));
-  }, [getTotalItems()]);
-
-  const quickActions = [
+  const featuredCategories = [
     {
-      title: 'Explorar Mercado',
-      description: 'Descubre productos frescos de agricultores locales',
-      icon: ShoppingBag,
-      href: '/comprador/mercado',
-      color: 'bg-green-500',
-      hoverColor: 'hover:bg-green-600'
+      name: 'Frutas Frescas',
+      description: 'Las mejores frutas de temporada',
+      icon: '🍎',
+      href: '/comprador/mercado?categoria=Frutas',
+      gradient: 'from-red-400 to-orange-500'
     },
     {
-      title: 'Mis Pedidos',
-      description: 'Revisa el estado de tus compras',
-      icon: Package,
-      href: '/comprador/pedidos',
-      color: 'bg-blue-500',
-      hoverColor: 'hover:bg-blue-600'
+      name: 'Verduras',
+      description: 'Verduras orgánicas y frescas',
+      icon: '🥬',
+      href: '/comprador/mercado?categoria=Verduras',
+      gradient: 'from-green-400 to-green-600'
     },
     {
-      title: 'Favoritos',
-      description: 'Productos que has marcado como favoritos',
-      icon: Heart,
-      href: '/comprador/favoritos',
-      color: 'bg-red-500',
-      hoverColor: 'hover:bg-red-600'
+      name: 'Lácteos',
+      description: 'Productos lácteos artesanales',
+      icon: '🥛',
+      href: '/comprador/mercado?categoria=Lácteos',
+      gradient: 'from-blue-400 to-blue-600'
+    },
+    {
+      name: 'Cereales',
+      description: 'Granos y cereales naturales',
+      icon: '🌾',
+      href: '/comprador/mercado?categoria=Cereales',
+      gradient: 'from-yellow-400 to-orange-500'
     }
   ];
 
-  const statsCards = [
+  const benefits = [
     {
-      title: 'Total Pedidos',
-      value: stats.totalPedidos,
-      icon: Package,
-      color: 'text-blue-600 bg-blue-100'
+      icon: Leaf,
+      title: 'Productos 100% Naturales',
+      description: 'Sin químicos ni conservantes, directo del campo a tu mesa'
     },
     {
-      title: 'Pedidos Activos',
-      value: stats.pedidosPendientes,
-      icon: Clock,
-      color: 'text-orange-600 bg-orange-100'
+      icon: Users,
+      title: 'Apoyo a Agricultores',
+      description: 'Tu compra beneficia directamente a familias campesinas'
     },
     {
-      title: 'En Mi Carrito',
-      value: stats.productosEnCarrito,
-      icon: ShoppingBag,
-      color: 'text-green-600 bg-green-100'
+      icon: Truck,
+      title: 'Entrega Fresca',
+      description: 'Productos recién cosechados entregados en tu puerta'
     },
     {
-      title: 'Total Gastado',
-      value: `$${stats.totalGastado.toLocaleString()}`,
-      icon: TrendingUp,
-      color: 'text-purple-600 bg-purple-100'
+      icon: CheckCircle,
+      title: 'Calidad Garantizada',
+      description: 'Cada producto es verificado por nuestro equipo de calidad'
     }
   ];
 
   return (
-    <div className="py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header de bienvenida */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">
-            ¡Hola, {session?.user?.name?.split(' ')[0] || 'Comprador'}! 👋
-          </h1>
-          <p className="mt-2 text-gray-600">
-            Bienvenido a tu panel de comprador. Aquí puedes gestionar tus pedidos y descubrir productos frescos.
-          </p>
-        </div>
-
-        {/* Estadísticas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {statsCards.map((stat, index) => (
-            <div key={index} className="bg-white rounded-lg shadow-md p-6">
-              <div className="flex items-center">
-                <div className={`p-3 rounded-full ${stat.color}`}>
-                  <stat.icon size={24} />
-                </div>
-                <div className="ml-4">
-                  <h3 className="text-sm font-medium text-gray-500">{stat.title}</h3>
-                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                </div>
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50">
+      {/* Hero Section */}
+      <section className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-black bg-opacity-20"></div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="text-center">
+            <div className="flex items-center justify-center space-x-4 mb-8">
+              <div className="w-20 h-20 bg-white bg-opacity-20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                <span className="text-4xl">🌱</span>
+              </div>
+              <div>
+                <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-4">
+                  ¡Hola, {session?.user?.name?.split(' ')[0] || 'Naren'}! 👋
+                </h1>
+                <p className="text-2xl text-green-100 font-light">
+                  Descubre el sabor auténtico de Colombia
+                </p>
               </div>
             </div>
-          ))}
+            
+            <p className="text-xl text-green-100 mb-8 max-w-3xl mx-auto leading-relaxed">
+              Conecta directamente con agricultores locales y disfruta de productos frescos, 
+              naturales y llenos de sabor. ¡Tu mesa merece lo mejor del campo colombiano!
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                href="/comprador/mercado"
+                className="bg-white text-green-700 px-8 py-4 rounded-xl font-bold text-lg hover:bg-green-50 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center space-x-2"
+              >
+                <ShoppingBag size={24} />
+                <span>Explorar Mercado</span>
+                <ArrowRight size={20} />
+              </Link>
+              
+              {getTotalItems() > 0 && (
+                <Link
+                  href="/comprador/mercado"
+                  className="bg-orange-500 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-orange-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center space-x-2"
+                >
+                  <span>Finalizar Compra ({getTotalItems()})</span>
+                  <span className="bg-white bg-opacity-20 px-2 py-1 rounded-lg text-sm">
+                    ${getTotalPrice().toLocaleString()}
+                  </span>
+                </Link>
+              )}
+            </div>
+          </div>
         </div>
+      </section>
 
-        {/* Acciones rápidas */}
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Acciones Rápidas</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {quickActions.map((action, index) => (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Categorías Destacadas */}
+        <section className="py-16">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Categorías Populares</h2>
+            <p className="text-xl text-gray-600">Explora nuestras categorías más buscadas</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {featuredCategories.map((category, index) => (
               <Link
                 key={index}
-                href={action.href}
-                className="group block bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+                href={category.href}
+                className="group block"
               >
-                <div className="p-6">
-                  <div className="flex items-center">
-                    <div className={`p-3 rounded-full ${action.color} ${action.hoverColor} text-white transition-colors`}>
-                      <action.icon size={24} />
-                    </div>
-                    <div className="ml-4">
-                      <h3 className="text-lg font-semibold text-gray-900 group-hover:text-green-600 transition-colors">
-                        {action.title}
-                      </h3>
-                      <p className="text-sm text-gray-600 mt-1">
-                        {action.description}
-                      </p>
-                    </div>
+                <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:scale-105 border border-gray-100">
+                  <div className={`h-32 bg-gradient-to-br ${category.gradient} flex items-center justify-center`}>
+                    <span className="text-6xl filter drop-shadow-lg">{category.icon}</span>
+                  </div>
+                  <div className="p-6">
+                    <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-green-600 transition-colors">
+                      {category.name}
+                    </h3>
+                    <p className="text-gray-600">
+                      {category.description}
+                    </p>
                   </div>
                 </div>
               </Link>
             ))}
           </div>
-        </div>
+        </section>
 
-        {/* Información del carrito actual */}
-        {getTotalItems() > 0 && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-8">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <ShoppingBag className="text-green-600" size={24} />
-                <div className="ml-3">
-                  <h3 className="text-lg font-semibold text-green-800">
-                    Tienes productos en tu carrito
-                  </h3>
-                  <p className="text-green-600">
-                    {getTotalItems()} productos por ${getTotalPrice().toLocaleString()}
-                  </p>
+        {/* Beneficios */}
+        <section className="py-16">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">¿Por qué elegir AgroConecta?</h2>
+            <p className="text-xl text-gray-600">Compromiso con la calidad y el apoyo a nuestros agricultores</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {benefits.map((benefit, index) => (
+              <div key={index} className="text-center group">
+                <div className="bg-gradient-to-br from-green-100 to-green-200 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <benefit.icon className="text-green-600" size={40} />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">
+                  {benefit.title}
+                </h3>
+                <p className="text-gray-600 leading-relaxed">
+                  {benefit.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Call to Action */}
+        <section className="py-16">
+          <div className="bg-gradient-to-r from-green-600 to-blue-600 rounded-3xl text-white p-12 text-center relative overflow-hidden">
+            <div className="absolute inset-0 bg-black bg-opacity-10"></div>
+            <div className="relative">
+              <h2 className="text-4xl font-bold mb-6">
+                ¡Comienza tu experiencia AgroConecta hoy!
+              </h2>
+              <p className="text-xl text-green-100 mb-8 max-w-2xl mx-auto">
+                Únete a miles de familias que ya disfrutan de productos frescos y apoyan a agricultores colombianos
+              </p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
+                <div className="text-center">
+                  <div className="text-3xl font-bold mb-2">500+</div>
+                  <div className="text-green-100">Agricultores asociados</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold mb-2">10k+</div>
+                  <div className="text-green-100">Familias satisfechas</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold mb-2">100%</div>
+                  <div className="text-green-100">Productos naturales</div>
                 </div>
               </div>
+              
               <Link
                 href="/comprador/mercado"
-                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                className="inline-flex items-center space-x-3 bg-white text-green-700 px-10 py-4 rounded-xl font-bold text-lg hover:bg-green-50 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
               >
-                Finalizar Compra
+                <span>Explorar Productos</span>
+                <ArrowRight size={24} />
               </Link>
             </div>
           </div>
-        )}
+        </section>
 
-        {/* Tips para compradores */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            💡 Tips para una mejor experiencia
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex items-start space-x-3">
-              <div className="flex-shrink-0 w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-              <div>
-                <h4 className="font-medium text-gray-900">Productos Frescos</h4>
-                <p className="text-sm text-gray-600">
-                  Todos nuestros productos vienen directamente de agricultores locales
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start space-x-3">
-              <div className="flex-shrink-0 w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-              <div>
-                <h4 className="font-medium text-gray-900">Entrega Flexible</h4>
-                <p className="text-sm text-gray-600">
-                  Elige entre entrega directa, punto de encuentro o recogida
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start space-x-3">
-              <div className="flex-shrink-0 w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
-              <div>
-                <h4 className="font-medium text-gray-900">Apoyo Local</h4>
-                <p className="text-sm text-gray-600">
-                  Con cada compra apoyas directamente a agricultores colombianos
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start space-x-3">
-              <div className="flex-shrink-0 w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
-              <div>
-                <h4 className="font-medium text-gray-900">Seguimiento en Tiempo Real</h4>
-                <p className="text-sm text-gray-600">
-                  Rastrea tus pedidos desde la preparación hasta la entrega
-                </p>
-              </div>
-            </div>
+        {/* Testimonios */}
+        <section className="py-16">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Lo que dicen nuestros clientes</h2>
+            <p className="text-xl text-gray-600">Experiencias reales de familias como la tuya</p>
           </div>
-        </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                name: "María González",
+                comment: "Los productos son increíblemente frescos. Mi familia nota la diferencia en cada comida.",
+                rating: 5,
+                location: "Bogotá"
+              },
+              {
+                name: "Carlos Ruiz",
+                comment: "Excelente servicio y calidad. Apoyo directo a nuestros agricultores colombianos.",
+                rating: 5,
+                location: "Medellín"
+              },
+              {
+                name: "Ana Martínez",
+                comment: "La entrega es puntual y los precios son justos. Muy recomendado para toda la familia.",
+                rating: 5,
+                location: "Cali"
+              }
+            ].map((testimonial, index) => (
+              <div key={index} className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+                <div className="flex items-center mb-4">
+                  {[...Array(testimonial.rating)].map((_, i) => (
+                    <Star key={i} className="text-yellow-400 fill-current" size={20} />
+                  ))}
+                </div>
+                <p className="text-gray-700 mb-6 italic leading-relaxed">
+                  "{testimonial.comment}"
+                </p>
+                <div className="flex items-center">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                    {testimonial.name.charAt(0)}
+                  </div>
+                  <div className="ml-4">
+                    <div className="font-semibold text-gray-900">{testimonial.name}</div>
+                    <div className="text-gray-500 text-sm">{testimonial.location}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
       </div>
     </div>
   );

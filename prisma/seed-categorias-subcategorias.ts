@@ -1,9 +1,50 @@
 import { PrismaClient } from '@prisma/client';
-import { AgroConectaIdGenerator } from '../src/lib/id-generator';
+import AgroConectaIdGenerator from '../src/lib/id-generator';
+// import AgroConectaIdGenerator from '../src/lib/id-generator';
 
 const prisma = new PrismaClient();
 
 async function main() {
+
+  // Roles
+  const roles = [
+    {
+      id: 'AGRC_ROL_ADMIN',
+      name: 'admin',
+      displayName: 'Administrador',
+      description: 'Gestión total del sistema',
+      isActive: true,
+    },
+    {
+      id: 'AGRC_ROL_AGRICULTOR',
+      name: 'agricultor',
+      displayName: 'Campesino/Agricultor',
+      description: 'Publica y gestiona productos',
+      isActive: true,
+    },
+    {
+      id: 'AGRC_ROL_CLIENTE',
+      name: 'cliente',
+      displayName: 'Comprador',
+      description: 'Compra productos agrícolas',
+      isActive: true,
+    },
+    {
+      id: 'AGRC_ROL_EMPRESA',
+      name: 'empresa',
+      displayName: 'Empresa',
+      description: 'Compra productos al por mayor',
+      isActive: true,
+    },
+  ];
+  for (const role of roles) {
+    await prisma.role.upsert({
+      where: { id: role.id },
+      update: {},
+      create: role,
+    });
+  }
+
   // Categorías
   const categorias = [
     { name: 'Frutas', description: 'Productos frutales frescos' },
@@ -13,42 +54,40 @@ async function main() {
     { name: 'Hierbas', description: 'Aromáticas, medicinales y culinarias' },
     { name: 'Flores', description: 'Flores, follajes y ornamentales' },
   ];
-
   const categoriaIds: Record<string, string> = {};
 
+  // Seed categories (idempotent)
   for (const cat of categorias) {
     const id = AgroConectaIdGenerator.generateCategoryId();
-    await prisma.category.create({
-      data: {
+    const category = await prisma.category.upsert({
+      where: { name: cat.name },
+      update: {},
+      create: {
         id,
         name: cat.name,
         description: cat.description,
         isActive: true,
       },
     });
-    categoriaIds[cat.name] = id;
+    categoriaIds[cat.name] = category.id;
   }
 
   // Subcategorías
   const subcategorias = [
-    { name: 'Cítricos', description: 'Naranja, limón, mandarina, etc.', categoria: 'Frutas' },
-    { name: 'Exóticas', description: 'Mango, maracuyá, guanábana, etc.', categoria: 'Frutas' },
-    { name: 'Hortalizas de hoja', description: 'Lechuga, espinaca, acelga, etc.', categoria: 'Verduras' },
-    { name: 'Hortalizas de fruto', description: 'Tomate, pimentón, pepino, etc.', categoria: 'Verduras' },
-    { name: 'Papa', description: 'Papa criolla, pastusa, sabanera, etc.', categoria: 'Tubérculos' },
-    { name: 'Yuca', description: 'Yuca blanca, amarilla, etc.', categoria: 'Tubérculos' },
-    { name: 'Arroz', description: 'Arroz integral, blanco, etc.', categoria: 'Granos' },
-    { name: 'Frijol', description: 'Frijol rojo, negro, etc.', categoria: 'Granos' },
-    { name: 'Hierbas aromáticas', description: 'Cilantro, perejil, albahaca, etc.', categoria: 'Hierbas' },
-    { name: 'Hierbas medicinales', description: 'Manzanilla, menta, etc.', categoria: 'Hierbas' },
-    { name: 'Flores ornamentales', description: 'Rosas, lirios, etc.', categoria: 'Flores' },
-    { name: 'Follajes', description: 'Helechos, etc.', categoria: 'Flores' },
+    { name: 'Banano', description: 'Fruta tropical', categoria: 'Frutas' },
+    { name: 'Mango', description: 'Fruta dulce', categoria: 'Frutas' },
+    { name: 'Papa', description: 'Tubérculo andino', categoria: 'Tubérculos' },
+    { name: 'Yuca', description: 'Tubérculo tropical', categoria: 'Tubérculos' },
+    { name: 'Cilantro', description: 'Hierba aromática', categoria: 'Hierbas' },
+    { name: 'Rosa', description: 'Flor ornamental', categoria: 'Flores' },
   ];
 
   for (const sub of subcategorias) {
-    const id = AgroConectaIdGenerator.generateId('SUB');
-    await prisma.subcategory.create({
-      data: {
+    const id = AgroConectaIdGenerator.generateSubcategoryId();
+    await prisma.subcategory.upsert({
+      where: { name: sub.name },
+      update: {},
+      create: {
         id,
         name: sub.name,
         description: sub.description,

@@ -3,7 +3,7 @@ console.log('Cargando API productos...');
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
-import { AgroConectaIdGenerator } from "@/lib/id-generator";
+import AgroConectaIdGenerator from "@/lib/id-generator";
 
 export async function GET() {
   try {

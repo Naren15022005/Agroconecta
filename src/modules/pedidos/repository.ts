@@ -25,6 +25,26 @@ export class PedidosRepository {
   }
 
   async listarPorUsuario(buyerId: string) {
-    return prisma.order.findMany({ where: { buyerId } });
+    return prisma.order.findMany({
+      where: {
+        buyerId,
+        NOT: { status: "CANCELADO" }
+      },
+      include: {
+        items: {
+          include: {
+            product: {
+              include: {
+                agricultor: {
+                  include: {
+                    user: true
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    });
   }
 }

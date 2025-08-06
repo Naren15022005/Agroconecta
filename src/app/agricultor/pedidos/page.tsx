@@ -10,67 +10,56 @@ export default function PedidosAgricultorPage() {
   const [tab, setTab] = useState<'recibidos' | 'gestion'>('recibidos');
   const [pedidosPorAceptar, setPedidosPorAceptar] = useState<any[]>([]);
   const [pedidosCrud, setPedidosCrud] = useState<any[]>([]);
-  // Simulación de pedido de ejemplo si no hay pedidos reales
-  const pedidoEjemplo = {
-    id: 'PED123456',
-    estado: 'pendiente',
-    cliente: { nombre: 'María Gómez', telefono: '3001234567' },
-    productos: [
-      { nombre: 'Banano', cantidad: 10 },
-      { nombre: 'Yuca', cantidad: 5 }
-    ],
-    total: 45000,
-    fechaPedido: new Date().toISOString(),
-  };
+  // Eliminar pedido de ejemplo: solo mostrar pedidos reales
   const [detalleId, setDetalleId] = useState<string|null>(null);
   const [detallePedido, setDetallePedido] = useState<any>(null);
 
   useEffect(() => {
-    fetch('/api/agricultor/pedidos')
-      .then(res => res.json())
-      .then(data => {
-        // Si no hay pedidos reales, usar el ejemplo
-        if (data.length === 0) {
-          setPedidosPorAceptar([pedidoEjemplo]);
-          setPedidosCrud([]);
-        } else {
+    const fetchPedidos = () => {
+      fetch('/api/agricultor/pedidos')
+        .then(res => res.json())
+        .then(data => {
           setPedidosPorAceptar(data.filter((p: any) => p.estado === 'pendiente'));
           setPedidosCrud(data.filter((p: any) => p.estado !== 'pendiente'));
-        }
-      });
-    // eslint-disable-next-line
+        });
+    };
+    fetchPedidos();
+    const interval = setInterval(fetchPedidos, 3000); // Actualiza cada 3 segundos
+    return () => clearInterval(interval);
   }, []);
 
   const aceptarPedido = async (id: string) => {
-    // Si es el ejemplo, simular el cambio de estado
-    if (id === pedidoEjemplo.id && pedidosPorAceptar.length === 1 && pedidosPorAceptar[0].id === pedidoEjemplo.id) {
-      setPedidosPorAceptar([]);
-      setPedidosCrud([{ ...pedidoEjemplo, estado: 'confirmado' }]);
-      return;
-    }
-    // Real API para pedidos reales
-    await fetch(`/api/agricultor/pedidos/${id}/estado`, {
+    await fetch(`/api/pedidos`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nuevoEstado: 'CONFIRMADO' }),
+      body: JSON.stringify({ id, action: 'confirmar' }),
     });
     setPedidosPorAceptar(pedidosPorAceptar.filter((p: any) => p.id !== id));
   };
 
   const rechazarPedido = async (id: string) => {
-    // Si es el ejemplo, simular el cambio de estado
-    if (id === pedidoEjemplo.id && pedidosPorAceptar.length === 1 && pedidosPorAceptar[0].id === pedidoEjemplo.id) {
-      setPedidosPorAceptar([]);
-      setPedidosCrud([]);
-      return;
-    }
-    // Real API para pedidos reales
-    await fetch(`/api/agricultor/pedidos/${id}/estado`, {
+    await fetch(`/api/pedidos`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nuevoEstado: 'CANCELADO' }),
+      body: JSON.stringify({ id, status: 'CANCELADO' }),
     });
     setPedidosPorAceptar(pedidosPorAceptar.filter((p: any) => p.id !== id));
+  };
+
+  const refrescarPedidos = () => {
+    fetch('/api/agricultor/pedidos')
+      .then(res => res.json())
+      .then(data => {
+        setPedidosPorAceptar(data.filter((p: any) => p.estado === 'pendiente'));
+        setPedidosCrud(data.filter((p: any) => p.estado !== 'pendiente'));
+        // Actualizar el detalle del pedido actual si está abierto
+        if (detalleId) {
+          const pedidoActualizado = data.find((p: any) => p.id === detalleId);
+          if (pedidoActualizado) {
+            setDetallePedido(pedidoActualizado);
+          }
+        }
+      });
   };
 
   const verDetalle = (id: string) => {
@@ -134,7 +123,11 @@ export default function PedidosAgricultorPage() {
         )}
       </div>
       {detalleId && detallePedido && (
-        <PedidoDetalleModal pedido={detallePedido} onClose={() => setDetalleId(null)} />
+        <PedidoDetalleModal 
+          pedido={detallePedido} 
+          onClose={() => setDetalleId(null)} 
+          onEstadoChanged={refrescarPedidos}
+        />
       )}
     </main>
   );

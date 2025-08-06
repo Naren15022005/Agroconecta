@@ -3,37 +3,61 @@ import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { sendWelcomeEmail } from '@/lib/email';
 import { randomBytes } from 'crypto';
-import { AgroConectaIdGenerator } from '@/lib/id-generator';
+import AgroConectaIdGenerator from '@/lib/id-generator';
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const name = body.name;
-    const email = body.email;
+    const name = body.name?.trim();
+    const email = body.email?.toLowerCase().trim();
     const password = body.password;
     let role = body.role;
-    // Normalizar nombre de rol
+
+    // Normalizar nombre de rol a los valores esperados en la base de datos
     if (role === 'CAMPESINO') role = 'agricultor';
     if (role === 'COMPRADOR') role = 'cliente';
     if (role === 'EMPRESA') role = 'empresa';
+    if (role === 'ADMINISTRADOR') role = 'admin';
 
-    // Validar campos obligatorios
+    // Validación estricta de campos
     if (!name || !email || !password || !role) {
-      return NextResponse.json({ error: 'Faltan campos obligatorios' }, { status: 400 });
+      return NextResponse.json({
+        success: false,
+        error: 'Por favor completa todos los campos requeridos.'
+      }, { status: 400 });
+    }
+    // Validar formato de email
+    const emailRegex = /^[\w-.]+@[\w-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(email)) {
+      return NextResponse.json({
+        success: false,
+        error: 'El correo electrónico no es válido.'
+      }, { status: 400 });
+    }
+    // Validar longitud de contraseña
+    if (password.length < 8) {
+      return NextResponse.json({
+        success: false,
+        error: 'La contraseña debe tener al menos 8 caracteres.'
+      }, { status: 400 });
     }
 
     // Validar que el rol sea válido y obtener el roleId
-    const roleRecord = await prisma.role.findUnique({
-      where: { name: role }
-    });
+    const roleRecord = await prisma.role.findUnique({ where: { name: role } });
     if (!roleRecord) {
-      return NextResponse.json({ error: 'Rol inválido' }, { status: 400 });
+      return NextResponse.json({
+        success: false,
+        error: 'El rol seleccionado no es válido.'
+      }, { status: 400 });
     }
 
     // Verificar si el usuario ya existe
     const existingUser = await prisma.user.findUnique({ where: { correo: email } });
     if (existingUser) {
-      return NextResponse.json({ error: 'El correo ya está registrado' }, { status: 409 });
+      return NextResponse.json({
+        success: false,
+        error: 'El correo electrónico ya está registrado. ¿Olvidaste tu contraseña?'
+      }, { status: 409 });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -87,9 +111,12 @@ export async function POST(req: NextRequest) {
       // admin no necesita perfil
     } catch (profileError) {
       // Si falla la creación del perfil, eliminar el usuario creado
-      console.error('Error creating profile:', profileError);
+      console.error('Error creando perfil:', profileError);
       await prisma.user.delete({ where: { id: user.id } });
-      throw new Error('Error al crear el perfil del usuario');
+      return NextResponse.json({
+        success: false,
+        error: 'Hubo un problema al crear el perfil. Intenta nuevamente o contacta soporte.'
+      }, { status: 500 });
     }
 
     // Generar token de activación
@@ -108,11 +135,12 @@ export async function POST(req: NextRequest) {
     try {
       await sendWelcomeEmail(user.correo, user.nombre, token);
     } catch (emailError) {
-      console.log('Error enviando email (no crítico):', emailError);
+      console.log('Error enviando email de bienvenida:', emailError);
     }
 
     return NextResponse.json({
-      message: 'Registro exitoso. Revisa tu correo para activar la cuenta. Una vez activada, serás redirigido automáticamente para iniciar sesión.',
+      success: true,
+      message: '¡Registro exitoso! Revisa tu correo para activar la cuenta. Una vez activada, podrás iniciar sesión.',
       user: {
         id: user.id,
         nombre: user.nombre,
@@ -122,10 +150,13 @@ export async function POST(req: NextRequest) {
     });
   } catch (error: any) {
     console.error('Error en registro:', error);
-    let message = 'Error en el registro';
+    let message = 'Ocurrió un error inesperado. Por favor intenta nuevamente.';
     if (error instanceof Error && error.message) {
       message = error.message;
     }
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({
+      success: false,
+      error: message
+    }, { status: 500 });
   }
 }

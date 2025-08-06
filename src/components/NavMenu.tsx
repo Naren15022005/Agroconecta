@@ -12,7 +12,7 @@ import {
   X,
   LogOut
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { signOut, useSession } from 'next-auth/react';
 
 const menu = [
@@ -25,9 +25,38 @@ const menu = [
 ];
 
 export default function NavMenu({ children }: { children: React.ReactNode }) {
+
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const { data: session } = useSession();
+  const [pedidosNuevos, setPedidosNuevos] = useState(0);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
+
+  // Hook para actualizar el contador de pedidos nuevos cada 10s
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    const fetchPedidos = async () => {
+      const res = await fetch(`/api/notificaciones?userId=${session.user.id}`);
+      const data = await res.json();
+      // Filtrar notificaciones de pedidos activos
+      const nuevas = await Promise.all(
+        data.filter((n: any) => !n.isRead).map(async (n: any) => {
+          if (!n.pedidoId) return null;
+          // Consultar estado del pedido
+          const pedidoRes = await fetch(`/api/pedidos?id=${n.pedidoId}`);
+          const pedido = await pedidoRes.json();
+          if (pedido && pedido.status && pedido.status !== 'CANCELADO') return n;
+          return null;
+        })
+      );
+      setPedidosNuevos(nuevas.filter(Boolean).length);
+    };
+    fetchPedidos();
+    const interval = setInterval(fetchPedidos, 10000);
+    return () => clearInterval(interval);
+  }, [session?.user?.id]);
 
   const handleLogout = () => {
     signOut({ callbackUrl: '/auth/signin' });
@@ -111,6 +140,7 @@ export default function NavMenu({ children }: { children: React.ReactNode }) {
           <ul className="space-y-2 px-4">
             {menu.map(({ href, label, icon: Icon }) => {
               const isActive = pathname === href;
+              const isPedidos = href === '/agricultor/pedidos';
               return (
                 <li key={href}>
                   <Link
@@ -122,11 +152,16 @@ export default function NavMenu({ children }: { children: React.ReactNode }) {
                         ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg' 
                         : 'text-gray-700 hover:bg-gray-100 hover:text-green-600'
                       }
-                      group
+                      group relative
                     `}
                   >
                     <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-gray-500 group-hover:text-green-600'}`} />
                     <span className="font-medium">{label}</span>
+                    {isPedidos && pedidosNuevos > 0 && mounted && (
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg border border-white animate-bounce">
+                        {pedidosNuevos}
+                      </span>
+                    )}
                   </Link>
                 </li>
               );
