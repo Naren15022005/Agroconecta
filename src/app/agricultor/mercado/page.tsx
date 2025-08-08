@@ -112,7 +112,7 @@ export default function MercadoPage() {
             </div>
             
             {/* Botón de publicar producto (esquina derecha) solo para agricultor */}
-            {session?.user?.role === 'agricultor' && (
+            {session?.user?.role === 'CAMPESINO' && (
               <a
                 href="/agricultor/publicar"
                 className="inline-flex items-center space-x-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 text-sm whitespace-nowrap"

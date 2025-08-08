@@ -13,11 +13,8 @@ export async function POST(req: NextRequest) {
     const password = body.password;
     let role = body.role;
 
-    // Normalizar nombre de rol a los valores esperados en la base de datos
-    if (role === 'CAMPESINO') role = 'agricultor';
-    if (role === 'COMPRADOR') role = 'cliente';
-    if (role === 'EMPRESA') role = 'empresa';
-    if (role === 'ADMINISTRADOR') role = 'admin';
+    // Los roles ya deben venir con los nombres correctos de la BD
+    // No necesitamos normalizar, solo validar que sean roles válidos
 
     // Validación estricta de campos
     if (!name || !email || !password || !role) {
@@ -76,7 +73,7 @@ export async function POST(req: NextRequest) {
 
     // Crear perfil específico según el rol (solo si corresponde)
     try {
-      if (role === 'agricultor') {
+      if (role === 'CAMPESINO') {
         await prisma.agricultor.create({
           data: {
             id: AgroConectaIdGenerator.generateAgricultorId(),
@@ -86,7 +83,7 @@ export async function POST(req: NextRequest) {
             verificado: false,
           },
         });
-      } else if (role === 'cliente') {
+      } else if (role === 'COMPRADOR') {
         await prisma.cliente.create({
           data: {
             id: AgroConectaIdGenerator.generateClienteId(),
@@ -95,7 +92,7 @@ export async function POST(req: NextRequest) {
             direccion: body.address || null,
           },
         });
-      } else if (role === 'empresa') {
+      } else if (role === 'EMPRESA') {
         await prisma.empresa.create({
           data: {
             id: AgroConectaIdGenerator.generateEmpresaId(),
@@ -108,7 +105,7 @@ export async function POST(req: NextRequest) {
           },
         });
       }
-      // admin no necesita perfil
+      // ADMINISTRADOR no necesita perfil
     } catch (profileError) {
       // Si falla la creación del perfil, eliminar el usuario creado
       console.error('Error creando perfil:', profileError);

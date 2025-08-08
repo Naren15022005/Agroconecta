@@ -45,13 +45,13 @@ export default function SignInPage() {
         
         console.log('Login exitoso. Rol del usuario:', role);
         
-        if (role === 'cliente' || role === 'empresa') {
+        if (role === 'COMPRADOR' || role === 'EMPRESA') {
           console.log('Redirigiendo a /comprador/mercado');
           window.location.href = '/comprador/mercado';
-        } else if (role === 'agricultor') {
+        } else if (role === 'CAMPESINO') {
           console.log('Redirigiendo a /agricultor/mercado');
           window.location.href = '/agricultor/mercado';
-        } else if (role === 'admin') {
+        } else if (role === 'ADMINISTRADOR') {
           console.log('Redirigiendo a /admin');
           window.location.href = '/admin';
         } else {

@@ -1,3 +1,99 @@
+
+
+
+## 📅 Lógica de pagos administrados por la plataforma – 08 de agosto de 2025
+
+### Decisión y modelo inicial
+- El comprador realiza el pago directamente a la cuenta bancaria (Nequi, Daviplata, Bancolombia, etc.) de AgroConecta.
+- El sistema registra el pago como “pendiente de verificación”.
+- El administrador (tú) verifica manualmente el pago y libera el pedido para el agricultor.
+- El agricultor es notificado cuando el pago está verificado y puede entregar el producto.
+- En el futuro, se podrá automatizar este proceso con integración de pasarelas de pago y lógica de liberación automática.
+
+### Flujo técnico y panel admin
+1. **Checkout**: El usuario ve los datos bancarios de la plataforma y puede subir el comprobante de pago.
+2. **Panel admin**: Sección para ver pagos pendientes, pedidos por agricultor y liberar pagos.
+3. **Registro de ventas**: El sistema registra cada venta y el agricultor puede ver el historial en su panel.
+4. **Gestión de devoluciones**: El admin puede marcar un pago como devuelto y registrar el motivo.
+5. **Notificaciones**: El agricultor y el comprador reciben avisos cuando el pago se verifica, se libera o se devuelve.
+
+### Billetera virtual para agricultores (idea inicial)
+- Cada agricultor tiene una billetera virtual donde se reflejan sus ventas y pagos pendientes.
+- El saldo de la billetera se actualiza cuando el admin libera el pago.
+- El agricultor puede elegir cómo y dónde retirar el dinero (Nequi, Daviplata, banco, etc.)
+- El panel de agricultor muestra el historial de ventas, retiros y devoluciones.
+- En el futuro, se puede automatizar el retiro y permitir transferencias directas desde la plataforma.
+
+### Ventajas y consideraciones
+- Sin comisiones de pasarela externa.
+- Control total del flujo de dinero y pagos.
+- Flexibilidad para gestionar reclamos y devoluciones.
+- Requiere gestión manual y validación de pagos (por ahora).
+- Escalabilidad limitada si el volumen crece, pero se puede automatizar luego.
+
+### ✅ IMPLEMENTACIONES REALIZADAS HOY (08 de agosto 2025)
+
+#### 🚨 CRISIS Y RECUPERACIÓN DE BASE DE DATOS
+- **Problema crítico**: Comando `prisma migrate reset` eliminó todos los datos de la base de datos
+- **Pérdida de datos**: Roles, categorías, subcategorías, usuarios y productos fueron eliminados
+- **Solución implementada**: Creación de sistema de seeding robusto para repoblación automática
+
+#### 🛠️ SCRIPTS DE REPOBLACIÓN CREADOS
+1. **prisma/seed.ts**: Script principal para poblar roles, categorías y subcategorías
+   - 4 roles: ADMINISTRADOR, CAMPESINO, COMPRADOR, EMPRESA
+   - 6 categorías principales: Frutas, Verduras, Granos y Cereales, Tubérculos, Especias y Hierbas, Productos Procesados
+   - 13 subcategorías distribuidas entre las categorías
+
+2. **prisma/create-admin.ts**: Script para crear usuario administrador
+   - Usuario: admin@agroconecta.com / admin123
+   - Rol asignado correctamente y password hasheado
+
+3. **prisma/verify-data.ts**: Script de verificación de datos poblados
+
+#### 🔧 CORRECCIÓN CRÍTICA DE ROLES
+- **Problema identificado**: Error "El rol seleccionado no es válido" en registro de usuarios
+- **Causa raíz**: Inconsistencias entre nombres de roles en frontend/backend vs base de datos
+- **Archivos corregidos**:
+  - `src/app/api/auth/register/route.ts`: Eliminada normalización incorrecta de roles
+  - `src/components/StakeholderSelect.tsx`: Cambiado CLIENTE → COMPRADOR
+  - `src/middleware.ts`: admin → ADMINISTRADOR
+  - `src/app/auth/signin/page.tsx`: Actualizada lógica de redirección
+  - `src/app/comprador/layout.tsx`: Verificaciones de roles corregidas
+  - `src/app/api/agricultor/pedidos/route.ts` y `[id]/estado/route.ts`: agricultor → CAMPESINO
+  - `src/components/ProductosCatalogo.tsx`: agricultor → CAMPESINO
+  - `src/app/agricultor/mercado/page.tsx`: agricultor → CAMPESINO
+
+#### 📊 SISTEMA AVANZADO DE GESTIÓN DE PEDIDOS
+- **Implementación de filtros avanzados**: PedidosFilters.tsx con estadísticas en tiempo real
+- **Funcionalidad de archivado**: Soft delete en lugar de eliminación física
+- **API mejorada**: `/api/admin/pedidos/route.ts` con operaciones PATCH y GET
+- **Componente de tabla**: AdminPedidosTable.tsx con operaciones en lote
+- **Características**:
+  - Filtros por estado, fecha, agricultor
+  - Estadísticas de resumen
+  - Archivado y restauración masiva
+  - Eliminación segura con confirmación
+
+#### 📁 DOCUMENTACIÓN Y BACKUP
+- **RESUMEN_DATOS_POBLADOS.md**: Guía completa de datos restaurados y próximos pasos
+- **ROLES_CORREGIDOS.md**: Documentación detallada de correcciones de roles
+- **verify-roles.mjs**: Script de verificación de roles en BD
+
+#### 🔄 ESTADO ACTUAL DEL SISTEMA
+- ✅ Base de datos completamente repoblada y funcional
+- ✅ Sistema de registro corregido y operativo
+- ✅ Roles y permisos consistentes en toda la aplicación
+- ✅ Usuario administrador creado y verificado
+- ✅ Sistema de pedidos con funcionalidades avanzadas
+- ✅ Scripts de backup y verificación disponibles
+
+### Próximos pasos pendientes
+- **Panel admin**: Completar gestión de pagos y liberación manual
+- **Billetera virtual**: Implementar estructura para agricultores
+- **Integración de pagos**: Documentar flujo completo de compra-verificación-retiro
+- **Testing**: Probar registro de usuarios con diferentes roles
+- **Backup automático**: Implementar sistema de respaldo periódico
+
 ---
 
 ## 📅 Resumen de avances y cambios – 06 de agosto de 2025
@@ -110,6 +206,7 @@ En esta sesión se completó la transformación de la página de inicio del comp
 - Optimizar el rendimiento de carga de categorías y productos
 
 ---
+________________________________________________________________________________
 
 ## 📅 Resumen de avances y cambios – 04-05 de agosto de 2025
 
@@ -424,7 +521,7 @@ En esta jornada se abordaron y resolvieron múltiples problemas críticos de int
 - Desplegar una versión de pruebas y validar el flujo completo.
 
 ---
----
+
 
 ## 📅 Resumen de avances y cambios – 28 de julio de 2025 
 
@@ -1970,3 +2067,5 @@ ________________________________________________________________________________
   - Se genera un token único de activación y se guarda en la tabla `VerificationToken` junto con el email y fecha de expiración (24h).
   - Se envía un correo al usuario con un enlace de activación que incluye el token.
   - El usuario ve un mensaje
+---
+

@@ -1,0 +1,119 @@
+[
+  {
+    "id": "AGRC_SUB_AROMATICAS",
+    "name": "Hierbas aromáticas",
+    "description": "Cilantro, perejil, albahaca, oregano, etc.",
+    "isActive": true,
+    "createdAt": "2025-08-08T21:25:04.090Z",
+    "updatedAt": "2025-08-08T21:25:04.090Z",
+    "categoryId": "AGRC_CAT_HIERBAS"
+  },
+  {
+    "id": "AGRC_SUB_ARROZ",
+    "name": "Arroz",
+    "description": "Arroz integral, blanco, basmati, etc.",
+    "isActive": true,
+    "createdAt": "2025-08-08T21:25:04.080Z",
+    "updatedAt": "2025-08-08T21:25:04.080Z",
+    "categoryId": "AGRC_CAT_GRANOS"
+  },
+  {
+    "id": "AGRC_SUB_CITRICOS",
+    "name": "Cítricos",
+    "description": "Naranja, limón, mandarina, toronja, etc.",
+    "isActive": true,
+    "createdAt": "2025-08-08T21:25:04.040Z",
+    "updatedAt": "2025-08-08T21:25:04.040Z",
+    "categoryId": "AGRC_CAT_FRUTAS"
+  },
+  {
+    "id": "AGRC_SUB_EXOTICAS",
+    "name": "Exóticas",
+    "description": "Mango, maracuyá, guanábana, lulo, etc.",
+    "isActive": true,
+    "createdAt": "2025-08-08T21:25:04.045Z",
+    "updatedAt": "2025-08-08T21:25:04.045Z",
+    "categoryId": "AGRC_CAT_FRUTAS"
+  },
+  {
+    "id": "AGRC_SUB_FOLLAJES",
+    "name": "Follajes",
+    "description": "Helechos, palmas, etc.",
+    "isActive": true,
+    "createdAt": "2025-08-08T21:25:04.104Z",
+    "updatedAt": "2025-08-08T21:25:04.104Z",
+    "categoryId": "AGRC_CAT_FLORES"
+  },
+  {
+    "id": "AGRC_SUB_FRIJOL",
+    "name": "Frijol",
+    "description": "Frijol rojo, negro, blanco, etc.",
+    "isActive": true,
+    "createdAt": "2025-08-08T21:25:04.083Z",
+    "updatedAt": "2025-08-08T21:25:04.083Z",
+    "categoryId": "AGRC_CAT_GRANOS"
+  },
+  {
+    "id": "AGRC_SUB_FRUTO",
+    "name": "Hortalizas de fruto",
+    "description": "Tomate, pimentón, pepino, calabacín, etc.",
+    "isActive": true,
+    "createdAt": "2025-08-08T21:25:04.063Z",
+    "updatedAt": "2025-08-08T21:25:04.063Z",
+    "categoryId": "AGRC_CAT_VERDURAS"
+  },
+  {
+    "id": "AGRC_SUB_HOJA_VERDE",
+    "name": "Hortalizas de hoja",
+    "description": "Lechuga, espinaca, acelga, apio, etc.",
+    "isActive": true,
+    "createdAt": "2025-08-08T21:25:04.059Z",
+    "updatedAt": "2025-08-08T21:25:04.059Z",
+    "categoryId": "AGRC_CAT_VERDURAS"
+  },
+  {
+    "id": "AGRC_SUB_MEDICINALES",
+    "name": "Hierbas medicinales",
+    "description": "Manzanilla, menta, hierba buena, etc.",
+    "isActive": true,
+    "createdAt": "2025-08-08T21:25:04.093Z",
+    "updatedAt": "2025-08-08T21:25:04.093Z",
+    "categoryId": "AGRC_CAT_HIERBAS"
+  },
+  {
+    "id": "AGRC_SUB_ORNAMENTALES",
+    "name": "Flores ornamentales",
+    "description": "Rosas, lirios, claveles, etc.",
+    "isActive": true,
+    "createdAt": "2025-08-08T21:25:04.099Z",
+    "updatedAt": "2025-08-08T21:25:04.099Z",
+    "categoryId": "AGRC_CAT_FLORES"
+  },
+  {
+    "id": "AGRC_SUB_PAPA",
+    "name": "Papa",
+    "description": "Papa criolla, pastusa, sabanera, etc.",
+    "isActive": true,
+    "createdAt": "2025-08-08T21:25:04.070Z",
+    "updatedAt": "2025-08-08T21:25:04.070Z",
+    "categoryId": "AGRC_CAT_TUBERCULOS"
+  },
+  {
+    "id": "AGRC_SUB_TROPICALES",
+    "name": "Tropicales",
+    "description": "Banano, plátano, papaya, piña, etc.",
+    "isActive": true,
+    "createdAt": "2025-08-08T21:25:04.049Z",
+    "updatedAt": "2025-08-08T21:25:04.049Z",
+    "categoryId": "AGRC_CAT_FRUTAS"
+  },
+  {
+    "id": "AGRC_SUB_YUCA",
+    "name": "Yuca",
+    "description": "Yuca blanca, amarilla, dulce, etc.",
+    "isActive": true,
+    "createdAt": "2025-08-08T21:25:04.074Z",
+    "updatedAt": "2025-08-08T21:25:04.074Z",
+    "categoryId": "AGRC_CAT_TUBERCULOS"
+  }
+]

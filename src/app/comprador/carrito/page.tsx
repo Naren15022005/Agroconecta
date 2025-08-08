@@ -7,7 +7,6 @@ import { useState } from 'react';
 export default function CarritoPage() {
   const cart = useCartStore();
   const router = useRouter();
-  const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -15,62 +14,6 @@ export default function CarritoPage() {
   useCleanInvalidCartItems();
 
   const hasInvalidItems = cart.items.some(item => !item.id.startsWith('AGRC_PRD_'));
-
-  const handleCheckout = async () => {
-    setIsProcessing(true);
-    setError(null);
-    setSuccess(null);
-    if (hasInvalidItems) {
-      setError('Tu carrito contiene productos inválidos. Por favor elimínalos antes de finalizar la compra.');
-      setIsProcessing(false);
-      return;
-    }
-    try {
-      const allItems = cart.items.map(item => ({
-        productoId: item.id,
-        nombre: item.name,
-        cantidad: item.quantity,
-        precioUnitario: item.price,
-        agricultorId: item.campesinoId,
-        stockDisponible: item.stock,
-        metodoEntrega: 'ENTREGA_DIRECTA',
-        metodoPago: 'CONTRAENTREGA',
-      }));
-      const response = await fetch('/api/carrito/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items: allItems }),
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        // Si el error es de stock insuficiente, intentar obtener el stock actualizado
-        if (error.error && error.error.startsWith('Stock insuficiente para')) {
-          const nombreProducto = error.error.replace('Stock insuficiente para ', '');
-          // Buscar el producto en el carrito
-          const item = cart.items.find(i => i.name === nombreProducto);
-          if (item) {
-            // Consultar el stock actualizado del backend (endpoint correcto)
-            const res = await fetch(`/api/productos/${item.id}/stock`);
-            if (res.ok) {
-              const prod = await res.json();
-              cart.updateQuantity(item.id, prod.stock);
-              setError(`Stock actualizado para "${item.name}": solo quedan ${prod.stock} unidades. Ajusta la cantidad y vuelve a intentar.`);
-              return;
-            }
-          }
-        }
-        setError(error.error || 'Error al procesar el pedido.');
-        return;
-      }
-      cart.clearCart();
-      setSuccess('¡Pedido realizado exitosamente! Pronto recibirás notificaciones.');
-      setTimeout(() => router.push('/comprador/pedidos'), 2000);
-    } catch (e) {
-      setError('Error inesperado al procesar el pedido. Intenta de nuevo.');
-    } finally {
-      setIsProcessing(false);
-    }
-  };
 
   return (
     <div className="max-w-3xl mx-auto py-10 px-4">
@@ -149,10 +92,10 @@ export default function CarritoPage() {
           {success && <div className="text-green-600 mb-4">{success}</div>}
           <button
             className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold text-lg hover:bg-green-700 transition disabled:opacity-50"
-            onClick={handleCheckout}
-            disabled={isProcessing}
+            onClick={() => router.push('/comprador/checkout')}
+            disabled={hasInvalidItems}
           >
-            {isProcessing ? 'Procesando...' : 'Finalizar compra'}
+            Proceder al Checkout
           </button>
         </div>
       )}

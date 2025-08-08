@@ -1,0 +1,401 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Notification {
+  id        String   @id
+  userId    String
+  pedidoId  String?
+  message   String   @db.VarChar(255)
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId], map: "notifications_userId_fkey")
+  @@index([pedidoId], map: "notifications_pedidoId_fkey")
+  @@map("notifications")
+}
+
+model Role {
+  id          String   @id
+  name        String   @unique
+  displayName String
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  users       User[]
+
+  @@map("roles")
+}
+
+model User {
+  id          String      @id
+  nombre      String
+  correo      String      @unique
+  contraseña String
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  roleId      String
+  accounts    Account[]
+  agricultor  Agricultor?
+  cartItems   CartItem[]
+  cliente     Cliente?
+  empresa     Empresa?
+  orders      Order[]
+  sessions    Session[]
+  role        Role        @relation(fields: [roleId], references: [id], onDelete: NoAction)
+  wallets             Wallet[]
+  ventasComoVendedor  Sale[] @relation("VentasComoVendedor")
+  ventasComoComprador Sale[] @relation("VentasComoComprador")
+  withdrawRequests    WithdrawRequest[]
+  pagos               Pago[]
+  transacciones       Transaccion[]
+
+  @@index([roleId], map: "users_roleId_fkey")
+  @@map("users")
+}
+
+model Agricultor {
+  /// Usa AgroConectaIdGenerator.generateCategoryId() en el backend para asignar el ID
+  id          String    @id
+  user_id     String    @unique
+  telefono    String?
+  ubicacion   String?
+  descripcion String?
+  foto        String?
+  verificado  Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  user        User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  products    Product[]
+
+  @@map("agricultores")
+}
+
+model Subcategory {
+  /// Usa AgroConectaIdGenerator.generateSubcategoryId() en el backend para asignar el ID
+  id          String    @id
+  name        String    @unique
+  description String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  categoryId  String
+  products    Product[]
+  category    Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@index([categoryId], map: "subcategories_categoryId_fkey")
+  @@map("subcategories")
+}
+
+model Cliente {
+  id           String   @id
+  user_id      String   @unique
+  telefono     String?
+  direccion    String?
+  preferencias String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("clientes")
+}
+
+model Empresa {
+  id           String   @id
+  user_id      String   @unique
+  razon_social String
+  nit          String   @unique
+  telefono     String?
+  direccion    String?
+  sector       String?
+  descripcion  String?
+  logo         String?
+  verificada   Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("empresas")
+}
+
+model Category {
+  id            String        @id
+  name          String        @unique
+  description   String?
+  isActive      Boolean       @default(true)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  products      Product[]
+  subcategories Subcategory[]
+
+  @@map("categories")
+}
+
+model Product {
+  id                        String        @id
+  name                      String
+  description               String?
+  price                     Decimal       @db.Decimal(10, 2)
+  stock                     Int           @default(0)
+  reservedStock             Int           @default(0)
+  unit                      String
+  imageUrl                  String?
+  status                    ProductStatus @default(DISPONIBLE)
+  fechaCosecha              DateTime?
+  tiempoEntrega             String?
+  stockMinimo               Int?
+  pesoAproximado            Decimal?      @db.Decimal(10, 2)
+  dimensiones               String?
+  condicionesAlmacenamiento String?
+  certificaciones           String?       @db.LongText
+  metodosEntrega            String?       @db.LongText
+  horariosDisponibles       String?
+  notasEspeciales           String?
+  municipio                 String?
+  vereda                    String?
+  tipoCultivo               TipoCultivo?  @default(CONVENCIONAL)
+  createdAt                 DateTime      @default(now())
+  updatedAt                 DateTime      @updatedAt
+  agricultorId              String
+  categoryId                String
+  subcategoryId             String?
+  isActive                  Boolean       @default(true)
+  cartItems                 CartItem[]
+  orderItems                OrderItem[]
+  agricultor                Agricultor    @relation(fields: [agricultorId], references: [id], onDelete: Cascade)
+  category                  Category      @relation(fields: [categoryId], references: [id], onDelete: NoAction)
+  subcategory               Subcategory?  @relation(fields: [subcategoryId], references: [id], onDelete: NoAction)
+
+  @@index([agricultorId], map: "products_agricultorId_fkey")
+  @@index([categoryId], map: "products_categoryId_fkey")
+  @@index([subcategoryId], map: "products_subcategoryId_fkey")
+  @@map("products")
+}
+
+model CartItem {
+  id        String   @id
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([productId], map: "cart_items_productId_fkey")
+  @@map("cart_items")
+}
+
+model Order {
+  id                      String         @id
+  total                   Decimal        @db.Decimal(10, 2)
+  status                  OrderStatus    @default(PENDIENTE)
+  deliveryMethod          DeliveryMethod @default(ENTREGA_DIRECTA)
+  paymentMethod           PaymentMethod  @default(CONTRAENTREGA)
+  deliveryAddress         String?
+  deliveryNotes           String?
+  notes                   String?
+  mercadoPagoPreferenceId String?
+  createdAt               DateTime       @default(now())
+  updatedAt               DateTime       @updatedAt
+  buyerId                 String
+  items                   OrderItem[]
+  buyer                   User           @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+
+  @@index([buyerId], map: "orders_buyerId_fkey")
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String  @id
+  quantity  Int
+  price     Decimal @db.Decimal(10, 2)
+  subtotal  Decimal @db.Decimal(10, 2)
+  orderId   String
+  productId String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([orderId], map: "order_items_orderId_fkey")
+  @@index([productId], map: "order_items_productId_fkey")
+  @@map("order_items")
+}
+
+model Account {
+  id                String  @id
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId], map: "accounts_userId_fkey")
+  @@map("accounts")
+}
+
+model VerificationToken {
+  id         String   @id
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@map("verification_tokens")
+}
+
+model Session {
+  id           String   @id
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "sessions_userId_fkey")
+  @@map("sessions")
+}
+
+// Modelos financieros
+model Wallet {
+  id           Int      @id @default(autoincrement())
+  userId       String
+  balance      Decimal  @db.Decimal(12,2)
+  updatedAt    DateTime @default(now()) @updatedAt
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id])
+  transactions WalletTransaction[]
+  @@map("wallets")
+}
+
+model WalletTransaction {
+  id          Int      @id @default(autoincrement())
+  walletId    Int
+  type        String
+  amount      Decimal  @db.Decimal(12,2)
+  description String?
+  createdAt   DateTime @default(now())
+  wallet      Wallet   @relation(fields: [walletId], references: [id])
+  @@map("wallet_transactions")
+}
+
+model Sale {
+  id             Int      @id @default(autoincrement())
+  vendedorId     String
+  compradorId    String
+  productoId     Int
+  cantidad       Int
+  precioUnitario Decimal  @db.Decimal(12,2)
+  total          Decimal  @db.Decimal(12,2)
+  fecha          DateTime @default(now())
+  vendedor       User     @relation("VentasComoVendedor", fields: [vendedorId], references: [id])
+  comprador      User     @relation("VentasComoComprador", fields: [compradorId], references: [id])
+  comisiones     Comision[]
+  impuestos      Impuesto[]
+  @@map("sales")
+}
+
+model WithdrawRequest {
+  id          Int      @id @default(autoincrement())
+  userId      String
+  amount      Decimal  @db.Decimal(12,2)
+  status      String   @default("PENDIENTE")
+  requestedAt DateTime @default(now())
+  processedAt DateTime?
+  user        User     @relation(fields: [userId], references: [id])
+  @@map("withdraw_requests")
+}
+
+model Pago {
+  id          Int      @id @default(autoincrement())
+  userId      String
+  monto       Decimal  @db.Decimal(12,2)
+  metodoPago  String
+  estado      String   @default("PENDIENTE")
+  fecha       DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+  @@map("pagos")
+}
+
+model Comision {
+  id         Int      @id @default(autoincrement())
+  ventaId    Int
+  porcentaje Decimal  @db.Decimal(5,2)
+  monto      Decimal  @db.Decimal(12,2)
+  fecha      DateTime @default(now())
+  venta      Sale     @relation(fields: [ventaId], references: [id])
+  @@map("comisiones")
+}
+
+model Impuesto {
+  id         Int      @id @default(autoincrement())
+  ventaId    Int
+  tipo       String
+  porcentaje Decimal  @db.Decimal(5,2)
+  monto      Decimal  @db.Decimal(12,2)
+  fecha      DateTime @default(now())
+  venta      Sale     @relation(fields: [ventaId], references: [id])
+  @@map("impuestos")
+}
+
+model Transaccion {
+  id         Int      @id @default(autoincrement())
+  userId     String
+  tipo       String
+  monto      Decimal  @db.Decimal(12,2)
+  referencia String?
+  fecha      DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id])
+  @@map("transacciones")
+}
+
+enum ProductStatus {
+  DISPONIBLE
+  AGOTADO
+  SUSPENDIDO
+}
+
+enum TipoCultivo {
+  ORGANICO
+  CONVENCIONAL
+}
+
+enum OrderStatus {
+  PENDIENTE
+  CONFIRMADO
+  EN_PREPARACION
+  EN_CAMINO
+  EN_PUNTO
+  ENTREGADO
+  CANCELADO
+  NO_ENTREGADO
+}
+
+enum DeliveryMethod {
+  ENTREGA_DIRECTA
+  PUNTO_ENCUENTRO
+  REPARTIDOR_ALIADO
+  EMPRESA_TRANSPORTADORA
+}
+
+enum PaymentMethod {
+  CONTRAENTREGA
+  TRANSFERENCIA
+  NEQUI
+  DAVIPLATA
+  PASARELA
+  MERCADOPAGO
+}

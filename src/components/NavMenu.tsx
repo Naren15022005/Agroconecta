@@ -38,21 +38,27 @@ export default function NavMenu({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!session?.user?.id) return;
     const fetchPedidos = async () => {
-      const res = await fetch(`/api/notificaciones?userId=${session.user.id}`);
-      const data = await res.json();
-      // Filtrar notificaciones de pedidos activos
-      const nuevas = await Promise.all(
-        data.filter((n: any) => !n.isRead).map(async (n: any) => {
-          if (!n.pedidoId) return null;
-          // Consultar estado del pedido
-          const pedidoRes = await fetch(`/api/pedidos?id=${n.pedidoId}`);
-          const pedido = await pedidoRes.json();
-          if (pedido && pedido.status && pedido.status !== 'CANCELADO') return n;
-          return null;
-        })
-      );
-      setPedidosNuevos(nuevas.filter(Boolean).length);
+      try {
+        // Obtener directamente los pedidos del agricultor en estado PENDIENTE
+        const res = await fetch(`/api/agricultor/pedidos`);
+        if (!res.ok) {
+          setPedidosNuevos(0);
+          return;
+        }
+        const pedidos = await res.json();
+        
+        // Filtrar solo pedidos en estado PENDIENTE (que necesitan ser aceptados)
+        const pedidosPendientes = pedidos.filter((pedido: any) => 
+          pedido.estado && pedido.estado.toLowerCase() === 'pendiente'
+        );
+        
+        setPedidosNuevos(pedidosPendientes.length);
+      } catch (error) {
+        console.log('Error al obtener pedidos:', error);
+        setPedidosNuevos(0);
+      }
     };
+    
     fetchPedidos();
     const interval = setInterval(fetchPedidos, 10000);
     return () => clearInterval(interval);

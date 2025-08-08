@@ -256,6 +256,16 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const buyerId = searchParams.get("buyerId");
     const id = searchParams.get("id");
+    
+    // Nuevos parámetros de filtrado y paginación
+    const status = searchParams.get("status");
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
+    const sortBy = searchParams.get("sortBy") || "createdAt";
+    const sortOrder = searchParams.get("sortOrder") || "desc";
+    const includeArchived = searchParams.get("includeArchived") === "true";
 
     if (id) {
       const pedido = await controller.buscarPorId(id);
@@ -267,6 +277,69 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(pedidos || []);
     }
     
+    // Si hay filtros, usar consulta filtrada
+    if (status || startDate || endDate || page > 1 || includeArchived) {
+      const skip = (page - 1) * limit;
+      
+      // Construir filtros
+      const filters: any = {};
+      
+      // Por defecto, excluir archivados a menos que se solicite explícitamente
+      if (!includeArchived) {
+        filters.archived = false;
+      }
+      
+      if (status && status !== "TODOS") {
+        filters.status = status;
+      }
+      
+      if (startDate || endDate) {
+        filters.createdAt = {};
+        if (startDate) {
+          filters.createdAt.gte = new Date(startDate);
+        }
+        if (endDate) {
+          filters.createdAt.lte = new Date(endDate);
+        }
+      }
+
+      // Consulta con filtros
+      const [pedidos, total] = await Promise.all([
+        prisma.order.findMany({
+          where: filters,
+          include: {
+            buyer: {
+              select: { id: true, nombre: true, correo: true }
+            },
+            items: {
+              include: {
+                product: {
+                  select: { id: true, name: true, price: true }
+                }
+              }
+            }
+          },
+          orderBy: { [sortBy]: sortOrder },
+          skip,
+          take: limit
+        }),
+        prisma.order.count({ where: filters })
+      ]);
+
+      return NextResponse.json({
+        pedidos,
+        pagination: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+          hasNext: page * limit < total,
+          hasPrev: page > 1
+        }
+      });
+    }
+    
+    // Si no hay filtros, usar el método original
     const pedidos = await controller.listarTodos();
     return NextResponse.json(pedidos || []);
   } catch (error) {

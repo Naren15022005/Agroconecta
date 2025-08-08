@@ -1,0 +1,54 @@
+[
+  {
+    "id": "AGRC_USR_ADMIN",
+    "nombre": "Administrador Sistema",
+    "correo": "admin@agroconecta.com",
+    "isActive": true,
+    "roleId": "AGRC_ROL_ADMIN",
+    "role": {
+      "name": "ADMINISTRADOR",
+      "displayName": "Administrador"
+    },
+    "createdAt": "2025-08-08T21:27:05.195Z",
+    "updatedAt": "2025-08-08T21:27:05.195Z"
+  },
+  {
+    "id": "AGRC_USR_ME3D3T27K7NU",
+    "nombre": "naren alfonso",
+    "correo": "alfonsonavarroch@gmail.com",
+    "isActive": true,
+    "roleId": "AGRC_ROL_AGRICULTOR",
+    "role": {
+      "name": "CAMPESINO",
+      "displayName": "Campesino/Agricultor"
+    },
+    "createdAt": "2025-08-08T21:52:53.985Z",
+    "updatedAt": "2025-08-08T21:54:00.255Z"
+  },
+  {
+    "id": "AGRC_USR_ME3DAME9MD6V",
+    "nombre": "adminyo",
+    "correo": "pedrojulionavarrogarcia@gmail.com",
+    "isActive": true,
+    "roleId": "AGRC_ROL_ADMIN",
+    "role": {
+      "name": "ADMINISTRADOR",
+      "displayName": "Administrador"
+    },
+    "createdAt": "2025-08-08T21:58:11.939Z",
+    "updatedAt": "2025-08-08T21:58:35.062Z"
+  },
+  {
+    "id": "AGRC_USR_ME3DCNK7B5CT",
+    "nombre": "Naren",
+    "correo": "minexsena3@gmail.com",
+    "isActive": true,
+    "roleId": "AGRC_ROL_CLIENTE",
+    "role": {
+      "name": "COMPRADOR",
+      "displayName": "Comprador"
+    },
+    "createdAt": "2025-08-08T21:59:46.760Z",
+    "updatedAt": "2025-08-08T22:00:38.194Z"
+  }
+]

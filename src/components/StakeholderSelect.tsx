@@ -3,7 +3,7 @@
 const roles = [
   { value: '', label: 'Selecciona tu tipo de usuario' },
   { value: 'CAMPESINO', label: 'Campesino/Agricultor' },
-  { value: 'CLIENTE', label: 'Cliente Individual' },
+  { value: 'COMPRADOR', label: 'Cliente Individual' },
   { value: 'EMPRESA', label: 'Empresa' },
 ];
 
@@ -20,7 +20,7 @@ export default function StakeholderSelect({ value, onChange }: { value: string; 
         Selecciona tu tipo de usuario
       </option>
       <option value="CAMPESINO">Campesino/Agricultor</option>
-      <option value="CLIENTE">Cliente Individual</option>
+      <option value="COMPRADOR">Cliente Individual</option>
       <option value="EMPRESA">Empresa</option>
     </select>
   );

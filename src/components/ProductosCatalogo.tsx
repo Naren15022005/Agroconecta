@@ -232,50 +232,23 @@ export default function ProductosCatalogo({
     "bg-emerald-50 border-emerald-200 text-emerald-600"
   ];
 
-  // Detectar cambios en ordenPor y mostrar toast
+  // Detectar cambios en ordenPor (sin toast automático)
   useEffect(() => {
     if (prevOrdenPor !== ordenPor) {
-      const colorAleatorio = coloresPasteles[Math.floor(Math.random() * coloresPasteles.length)];
-      const { mensaje, icono } = (() => {
-        switch (ordenPor) {
-          case "recientes":
-            return { mensaje: "Mostrando productos más recientes", icono: "🕒" };
-          case "precio-asc":
-            return { mensaje: "Ordenado por precio: menor a mayor", icono: "💰" };
-          case "precio-desc":
-            return { mensaje: "Ordenado por precio: mayor a menor", icono: "💸" };
-          case "rating":
-            return { mensaje: "Mostrando mejor calificados primero", icono: "⭐" };
-          default:
-            return { mensaje: "Orden actualizado", icono: "📋" };
-        }
-      })();
-      
-      mostrarToast(mensaje, colorAleatorio, icono);
       setPrevOrdenPor(ordenPor);
     }
   }, [ordenPor, prevOrdenPor]);
 
-  // Detectar cambios en filtro de categoría
+  // Detectar cambios en filtro de categoría (sin toast automático)
   useEffect(() => {
     if (prevFiltroCategoria !== filtroCategoria) {
-      const colorAleatorio = coloresPasteles[Math.floor(Math.random() * coloresPasteles.length)];
-      const { mensaje, icono } = filtroCategoria === "Todos" 
-        ? { mensaje: "Mostrando todas las categorías", icono: "🌟" }
-        : { mensaje: `Filtrando por: ${filtroCategoria}`, icono: "🏷️" };
-      
-      mostrarToast(mensaje, colorAleatorio, icono);
       setPrevFiltroCategoria(filtroCategoria);
     }
   }, [filtroCategoria, prevFiltroCategoria]);
 
-  // Detectar cambios en búsqueda
+  // Detectar cambios en búsqueda (solo mostrar toast al limpiar)
   useEffect(() => {
     if (prevBusqueda !== busqueda && busqueda !== "") {
-      const colorAleatorio = coloresPasteles[Math.floor(Math.random() * coloresPasteles.length)];
-      const mensaje = `Buscando: "${busqueda}"`;
-      
-      mostrarToast(mensaje, colorAleatorio, "🔍");
       setPrevBusqueda(busqueda);
     } else if (prevBusqueda !== "" && busqueda === "") {
       const colorAleatorio = coloresPasteles[Math.floor(Math.random() * coloresPasteles.length)];
@@ -428,7 +401,7 @@ export default function ProductosCatalogo({
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 xl:gap-5">
           {productosFiltrados.map((producto) => {
             // Determinar si el usuario autenticado es agricultor y dueño del producto
-            const isOwnerAgricultor = session?.user?.role === 'agricultor' && session?.user?.name === producto.agricultor;
+            const isOwnerAgricultor = session?.user?.role === 'CAMPESINO' && session?.user?.name === producto.agricultor;
             return (
             <div
               key={producto.id}
@@ -523,7 +496,7 @@ export default function ProductosCatalogo({
       ) : (
         <div className="space-y-4">
           {productosFiltrados.map((producto) => {
-            const isOwnerAgricultor = session?.user?.role === 'agricultor' && session?.user?.name === producto.agricultor;
+            const isOwnerAgricultor = session?.user?.role === 'CAMPESINO' && session?.user?.name === producto.agricultor;
             return (
             <div
               key={producto.id}

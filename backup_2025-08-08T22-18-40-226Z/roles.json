@@ -1,0 +1,38 @@
+[
+  {
+    "id": "AGRC_ROL_ADMIN",
+    "name": "ADMINISTRADOR",
+    "displayName": "Administrador",
+    "description": "Administrador del sistema con acceso completo",
+    "isActive": true,
+    "createdAt": "2025-08-08T21:25:03.997Z",
+    "updatedAt": "2025-08-08T21:25:03.997Z"
+  },
+  {
+    "id": "AGRC_ROL_AGRICULTOR",
+    "name": "CAMPESINO",
+    "displayName": "Campesino/Agricultor",
+    "description": "Productor agrícola que vende productos",
+    "isActive": true,
+    "createdAt": "2025-08-08T21:25:04.016Z",
+    "updatedAt": "2025-08-08T21:25:04.016Z"
+  },
+  {
+    "id": "AGRC_ROL_CLIENTE",
+    "name": "COMPRADOR",
+    "displayName": "Comprador",
+    "description": "Comprador individual de productos agrícolas",
+    "isActive": true,
+    "createdAt": "2025-08-08T21:25:04.025Z",
+    "updatedAt": "2025-08-08T21:25:04.025Z"
+  },
+  {
+    "id": "AGRC_ROL_EMPRESA",
+    "name": "EMPRESA",
+    "displayName": "Empresa",
+    "description": "Empresa compradora de productos al por mayor",
+    "isActive": true,
+    "createdAt": "2025-08-08T21:25:04.029Z",
+    "updatedAt": "2025-08-08T21:25:04.029Z"
+  }
+]

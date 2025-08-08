@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma';
 // Devuelve los pedidos recibidos por el agricultor autenticado
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  if (!session || session.user.role !== 'agricultor') {
+  if (!session || session.user.role !== 'CAMPESINO') {
     return NextResponse.json([], { status: 401 });
   }
   const userId = session.user.id;

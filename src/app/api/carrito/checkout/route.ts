@@ -7,8 +7,18 @@ import { NotificacionesRepository } from '@/modules/notificaciones/repository';
 // Estructura esperada del body
 // {
 //   items: [
-//     { productoId, nombre, cantidad, precioUnitario, agricultorId, stockDisponible, metodoEntrega, metodoPago }
-//   ]
+//     { productoId, nombre, cantidad, precioUnitario, agricultorId, stockDisponible }
+//   ],
+//   deliveryInfo: {
+//     method: 'ENTREGA_DIRECTA' | 'PUNTO_ENCUENTRO' | 'COURIER',
+//     address?: string,
+//     meetingPoint?: string,
+//     notes?: string
+//   },
+//   paymentInfo: {
+//     method: 'CONTRAENTREGA' | 'TRANSFERENCIA' | 'NEQUI' | 'DAVIPLATA',
+//     details?: string
+//   }
 // }
 
 export async function POST(req: NextRequest) {
@@ -17,9 +27,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
   }
 
-  const { items } = await req.json();
+  const { items, deliveryInfo, paymentInfo } = await req.json();
   if (!items || !Array.isArray(items) || items.length === 0) {
     return NextResponse.json({ error: 'Carrito vacío' }, { status: 400 });
+  }
+
+  if (!deliveryInfo || !deliveryInfo.method) {
+    return NextResponse.json({ error: 'Información de entrega requerida' }, { status: 400 });
+  }
+
+  if (!paymentInfo || !paymentInfo.method) {
+    return NextResponse.json({ error: 'Método de pago requerido' }, { status: 400 });
   }
 
   // Agrupar por agricultor (multi-vendor)
@@ -66,8 +84,11 @@ export async function POST(req: NextRequest) {
         buyerId: session.user.id,
         total,
         status: 'PENDIENTE',
-        deliveryMethod: productos[0].metodoEntrega || 'ENTREGA_DIRECTA',
-        paymentMethod: productos[0].metodoPago || 'CONTRAENTREGA',
+        deliveryMethod: deliveryInfo.method,
+        paymentMethod: paymentInfo.method,
+        deliveryAddress: deliveryInfo.address || null,
+        deliveryNotes: deliveryInfo.notes || null,
+        notes: paymentInfo.details || null, // Using notes field for payment details
         items: {
           create: orderItems
         }

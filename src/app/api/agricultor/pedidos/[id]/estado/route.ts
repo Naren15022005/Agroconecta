@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma';
 // PATCH /api/agricultor/pedidos/[id]/estado
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions);
-  if (!session || session.user.role !== 'agricultor') {
+  if (!session || session.user.role !== 'CAMPESINO') {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 

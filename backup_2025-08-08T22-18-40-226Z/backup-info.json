@@ -1,0 +1,14 @@
+{
+  "createdAt": "2025-08-08T22:18:40.283Z",
+  "description": "Backup completo del sistema AgroConecta",
+  "contents": {
+    "roles": 4,
+    "categories": 6,
+    "subcategories": 13,
+    "users": 4
+  },
+  "instructions": {
+    "restore": "npx tsx restore.mjs",
+    "verify": "npx tsx ../verify-data.ts"
+  }
+}

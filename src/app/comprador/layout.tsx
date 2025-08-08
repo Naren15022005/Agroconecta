@@ -34,14 +34,14 @@ export default function CompradorLayout({ children }: { children: ReactNode }) {
   }
 
   // Verificar que el usuario tenga el rol correcto
-  if (session?.user?.role && session.user.role !== 'cliente' && session.user.role !== 'empresa') {
+  if (session?.user?.role && session.user.role !== 'COMPRADOR' && session.user.role !== 'EMPRESA') {
     // Si el usuario es agricultor, redirigir a su dashboard
-    if (session.user.role === 'agricultor') {
+    if (session.user.role === 'CAMPESINO') {
       router.push('/agricultor');
       return null;
     }
     // Si es admin, redirigir a admin
-    if (session.user.role === 'admin') {
+    if (session.user.role === 'ADMINISTRADOR') {
       router.push('/admin');
       return null;
     }
