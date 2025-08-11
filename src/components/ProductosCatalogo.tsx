@@ -20,6 +20,7 @@ interface Producto {
   stock: number;
   rating: number;
   isFavorite: boolean;
+  metodosEntrega?: string; // JSON string con métodos de entrega
 }
 
 const productosDemo: Producto[] = [
@@ -189,7 +190,8 @@ export default function ProductosCatalogo({
             imagen: p.imageUrl || '🌿',
             stock: p.stock ?? 0,
             rating: 4.5,
-            isFavorite: false
+            isFavorite: false,
+            metodosEntrega: p.metodosEntrega || null // Agregar métodos de entrega
           }));
           console.log('Productos formateados:', productosFormateados);
           setProductos(productosFormateados);
@@ -302,6 +304,7 @@ export default function ProductosCatalogo({
       campesinoId: producto.agricultorId || 'desconocido',
       campesinoName: producto.agricultor || 'desconocido',
       imageUrl: producto.imagen,
+      metodosEntrega: producto.metodosEntrega || null // Incluir métodos de entrega
     });
     setMiniCartOpen(true);
     mostrarToast('Producto agregado al carrito', 'bg-green-50 border-green-200 text-green-600', '🛒');

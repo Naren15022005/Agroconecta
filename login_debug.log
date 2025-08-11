@@ -268,3 +268,87 @@
 [2025-08-08T22:00:47.850Z] AUTH: hash en base de datos: $2b$10$Zje9/8OOumqsKY010Zw7meFtv4fUh0RRd4TfeJPNTJHnfIFq7Mc3e
 [2025-08-08T22:00:47.968Z] AUTH: isValidPassword true
 [2025-08-08T22:00:47.968Z] AUTH: Login exitoso
+[2025-08-11T13:47:02.393Z] AUTH: credentials {"email":"alfonsonavarroch@gmail.com","password":"1063616908","redirect":"false","csrfToken":"f6e1622d3b67e489a4f7c6fde07b8b21862c39e1e84ff5699f9090434e20bf30","callbackUrl":"http://localhost:3000/auth/signin","json":"true"}
+[2025-08-11T13:47:02.519Z] AUTH: user encontrado {"id":"AGRC_USR_ME3D3T27K7NU","nombre":"naren alfonso","correo":"alfonsonavarroch@gmail.com","contraseña":"$2b$10$wIZ1ixAPLIXWhtsrBx87Tultw/JJ8MKXZexljl1do5S3OUPiXo72W","isActive":true,"createdAt":"2025-08-08T21:52:53.985Z","updatedAt":"2025-08-08T21:54:00.255Z","roleId":"AGRC_ROL_AGRICULTOR","role":{"id":"AGRC_ROL_AGRICULTOR","name":"CAMPESINO","displayName":"Campesino/Agricultor","description":"Productor agrícola que vende productos","isActive":true,"createdAt":"2025-08-08T21:25:04.016Z","updatedAt":"2025-08-08T21:25:04.016Z"}}
+[2025-08-11T13:47:02.519Z] AUTH: contraseña ingresada: 1063616908
+[2025-08-11T13:47:02.519Z] AUTH: hash en base de datos: $2b$10$wIZ1ixAPLIXWhtsrBx87Tultw/JJ8MKXZexljl1do5S3OUPiXo72W
+[2025-08-11T13:47:02.654Z] AUTH: isValidPassword true
+[2025-08-11T13:47:02.655Z] AUTH: Login exitoso
+[2025-08-11T13:47:40.880Z] AUTH: credentials {"email":"pedrojulionavarrogarcia@gmail.com","password":"12345admin","redirect":"false","csrfToken":"2f1db4e5d08981cdc2fba17a8c1cbdff4d0b058bcf1e53e5c1b077926d03684a","callbackUrl":"http://localhost:3000/auth/signin","json":"true"}
+[2025-08-11T13:47:40.883Z] AUTH: user encontrado {"id":"AGRC_USR_ME3DAME9MD6V","nombre":"adminyo","correo":"pedrojulionavarrogarcia@gmail.com","contraseña":"$2b$10$OPcD2v7JzneiFx76tSAl1OBW/rnZ2dix2KAbkHdBr0OXqJUbR5sym","isActive":true,"createdAt":"2025-08-08T21:58:11.939Z","updatedAt":"2025-08-08T21:58:35.062Z","roleId":"AGRC_ROL_ADMIN","role":{"id":"AGRC_ROL_ADMIN","name":"ADMINISTRADOR","displayName":"Administrador","description":"Administrador del sistema con acceso completo","isActive":true,"createdAt":"2025-08-08T21:25:03.997Z","updatedAt":"2025-08-08T21:25:03.997Z"}}
+[2025-08-11T13:47:40.883Z] AUTH: contraseña ingresada: 12345admin
+[2025-08-11T13:47:40.884Z] AUTH: hash en base de datos: $2b$10$OPcD2v7JzneiFx76tSAl1OBW/rnZ2dix2KAbkHdBr0OXqJUbR5sym
+[2025-08-11T13:47:40.999Z] AUTH: isValidPassword false
+[2025-08-11T13:47:41.000Z] AUTH: Contraseña incorrecta
+[2025-08-11T13:47:49.317Z] AUTH: credentials {"email":"pedrojulionavarrogarcia@gmail.com","password":"admin12345","redirect":"false","csrfToken":"2f1db4e5d08981cdc2fba17a8c1cbdff4d0b058bcf1e53e5c1b077926d03684a","callbackUrl":"http://localhost:3000/auth/signin","json":"true"}
+[2025-08-11T13:47:49.319Z] AUTH: user encontrado {"id":"AGRC_USR_ME3DAME9MD6V","nombre":"adminyo","correo":"pedrojulionavarrogarcia@gmail.com","contraseña":"$2b$10$OPcD2v7JzneiFx76tSAl1OBW/rnZ2dix2KAbkHdBr0OXqJUbR5sym","isActive":true,"createdAt":"2025-08-08T21:58:11.939Z","updatedAt":"2025-08-08T21:58:35.062Z","roleId":"AGRC_ROL_ADMIN","role":{"id":"AGRC_ROL_ADMIN","name":"ADMINISTRADOR","displayName":"Administrador","description":"Administrador del sistema con acceso completo","isActive":true,"createdAt":"2025-08-08T21:25:03.997Z","updatedAt":"2025-08-08T21:25:03.997Z"}}
+[2025-08-11T13:47:49.320Z] AUTH: contraseña ingresada: admin12345
+[2025-08-11T13:47:49.320Z] AUTH: hash en base de datos: $2b$10$OPcD2v7JzneiFx76tSAl1OBW/rnZ2dix2KAbkHdBr0OXqJUbR5sym
+[2025-08-11T13:47:49.434Z] AUTH: isValidPassword true
+[2025-08-11T13:47:49.435Z] AUTH: Login exitoso
+[2025-08-11T13:48:11.307Z] AUTH: credentials {"email":"minexsena3@gmail.com","password":"1063616908","redirect":"false","csrfToken":"0fb24bd618a51e40e1591d1187859690853260e326f1ee64c71655d23d031869","callbackUrl":"http://localhost:3000/auth/signin","json":"true"}
+[2025-08-11T13:48:11.310Z] AUTH: user encontrado {"id":"AGRC_USR_ME3DCNK7B5CT","nombre":"Naren","correo":"minexsena3@gmail.com","contraseña":"$2b$10$Zje9/8OOumqsKY010Zw7meFtv4fUh0RRd4TfeJPNTJHnfIFq7Mc3e","isActive":true,"createdAt":"2025-08-08T21:59:46.760Z","updatedAt":"2025-08-08T22:00:38.194Z","roleId":"AGRC_ROL_CLIENTE","role":{"id":"AGRC_ROL_CLIENTE","name":"COMPRADOR","displayName":"Comprador","description":"Comprador individual de productos agrícolas","isActive":true,"createdAt":"2025-08-08T21:25:04.025Z","updatedAt":"2025-08-08T21:25:04.025Z"}}
+[2025-08-11T13:48:11.311Z] AUTH: contraseña ingresada: 1063616908
+[2025-08-11T13:48:11.312Z] AUTH: hash en base de datos: $2b$10$Zje9/8OOumqsKY010Zw7meFtv4fUh0RRd4TfeJPNTJHnfIFq7Mc3e
+[2025-08-11T13:48:11.425Z] AUTH: isValidPassword true
+[2025-08-11T13:48:11.425Z] AUTH: Login exitoso
+[2025-08-11T14:07:43.038Z] AUTH: credentials {"email":"minexsena3@gmail.com","password":"1063616908","redirect":"false","csrfToken":"0fb24bd618a51e40e1591d1187859690853260e326f1ee64c71655d23d031869","callbackUrl":"http://localhost:3000/auth/signin?callbackUrl=/comprador","json":"true"}
+[2025-08-11T14:07:43.050Z] AUTH: user encontrado {"id":"AGRC_USR_ME3DCNK7B5CT","nombre":"Naren","correo":"minexsena3@gmail.com","contraseña":"$2b$10$Zje9/8OOumqsKY010Zw7meFtv4fUh0RRd4TfeJPNTJHnfIFq7Mc3e","isActive":true,"createdAt":"2025-08-08T21:59:46.760Z","updatedAt":"2025-08-08T22:00:38.194Z","roleId":"AGRC_ROL_CLIENTE","role":{"id":"AGRC_ROL_CLIENTE","name":"COMPRADOR","displayName":"Comprador","description":"Comprador individual de productos agrícolas","isActive":true,"createdAt":"2025-08-08T21:25:04.025Z","updatedAt":"2025-08-08T21:25:04.025Z"}}
+[2025-08-11T14:07:43.050Z] AUTH: contraseña ingresada: 1063616908
+[2025-08-11T14:07:43.051Z] AUTH: hash en base de datos: $2b$10$Zje9/8OOumqsKY010Zw7meFtv4fUh0RRd4TfeJPNTJHnfIFq7Mc3e
+[2025-08-11T14:07:43.180Z] AUTH: isValidPassword true
+[2025-08-11T14:07:43.180Z] AUTH: Login exitoso
+[2025-08-11T14:46:19.481Z] AUTH: credentials {"email":"minexsena3@gmail.com","password":"1063616908","redirect":"false","csrfToken":"0fb24bd618a51e40e1591d1187859690853260e326f1ee64c71655d23d031869","callbackUrl":"http://localhost:3000/auth/signin","json":"true"}
+[2025-08-11T14:46:19.484Z] AUTH: user encontrado {"id":"AGRC_USR_ME3DCNK7B5CT","nombre":"Naren","correo":"minexsena3@gmail.com","contraseña":"$2b$10$Zje9/8OOumqsKY010Zw7meFtv4fUh0RRd4TfeJPNTJHnfIFq7Mc3e","isActive":true,"createdAt":"2025-08-08T21:59:46.760Z","updatedAt":"2025-08-08T22:00:38.194Z","roleId":"AGRC_ROL_CLIENTE","role":{"id":"AGRC_ROL_CLIENTE","name":"COMPRADOR","displayName":"Comprador","description":"Comprador individual de productos agrícolas","isActive":true,"createdAt":"2025-08-08T21:25:04.025Z","updatedAt":"2025-08-08T21:25:04.025Z"}}
+[2025-08-11T14:46:19.485Z] AUTH: contraseña ingresada: 1063616908
+[2025-08-11T14:46:19.485Z] AUTH: hash en base de datos: $2b$10$Zje9/8OOumqsKY010Zw7meFtv4fUh0RRd4TfeJPNTJHnfIFq7Mc3e
+[2025-08-11T14:46:19.622Z] AUTH: isValidPassword true
+[2025-08-11T14:46:19.622Z] AUTH: Login exitoso
+[2025-08-11T14:57:47.791Z] AUTH: credentials {"email":"minexsena3@gmail.com","password":"1063616908","redirect":"false","csrfToken":"0fb24bd618a51e40e1591d1187859690853260e326f1ee64c71655d23d031869","callbackUrl":"http://localhost:3000/auth/signin?callbackUrl=/comprador","json":"true"}
+[2025-08-11T14:57:47.794Z] AUTH: user encontrado {"id":"AGRC_USR_ME3DCNK7B5CT","nombre":"Naren","correo":"minexsena3@gmail.com","contraseña":"$2b$10$Zje9/8OOumqsKY010Zw7meFtv4fUh0RRd4TfeJPNTJHnfIFq7Mc3e","isActive":true,"createdAt":"2025-08-08T21:59:46.760Z","updatedAt":"2025-08-08T22:00:38.194Z","roleId":"AGRC_ROL_CLIENTE","role":{"id":"AGRC_ROL_CLIENTE","name":"COMPRADOR","displayName":"Comprador","description":"Comprador individual de productos agrícolas","isActive":true,"createdAt":"2025-08-08T21:25:04.025Z","updatedAt":"2025-08-08T21:25:04.025Z"}}
+[2025-08-11T14:57:47.794Z] AUTH: contraseña ingresada: 1063616908
+[2025-08-11T14:57:47.795Z] AUTH: hash en base de datos: $2b$10$Zje9/8OOumqsKY010Zw7meFtv4fUh0RRd4TfeJPNTJHnfIFq7Mc3e
+[2025-08-11T14:57:47.911Z] AUTH: isValidPassword true
+[2025-08-11T14:57:47.912Z] AUTH: Login exitoso
+[2025-08-11T16:40:16.738Z] AUTH: credentials {"email":"minexsena3@gmail.com","password":"1063616908","redirect":"false","csrfToken":"0fb24bd618a51e40e1591d1187859690853260e326f1ee64c71655d23d031869","callbackUrl":"http://localhost:3000/auth/signin?callbackUrl=%2Fcomprador","json":"true"}
+[2025-08-11T16:40:16.751Z] AUTH: user encontrado {"id":"AGRC_USR_ME3DCNK7B5CT","nombre":"Naren","correo":"minexsena3@gmail.com","contraseña":"$2b$10$Zje9/8OOumqsKY010Zw7meFtv4fUh0RRd4TfeJPNTJHnfIFq7Mc3e","isActive":true,"createdAt":"2025-08-08T21:59:46.760Z","updatedAt":"2025-08-08T22:00:38.194Z","roleId":"AGRC_ROL_CLIENTE","role":{"id":"AGRC_ROL_CLIENTE","name":"COMPRADOR","displayName":"Comprador","description":"Comprador individual de productos agrícolas","isActive":true,"createdAt":"2025-08-08T21:25:04.025Z","updatedAt":"2025-08-08T21:25:04.025Z"}}
+[2025-08-11T16:40:16.752Z] AUTH: contraseña ingresada: 1063616908
+[2025-08-11T16:40:16.752Z] AUTH: hash en base de datos: $2b$10$Zje9/8OOumqsKY010Zw7meFtv4fUh0RRd4TfeJPNTJHnfIFq7Mc3e
+[2025-08-11T16:40:16.907Z] AUTH: isValidPassword true
+[2025-08-11T16:40:16.933Z] AUTH: Login exitoso
+[2025-08-11T16:43:57.386Z] AUTH: credentials {"email":"minexsena3@gmail.com","password":"1063616908","redirect":"false","csrfToken":"5b7d65b017e3e1d0c79ff1c651636b383310379d9f9522f6b04376fbcfb125ed","callbackUrl":"http://localhost:3000/auth/signin","json":"true"}
+[2025-08-11T16:43:57.393Z] AUTH: user encontrado {"id":"AGRC_USR_ME3DCNK7B5CT","nombre":"Naren","correo":"minexsena3@gmail.com","contraseña":"$2b$10$Zje9/8OOumqsKY010Zw7meFtv4fUh0RRd4TfeJPNTJHnfIFq7Mc3e","isActive":true,"createdAt":"2025-08-08T21:59:46.760Z","updatedAt":"2025-08-08T22:00:38.194Z","roleId":"AGRC_ROL_CLIENTE","role":{"id":"AGRC_ROL_CLIENTE","name":"COMPRADOR","displayName":"Comprador","description":"Comprador individual de productos agrícolas","isActive":true,"createdAt":"2025-08-08T21:25:04.025Z","updatedAt":"2025-08-08T21:25:04.025Z"}}
+[2025-08-11T16:43:57.394Z] AUTH: contraseña ingresada: 1063616908
+[2025-08-11T16:43:57.394Z] AUTH: hash en base de datos: $2b$10$Zje9/8OOumqsKY010Zw7meFtv4fUh0RRd4TfeJPNTJHnfIFq7Mc3e
+[2025-08-11T16:43:57.602Z] AUTH: isValidPassword true
+[2025-08-11T16:43:57.602Z] AUTH: Login exitoso
+[2025-08-11T16:44:17.441Z] AUTH: credentials {"email":"pedrojulionavarrogarcia@gmail.com","password":"admin12345","redirect":"false","csrfToken":"5b7d65b017e3e1d0c79ff1c651636b383310379d9f9522f6b04376fbcfb125ed","callbackUrl":"http://localhost:3000/auth/signin","json":"true"}
+[2025-08-11T16:44:17.448Z] AUTH: user encontrado {"id":"AGRC_USR_ME3DAME9MD6V","nombre":"adminyo","correo":"pedrojulionavarrogarcia@gmail.com","contraseña":"$2b$10$OPcD2v7JzneiFx76tSAl1OBW/rnZ2dix2KAbkHdBr0OXqJUbR5sym","isActive":true,"createdAt":"2025-08-08T21:58:11.939Z","updatedAt":"2025-08-08T21:58:35.062Z","roleId":"AGRC_ROL_ADMIN","role":{"id":"AGRC_ROL_ADMIN","name":"ADMINISTRADOR","displayName":"Administrador","description":"Administrador del sistema con acceso completo","isActive":true,"createdAt":"2025-08-08T21:25:03.997Z","updatedAt":"2025-08-08T21:25:03.997Z"}}
+[2025-08-11T16:44:17.448Z] AUTH: contraseña ingresada: admin12345
+[2025-08-11T16:44:17.448Z] AUTH: hash en base de datos: $2b$10$OPcD2v7JzneiFx76tSAl1OBW/rnZ2dix2KAbkHdBr0OXqJUbR5sym
+[2025-08-11T16:44:17.565Z] AUTH: isValidPassword true
+[2025-08-11T16:44:17.566Z] AUTH: Login exitoso
+[2025-08-11T17:14:51.855Z] AUTH: credentials {"email":"minexsena3@gmail.com","password":"1063616908","redirect":"false","csrfToken":"0fb24bd618a51e40e1591d1187859690853260e326f1ee64c71655d23d031869","callbackUrl":"http://localhost:3000/auth/signin?callbackUrl=/comprador","json":"true"}
+[2025-08-11T17:14:51.867Z] AUTH: user encontrado {"id":"AGRC_USR_ME3DCNK7B5CT","nombre":"Naren","correo":"minexsena3@gmail.com","contraseña":"$2b$10$Zje9/8OOumqsKY010Zw7meFtv4fUh0RRd4TfeJPNTJHnfIFq7Mc3e","isActive":true,"createdAt":"2025-08-08T21:59:46.760Z","updatedAt":"2025-08-08T22:00:38.194Z","roleId":"AGRC_ROL_CLIENTE","role":{"id":"AGRC_ROL_CLIENTE","name":"COMPRADOR","displayName":"Comprador","description":"Comprador individual de productos agrícolas","isActive":true,"createdAt":"2025-08-08T21:25:04.025Z","updatedAt":"2025-08-08T21:25:04.025Z"}}
+[2025-08-11T17:14:51.867Z] AUTH: contraseña ingresada: 1063616908
+[2025-08-11T17:14:51.867Z] AUTH: hash en base de datos: $2b$10$Zje9/8OOumqsKY010Zw7meFtv4fUh0RRd4TfeJPNTJHnfIFq7Mc3e
+[2025-08-11T17:14:51.998Z] AUTH: isValidPassword true
+[2025-08-11T17:14:51.998Z] AUTH: Login exitoso
+[2025-08-11T20:23:17.861Z] AUTH: credentials {"email":"minexsena3@gmail.com","password":"1063616908","redirect":"false","csrfToken":"99adcb667943a8ddac8cc4d4368b7524927a6fd8f7ece2a7ba21373c31e509ec","callbackUrl":"http://localhost:3000/auth/signin","json":"true"}
+[2025-08-11T20:23:17.876Z] AUTH: user encontrado {"id":"AGRC_USR_ME3DCNK7B5CT","nombre":"Naren","correo":"minexsena3@gmail.com","contraseña":"$2b$10$Zje9/8OOumqsKY010Zw7meFtv4fUh0RRd4TfeJPNTJHnfIFq7Mc3e","isActive":true,"createdAt":"2025-08-08T21:59:46.760Z","updatedAt":"2025-08-08T22:00:38.194Z","roleId":"AGRC_ROL_CLIENTE","role":{"id":"AGRC_ROL_CLIENTE","name":"COMPRADOR","displayName":"Comprador","description":"Comprador individual de productos agrícolas","isActive":true,"createdAt":"2025-08-08T21:25:04.025Z","updatedAt":"2025-08-08T21:25:04.025Z"}}
+[2025-08-11T20:23:17.876Z] AUTH: contraseña ingresada: 1063616908
+[2025-08-11T20:23:17.876Z] AUTH: hash en base de datos: $2b$10$Zje9/8OOumqsKY010Zw7meFtv4fUh0RRd4TfeJPNTJHnfIFq7Mc3e
+[2025-08-11T20:23:18.006Z] AUTH: isValidPassword true
+[2025-08-11T20:23:18.007Z] AUTH: Login exitoso
+[2025-08-11T20:23:35.743Z] AUTH: credentials {"email":"alfonsonavarroch@gmail.com","password":"1063616908","redirect":"false","csrfToken":"9a845d8df0704922691be1a3d641ac0cb7ed29d738e80e9b2d0d0dfefac227c5","callbackUrl":"http://localhost:3000/auth/signin","json":"true"}
+[2025-08-11T20:23:35.746Z] AUTH: user encontrado {"id":"AGRC_USR_ME3D3T27K7NU","nombre":"naren alfonso","correo":"alfonsonavarroch@gmail.com","contraseña":"$2b$10$wIZ1ixAPLIXWhtsrBx87Tultw/JJ8MKXZexljl1do5S3OUPiXo72W","isActive":true,"createdAt":"2025-08-08T21:52:53.985Z","updatedAt":"2025-08-08T21:54:00.255Z","roleId":"AGRC_ROL_AGRICULTOR","role":{"id":"AGRC_ROL_AGRICULTOR","name":"CAMPESINO","displayName":"Campesino/Agricultor","description":"Productor agrícola que vende productos","isActive":true,"createdAt":"2025-08-08T21:25:04.016Z","updatedAt":"2025-08-08T21:25:04.016Z"}}
+[2025-08-11T20:23:35.747Z] AUTH: contraseña ingresada: 1063616908
+[2025-08-11T20:23:35.747Z] AUTH: hash en base de datos: $2b$10$wIZ1ixAPLIXWhtsrBx87Tultw/JJ8MKXZexljl1do5S3OUPiXo72W
+[2025-08-11T20:23:35.862Z] AUTH: isValidPassword true
+[2025-08-11T20:23:35.863Z] AUTH: Login exitoso
+[2025-08-11T20:25:10.175Z] AUTH: credentials {"email":"pedrojulionavarrogarcia@gmail.com","password":"admin12345","redirect":"false","csrfToken":"d0510a24ed2bc23586949bd3d9b214116b98c73a034ff87cae9509e991741bc9","callbackUrl":"http://localhost:3000/auth/signin","json":"true"}
+[2025-08-11T20:25:10.178Z] AUTH: user encontrado {"id":"AGRC_USR_ME3DAME9MD6V","nombre":"adminyo","correo":"pedrojulionavarrogarcia@gmail.com","contraseña":"$2b$10$OPcD2v7JzneiFx76tSAl1OBW/rnZ2dix2KAbkHdBr0OXqJUbR5sym","isActive":true,"createdAt":"2025-08-08T21:58:11.939Z","updatedAt":"2025-08-08T21:58:35.062Z","roleId":"AGRC_ROL_ADMIN","role":{"id":"AGRC_ROL_ADMIN","name":"ADMINISTRADOR","displayName":"Administrador","description":"Administrador del sistema con acceso completo","isActive":true,"createdAt":"2025-08-08T21:25:03.997Z","updatedAt":"2025-08-08T21:25:03.997Z"}}
+[2025-08-11T20:25:10.178Z] AUTH: contraseña ingresada: admin12345
+[2025-08-11T20:25:10.179Z] AUTH: hash en base de datos: $2b$10$OPcD2v7JzneiFx76tSAl1OBW/rnZ2dix2KAbkHdBr0OXqJUbR5sym
+[2025-08-11T20:25:10.292Z] AUTH: isValidPassword true
+[2025-08-11T20:25:10.293Z] AUTH: Login exitoso

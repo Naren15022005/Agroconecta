@@ -10,7 +10,8 @@ import {
   User,
   Menu,
   X,
-  LogOut
+  LogOut,
+  Wallet
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { signOut, useSession } from 'next-auth/react';
@@ -21,6 +22,7 @@ const menu = [
   { href: '/agricultor/publicar', label: 'Publicar', icon: Plus },
   { href: '/agricultor/pedidos', label: 'Pedidos', icon: ShoppingBag },
   { href: '/agricultor/estadisticas', label: 'Estadísticas', icon: BarChart3 },
+  { href: '/agricultor/billetera', label: 'Mi Billetera', icon: Wallet },
   { href: '/agricultor/perfil', label: 'Perfil', icon: User },
 ];
 

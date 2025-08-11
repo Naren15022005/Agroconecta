@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { 
   Package, 
@@ -30,8 +30,8 @@ import { subcategorias } from './subcategorias-cache';
 
 interface Product {
   id: string;
-  name: string;
-  description: string;
+  name?: string;
+  description?: string;
   price: number;
   stock: number;
   reservedStock: number;
@@ -233,8 +233,8 @@ export default function MisProductosPage() {
 
   // Filtrar productos
   const productosFiltrados = productos.filter(producto => {
-    const matchBusqueda = producto.name.toLowerCase().includes(busqueda.toLowerCase()) ||
-                         producto.description.toLowerCase().includes(busqueda.toLowerCase());
+    const matchBusqueda = (producto.name?.toLowerCase() || '').includes(busqueda.toLowerCase()) ||
+                         (producto.description?.toLowerCase() || '').includes(busqueda.toLowerCase());
     const matchEstado = filtroEstado === 'todos' || 
                        (filtroEstado === 'disponible' && producto.status === 'DISPONIBLE') ||
                        (filtroEstado === 'agotado' && producto.status === 'AGOTADO');
@@ -266,7 +266,7 @@ export default function MisProductosPage() {
   const handleEditarProducto = (producto: Product) => {
     setSelectedProduct(producto);
     setEditForm({
-      name: producto.name,
+      name: producto.name || '',
       description: producto.description || '',
       price: producto.price.toString(),
       stock: producto.stock.toString(),
@@ -308,20 +308,58 @@ export default function MisProductosPage() {
       });
 
       if (res.ok) {
-        const productoActualizado = await res.json();
+        const data = await res.json();
+        const productoActualizado = data.producto; // Acceder al objeto producto dentro de la respuesta
+        
+        console.log('Producto actualizado recibido:', productoActualizado);
         
         // Actualizar la lista de productos
-        setProductos(productos.map(p => 
-          p.id === selectedProduct.id 
-            ? {
-                ...productoActualizado,
-                category: { 
-                  id: productoActualizado.categoryId, 
-                  name: categorias.find(c => c.id === productoActualizado.categoryId)?.name || ''
+        const nuevosProductos = productos.map(p => {
+          if (p.id === selectedProduct.id) {
+            // Crear el producto actualizado manteniendo todos los campos necesarios
+            return {
+              ...p, // Mantener todos los campos existentes
+              ...productoActualizado, // Sobrescribir con los nuevos datos del API
+              // Asegurar que la categoría esté correcta
+              category: productoActualizado.category || {
+                id: productoActualizado.categoryId,
+                name: categorias.find(c => c.id === productoActualizado.categoryId)?.name || p.category?.name || ''
+              },
+              // Asegurar que los métodos de entrega estén parseados correctamente
+              metodosEntrega: (() => {
+                if (Array.isArray(productoActualizado.metodosEntrega)) {
+                  return productoActualizado.metodosEntrega;
                 }
-              }
-            : p
-        ));
+                if (typeof productoActualizado.metodosEntrega === 'string') {
+                  try {
+                    return JSON.parse(productoActualizado.metodosEntrega);
+                  } catch {
+                    return [];
+                  }
+                }
+                return p.metodosEntrega || [];
+              })(),
+              // Asegurar que las certificaciones estén parseadas correctamente
+              certificaciones: (() => {
+                if (Array.isArray(productoActualizado.certificaciones)) {
+                  return productoActualizado.certificaciones;
+                }
+                if (typeof productoActualizado.certificaciones === 'string') {
+                  try {
+                    return JSON.parse(productoActualizado.certificaciones);
+                  } catch {
+                    return [];
+                  }
+                }
+                return p.certificaciones || [];
+              })()
+            };
+          }
+          return p;
+        });
+        
+        console.log('Productos después de mapear:', nuevosProductos.length);
+        setProductos(nuevosProductos);
         
         setShowEditModal(false);
         setSelectedProduct(null);
@@ -400,7 +438,7 @@ export default function MisProductosPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div key="mis-productos-page" className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
         {/* Header */}
@@ -445,22 +483,22 @@ export default function MisProductosPage() {
                     >
                       <span className="flex items-center">
                         {filtroEstado === 'todos' && (
-                          <>
+                          <React.Fragment key="filter-todos">
                             <span className="w-2 h-2 bg-gray-400 rounded-full mr-2"></span>
                             Todos los estados
-                          </>
+                          </React.Fragment>
                         )}
                         {filtroEstado === 'disponible' && (
-                          <>
+                          <React.Fragment key="filter-disponible">
                             <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
                             Disponibles
-                          </>
+                          </React.Fragment>
                         )}
                         {filtroEstado === 'agotado' && (
-                          <>
+                          <React.Fragment key="filter-agotado">
                             <span className="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
                             Agotados
-                          </>
+                          </React.Fragment>
                         )}
                       </span>
                       <ChevronDown className={`w-4 h-4 text-gray-600 transition-transform duration-200 ${showFilterDropdown ? 'rotate-180' : ''}`} />
@@ -468,7 +506,7 @@ export default function MisProductosPage() {
 
                     {/* Dropdown Menu */}
                     {showFilterDropdown && (
-                      <>
+                      <React.Fragment key="filter-dropdown">
                         {/* Overlay para cerrar al hacer click fuera */}
                         <div 
                           className="fixed inset-0 z-10" 
@@ -526,7 +564,7 @@ export default function MisProductosPage() {
                             </button>
                           </div>
                         </div>
-                      </>
+                      </React.Fragment>
                     )}
                   </div>
                 </div>
@@ -581,7 +619,7 @@ export default function MisProductosPage() {
             
             {/* Tabla de productos */}
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
+              <table key={`productos-table-${productos.length}`} className="min-w-full divide-y divide-gray-200">
                 
                 {/* Encabezado */}
                 <thead className="bg-gray-50">
@@ -626,7 +664,7 @@ export default function MisProductosPage() {
                               <img
                                 className="h-14 w-14 rounded-lg object-cover border border-gray-200"
                                 src={producto.imageUrl}
-                                alt={producto.name}
+                                alt={producto.name || 'Producto'}
                                 onError={(e) => {
                                   e.currentTarget.src = '/placeholder-product.jpg';
                                 }}
@@ -638,11 +676,11 @@ export default function MisProductosPage() {
                             )}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <h4 className="text-sm font-semibold text-gray-900 truncate max-w-xs" title={producto.name}>
-                              {producto.name}
+                            <h4 className="text-sm font-semibold text-gray-900 truncate max-w-xs" title={producto.name || 'Sin nombre'}>
+                              {producto.name || 'Sin nombre'}
                             </h4>
-                            <p className="text-sm text-gray-500 truncate max-w-xs mt-1" title={producto.description}>
-                              {producto.description}
+                            <p className="text-sm text-gray-500 truncate max-w-xs mt-1" title={producto.description || 'Sin descripción'}>
+                              {producto.description || 'Sin descripción'}
                             </p>
                             <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700 mt-1" title={`ID completo: ${producto.id}`}>
                               ID: {producto.id}
@@ -676,20 +714,19 @@ export default function MisProductosPage() {
                           </div>
                           
                           {/* Alertas de stock */}
-                          {producto.stock === 0 && (
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                          {producto.stock === 0 ? (
+                            <span key={`alert-no-stock-${producto.id}`} className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
                               Sin stock
                             </span>
-                          )}
-                          {producto.stock > 0 && producto.stock <= 5 && (
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                          ) : producto.stock > 0 && producto.stock <= 5 ? (
+                            <span key={`alert-low-stock-${producto.id}`} className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
                               Stock bajo
                             </span>
-                          )}
+                          ) : null}
                           
                           {/* Stock reservado */}
                           {producto.reservedStock > 0 && (
-                            <div className="text-xs text-orange-600">
+                            <div key={`reserved-${producto.id}`} className="text-xs text-orange-600">
                               Reservado: {producto.reservedStock}
                             </div>
                           )}
@@ -703,7 +740,7 @@ export default function MisProductosPage() {
                             const nuevoEstado = producto.status === 'DISPONIBLE' ? 'AGOTADO' : 'DISPONIBLE';
                             const accion = nuevoEstado === 'DISPONIBLE' ? 'hacer disponible' : 'marcar como agotado';
                             
-                            if (confirm(`¿Confirmas ${accion} el producto "${producto.name}"?`)) {
+                            if (confirm(`¿Confirmas ${accion} el producto "${producto.name || 'Sin nombre'}"?`)) {
                               // Activar animación
                               setSwitchingStates(prev => new Set([...prev, producto.id]));
                               
@@ -791,147 +828,6 @@ export default function MisProductosPage() {
                             <Eye className="h-4 w-4" />
                           </button>
 
-
-
-        {/* Modal de previsualización de producto */}
-        {showPreviewModal && selectedProduct && (
-          <div className="fixed inset-0 bg-gray-200/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all">
-            <div className="bg-white rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto scrollbar-hide">
-              <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                <h3 className="text-xl font-semibold text-gray-900">Vista Previa del Producto</h3>
-                <button
-                  onClick={() => setShowPreviewModal(false)}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  <Info className="w-6 h-6" />
-                </button>
-              </div>
-              <div className="p-6 flex flex-col items-center">
-                {/* Card extendida con todos los datos del producto */}
-                <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden w-full">
-                  {/* Imagen del producto */}
-                  <div className="h-48 bg-gray-200 relative">
-                    {selectedProduct.imageUrl ? (
-                      <img
-                        src={selectedProduct.imageUrl}
-                        alt={selectedProduct.name || 'Producto'}
-                        className="w-full h-full object-cover"
-                        onError={e => { e.currentTarget.src = '/placeholder-product.jpg'; }}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400">
-                        <span className="text-4xl">🥬</span>
-                      </div>
-                    )}
-                  </div>
-                  {/* Contenido de la tarjeta */}
-                  <div className="p-4">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-1">
-                      {selectedProduct.name || 'Nombre del producto'}
-                    </h3>
-                    {/* Etiquetas de categoría y subcategoría debajo del nombre */}
-                    <div className="flex flex-wrap gap-2 mb-2">
-                      {selectedProduct.category?.name && (
-                        <span className="bg-green-600 text-white text-xs px-2 py-1 rounded-full">
-                          {selectedProduct.category.name}
-                        </span>
-                      )}
-                      {selectedProduct.subcategoryId && (
-                        <span className="bg-green-200 text-green-800 text-xs px-2 py-1 rounded-full">
-                          {subcategorias.find(s => s.id === selectedProduct.subcategoryId)?.name || 'Subcategoría'}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                      {selectedProduct.description || 'Sin descripción.'}
-                    </p>
-                    {/* Precio y stock */}
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="text-2xl font-bold text-green-600">
-                        {selectedProduct.price ? `$${Number(selectedProduct.price).toLocaleString()}` : '$0'}
-                        <span className="text-sm font-normal text-gray-500">
-                          /{selectedProduct.unit || 'unidad'}
-                        </span>
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        Stock: {selectedProduct.stock || 0}
-                      </div>
-                    </div>
-                    {/* Agricultor (simulado) */}
-                    <div className="text-xs text-gray-500 mb-1">
-                      Por: Tú (previsualización)
-                    </div>
-                    {/* Ubicación */}
-                    <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
-                      <MapPin className="w-4 h-4" />
-                      <span>{selectedProduct.municipio || 'Municipio'}</span>
-                      {selectedProduct.vereda && <span>- {selectedProduct.vereda}</span>}
-                    </div>
-                    {/* Certificaciones */}
-                    {selectedProduct.certificaciones && selectedProduct.certificaciones.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mb-2">
-                        {selectedProduct.certificaciones.map(cert => (
-                          <span key={cert} className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-medium border border-green-200">{cert}</span>
-                        ))}
-                      </div>
-                    )}
-                    {/* Tipo de cultivo, fecha de cosecha, peso, dimensiones */}
-                    <div className="grid grid-cols-2 gap-2 text-xs text-gray-600 mb-2">
-                      <div><span className="font-semibold">Cultivo:</span> {selectedProduct.tipoCultivo || 'N/A'}</div>
-                      <div><span className="font-semibold">Cosecha:</span> {selectedProduct.fechaCosecha || 'N/A'}</div>
-                      <div><span className="font-semibold">Peso:</span> {selectedProduct.pesoAproximado || 'N/A'} kg</div>
-                      <div><span className="font-semibold">Dimensiones:</span> {selectedProduct.dimensiones || 'N/A'}</div>
-                    </div>
-                    {/* Condiciones de almacenamiento */}
-                    {selectedProduct.condicionesAlmacenamiento && (
-                      <div className="text-xs text-gray-600 mb-2">
-                        <span className="font-semibold">Almacenamiento:</span> {selectedProduct.condicionesAlmacenamiento}
-                      </div>
-                    )}
-                    {/* Métodos de entrega */}
-                    {selectedProduct.metodosEntrega && selectedProduct.metodosEntrega.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mb-2">
-                        {selectedProduct.metodosEntrega.map(metodo => (
-                          <span key={metodo} className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-medium border border-blue-200">
-                            {metodo}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                    {/* Notas especiales */}
-                    {selectedProduct.notasEspeciales && (
-                      <div className="text-xs text-gray-600 mb-2">
-                        <span className="font-semibold">Notas:</span> {selectedProduct.notasEspeciales}
-                      </div>
-                    )}
-                    {/* Botón de acción (deshabilitado en preview) */}
-                    <button className="w-full bg-green-600 text-white py-2 px-4 rounded-lg opacity-60 cursor-not-allowed font-medium mt-2" disabled>
-                      Agregar al Carrito
-                    </button>
-                  </div>
-                </div>
-                <div className="mt-4 p-3 bg-blue-50 rounded-lg w-full">
-                  <div className="flex items-start">
-                    <Info className="w-5 h-5 text-blue-600 mr-2 flex-shrink-0 mt-0.5" />
-                    <div className="text-sm text-blue-800">
-                      <p className="font-medium">Vista previa</p>
-                      <p>Así es como los compradores verán tu producto en el marketplace.</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50">
-                <button
-                  onClick={() => setShowPreviewModal(false)}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors"
-                >
-                  Cerrar Vista Previa
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
                           {/* Editar */}
                           <button
                             onClick={() => handleEditarProducto(producto)}
@@ -1001,6 +897,145 @@ export default function MisProductosPage() {
                   className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-all"
                 >
                   Eliminar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal de previsualización de producto */}
+        {showPreviewModal && selectedProduct && (
+          <div className="fixed inset-0 bg-gray-200/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all">
+            <div className="bg-white rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto scrollbar-hide">
+              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <h3 className="text-xl font-semibold text-gray-900">Vista Previa del Producto</h3>
+                <button
+                  onClick={() => setShowPreviewModal(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <Info className="w-6 h-6" />
+                </button>
+              </div>
+              <div className="p-6 flex flex-col items-center">
+                {/* Card extendida con todos los datos del producto */}
+                <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden w-full">
+                  {/* Imagen del producto */}
+                  <div className="h-48 bg-gray-200 relative">
+                    {selectedProduct.imageUrl ? (
+                      <img
+                        src={selectedProduct.imageUrl}
+                        alt={selectedProduct.name || 'Producto'}
+                        className="w-full h-full object-cover"
+                        onError={e => { e.currentTarget.src = '/placeholder-product.jpg'; }}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-400">
+                        <span className="text-4xl">🥬</span>
+                      </div>
+                    )}
+                  </div>
+                  {/* Contenido de la tarjeta */}
+                  <div className="p-4">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-1">
+                      {selectedProduct.name || 'Nombre del producto'}
+                    </h3>
+                    {/* Etiquetas de categoría y subcategoría debajo del nombre */}
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {selectedProduct.category?.name && (
+                        <span key={`category-${selectedProduct.id}`} className="bg-green-600 text-white text-xs px-2 py-1 rounded-full">
+                          {selectedProduct.category.name}
+                        </span>
+                      )}
+                      {selectedProduct.subcategoryId && (
+                        <span key={`subcategory-${selectedProduct.id}`} className="bg-green-200 text-green-800 text-xs px-2 py-1 rounded-full">
+                          {subcategorias.find(s => s.id === selectedProduct.subcategoryId)?.name || 'Subcategoría'}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                      {selectedProduct.description || 'Sin descripción.'}
+                    </p>
+                    {/* Precio y stock */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="text-2xl font-bold text-green-600">
+                        {selectedProduct.price ? `$${Number(selectedProduct.price).toLocaleString()}` : '$0'}
+                        <span className="text-sm font-normal text-gray-500">
+                          /{selectedProduct.unit || 'unidad'}
+                        </span>
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        Stock: {selectedProduct.stock || 0}
+                      </div>
+                    </div>
+                    {/* Agricultor (simulado) */}
+                    <div className="text-xs text-gray-500 mb-1">
+                      Por: Tú (previsualización)
+                    </div>
+                    {/* Ubicación */}
+                    <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
+                      <MapPin className="w-4 h-4" />
+                      <span>{selectedProduct.municipio || 'Municipio'}</span>
+                      {selectedProduct.vereda && <span key={`vereda-${selectedProduct.id}`}>- {selectedProduct.vereda}</span>}
+                    </div>
+                    {/* Certificaciones */}
+                    {selectedProduct.certificaciones && selectedProduct.certificaciones.length > 0 && (
+                      <div key={`certs-${selectedProduct.id}`} className="flex flex-wrap gap-2 mb-2">
+                        {selectedProduct.certificaciones.map(cert => (
+                          <span key={cert} className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-medium border border-green-200">{cert}</span>
+                        ))}
+                      </div>
+                    )}
+                    {/* Tipo de cultivo, fecha de cosecha, peso, dimensiones */}
+                    <div className="grid grid-cols-2 gap-2 text-xs text-gray-600 mb-2">
+                      <div><span className="font-semibold">Cultivo:</span> {selectedProduct.tipoCultivo || 'N/A'}</div>
+                      <div><span className="font-semibold">Cosecha:</span> {selectedProduct.fechaCosecha || 'N/A'}</div>
+                      <div><span className="font-semibold">Peso:</span> {selectedProduct.pesoAproximado || 'N/A'} kg</div>
+                      <div><span className="font-semibold">Dimensiones:</span> {selectedProduct.dimensiones || 'N/A'}</div>
+                    </div>
+                    {/* Condiciones de almacenamiento */}
+                    {selectedProduct.condicionesAlmacenamiento && (
+                      <div key={`storage-${selectedProduct.id}`} className="text-xs text-gray-600 mb-2">
+                        <span className="font-semibold">Almacenamiento:</span> {selectedProduct.condicionesAlmacenamiento}
+                      </div>
+                    )}
+                    {/* Métodos de entrega */}
+                    {selectedProduct.metodosEntrega && selectedProduct.metodosEntrega.length > 0 && (
+                      <div key={`delivery-${selectedProduct.id}`} className="flex flex-wrap gap-2 mb-2">
+                        {selectedProduct.metodosEntrega.map(metodo => (
+                          <span key={metodo} className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-medium border border-blue-200">
+                            {metodo}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    {/* Notas especiales */}
+                    {selectedProduct.notasEspeciales && (
+                      <div key={`notes-${selectedProduct.id}`} className="text-xs text-gray-600 mb-2">
+                        <span className="font-semibold">Notas:</span> {selectedProduct.notasEspeciales}
+                      </div>
+                    )}
+                    {/* Botón de acción (deshabilitado en preview) */}
+                    <button className="w-full bg-green-600 text-white py-2 px-4 rounded-lg opacity-60 cursor-not-allowed font-medium mt-2" disabled>
+                      Agregar al Carrito
+                    </button>
+                  </div>
+                </div>
+                <div className="mt-4 p-3 bg-blue-50 rounded-lg w-full">
+                  <div className="flex items-start">
+                    <Info className="w-5 h-5 text-blue-600 mr-2 flex-shrink-0 mt-0.5" />
+                    <div className="text-sm text-blue-800">
+                      <p className="font-medium">Vista previa</p>
+                      <p>Así es como los compradores verán tu producto en el marketplace.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50">
+                <button
+                  onClick={() => setShowPreviewModal(false)}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  Cerrar Vista Previa
                 </button>
               </div>
             </div>
@@ -1575,11 +1610,11 @@ export default function MisProductosPage() {
                 {/* Icono según el tipo de mensaje */}
                 <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4">
                   {messageType === 'success' ? (
-                    <div className="bg-green-100 rounded-full p-3">
+                    <div key="success-icon" className="bg-green-100 rounded-full p-3">
                       <CheckCircle className="h-6 w-6 text-green-600" />
                     </div>
                   ) : (
-                    <div className="bg-red-100 rounded-full p-3">
+                    <div key="error-icon" className="bg-red-100 rounded-full p-3">
                       <AlertCircle className="h-6 w-6 text-red-600" />
                     </div>
                   )}

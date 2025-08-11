@@ -67,7 +67,7 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ ok: true });
     }
 
-    // Marcar pedido como pagado y avanzar a 'EN_PREPARACION' (solo agricultor)
+    // Marcar pedido como liquidado y avanzar a 'EN_PREPARACION' (solo agricultor)
     if (action === "marcar_pagado") {
       // Verificar que el usuario sea agricultor
       const agricultor = await prisma.agricultor.findUnique({
@@ -92,7 +92,7 @@ export async function PATCH(req: NextRequest) {
       const esAgricultor = pedido.items.every((item: any) => item.product.agricultorId === agricultor.id);
       if (!esAgricultor) return NextResponse.json({ error: "No autorizado para gestionar este pedido" }, { status: 403 });
       
-      if (pedido.status !== "CONFIRMADO") return NextResponse.json({ error: "Solo se puede marcar como pagado pedidos confirmados" }, { status: 400 });
+      if (pedido.status !== "CONFIRMADO") return NextResponse.json({ error: "Solo se puede marcar como liquidado pedidos confirmados" }, { status: 400 });
       
       // Lógica de pago basada en el método elegido
       let mensaje = "";
@@ -103,13 +103,13 @@ export async function PATCH(req: NextRequest) {
         case "TRANSFERENCIA":
         case "NEQUI":
         case "DAVIPLATA":
-          mensaje = "El agricultor ha confirmado el pago. Tu pedido está en preparación.";
+          mensaje = "La plataforma ha confirmado tu pago. Tu pedido está en preparación.";
           break;
         case "PASARELA":
           mensaje = "El pago se ha procesado exitosamente. Tu pedido está en preparación.";
           break;
         default:
-          mensaje = "El agricultor ha confirmado el pago. Tu pedido está en preparación.";
+          mensaje = "La plataforma ha confirmado tu pago. Tu pedido está en preparación.";
       }
       
       await prisma.order.update({ where: { id }, data: { status: "EN_PREPARACION" } });
@@ -274,7 +274,10 @@ export async function GET(req: NextRequest) {
 
     if (buyerId) {
       const pedidos = await controller.listarPorUsuario(buyerId);
-      return NextResponse.json(pedidos || []);
+      return NextResponse.json({ 
+        success: true, 
+        data: pedidos || [] 
+      });
     }
     
     // Si hay filtros, usar consulta filtrada

@@ -199,7 +199,7 @@ model Order {
   total                   Decimal        @db.Decimal(10, 2)
   status                  OrderStatus    @default(PENDIENTE)
   deliveryMethod          DeliveryMethod @default(ENTREGA_DIRECTA)
-  paymentMethod           PaymentMethod  @default(CONTRAENTREGA)
+  paymentMethod           PaymentMethod  @default(TRANSFERENCIA)
   deliveryAddress         String?
   deliveryNotes           String?
   notes                   String?
@@ -397,10 +397,8 @@ enum DeliveryMethod {
 }
 
 enum PaymentMethod {
-  CONTRAENTREGA
   TRANSFERENCIA
   NEQUI
-  DAVIPLATA
   PASARELA
   MERCADOPAGO
 }

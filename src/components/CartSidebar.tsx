@@ -117,129 +117,197 @@ export default function CartSidebar() {
         onClick={toggleCart}
       />
       
-      {/* Sidebar */}
-      <div className="fixed right-0 top-0 h-full w-96 bg-white shadow-xl z-50 flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            <ShoppingBag size={20} />
-            Mi Carrito ({getTotalItems()})
-          </h2>
-          <button
-            onClick={toggleCart}
-            className="p-2 hover:bg-gray-100 rounded-full"
-          >
-            <X size={20} />
-          </button>
+      {/* Sidebar con diseño moderno */}
+      <div className="fixed right-0 top-0 h-full w-96 bg-gradient-to-b from-white to-gray-50 shadow-2xl z-50 flex flex-col">
+        {/* Header mejorado */}
+        <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white p-6 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white bg-opacity-10 rounded-full -translate-y-16 translate-x-16"></div>
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-white bg-opacity-5 rounded-full translate-y-12 -translate-x-12"></div>
+          
+          <div className="relative flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="bg-white bg-opacity-20 p-2 rounded-xl">
+                <ShoppingBag size={24} className="text-white" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold">Carrito de compras</h2>
+                <p className="text-green-100 text-sm">{getTotalItems()} productos seleccionados</p>
+              </div>
+            </div>
+            <button
+              onClick={toggleCart}
+              className="p-2 hover:bg-white hover:bg-opacity-20 rounded-xl transition-colors"
+            >
+              <X size={24} />
+            </button>
+          </div>
         </div>
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto">
+        {/* Content mejorado */}
+        <div className="flex-1 overflow-y-auto bg-gray-50">
           {items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-gray-500">
-              <ShoppingBag size={48} className="mb-4" />
-              <p className="text-lg font-medium">Tu carrito está vacío</p>
-              <p className="text-sm">Agrega productos para comenzar</p>
+            <div className="flex flex-col items-center justify-center h-full text-gray-500 p-8">
+              <div className="bg-gradient-to-br from-green-100 to-emerald-100 p-8 rounded-3xl mb-6">
+                <ShoppingBag size={64} className="text-green-500" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-700 mb-2">Tu carrito está vacío</h3>
+              <p className="text-gray-500 text-center">¡Explora nuestros productos frescos y agrega tus favoritos!</p>
             </div>
           ) : (
-            <div className="p-4">
-              {/* Agrupación por agricultor */}
+            <div className="p-4 space-y-6">
+              {/* Agrupación por agricultor mejorada */}
               {Object.entries(itemsByVendor).map(([agricultorId, vendor]) => (
-                <div key={agricultorId} className="mb-6">
-                  <div className="bg-green-50 p-3 rounded-lg mb-3">
-                    <h3 className="font-medium text-green-800">
-                      🚜 {vendor.campesinoName}
-                    </h3>
-                    <p className="text-sm text-green-600">
-                      {vendor.items.length} producto(s)
-                    </p>
-                  </div>
-                  
-                  {vendor.items.map((item) => (
-                    <div key={item.id} className="flex items-center gap-3 mb-4 p-3 border rounded-lg">
-                      <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0">
-                        {item.imageUrl ? (
-                          <img
-                            src={item.imageUrl}
-                            alt={item.name}
-                            className="w-full h-full object-cover rounded-lg"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-gray-400">
-                            🥬
-                          </div>
-                        )}
+                <div key={agricultorId} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                  {/* Header del agricultor */}
+                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 border-b border-green-100">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-green-500 p-2 rounded-xl">
+                        <span className="text-white text-lg">🚜</span>
                       </div>
-                      
-                      <div className="flex-1">
-                        <h4 className="font-medium text-sm">{item.name}</h4>
-                        <p className="text-green-600 font-semibold">
-                          ${item.price.toLocaleString()}/{item.unit}
+                      <div>
+                        <h3 className="font-bold text-green-800 text-lg">
+                          {vendor.campesinoName}
+                        </h3>
+                        <p className="text-green-600 text-sm font-medium">
+                          {vendor.items.length} producto{vendor.items.length !== 1 ? 's' : ''} • ${vendor.items.reduce((sum, item) => sum + (item.price * item.quantity), 0).toLocaleString()}
                         </p>
-                        
-                        <div className="flex items-center gap-2 mt-2">
-                          <button
-                            onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
-                            className="p-1 hover:bg-gray-100 rounded"
-                          >
-                            <Minus size={14} />
-                          </button>
-                          <span className="px-2 py-1 bg-gray-100 rounded text-sm">
-                            {item.quantity}
-                          </span>
-                          <button
-                            onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
-                            disabled={item.quantity >= item.stock}
-                            className="p-1 hover:bg-gray-100 rounded disabled:opacity-50"
-                          >
-                            <Plus size={14} />
-                          </button>
-                          <button
-                            onClick={() => removeItem(item.id)}
-                            className="p-1 hover:bg-red-100 text-red-600 rounded ml-auto"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
                       </div>
                     </div>
-                  ))}
+                  </div>
+                  
+                  {/* Productos del agricultor */}
+                  <div className="p-4 space-y-3">
+                    {vendor.items.map((item) => (
+                      <div key={item.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                        {/* Imagen del producto */}
+                        <div className="w-16 h-16 rounded-xl overflow-hidden bg-gradient-to-br from-green-100 to-emerald-100 flex-shrink-0 shadow-sm">
+                          {item.imageUrl ? (
+                            <img
+                              src={item.imageUrl}
+                              alt={item.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-2xl">
+                              🥬
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-bold text-gray-900 text-sm truncate capitalize">{item.name}</h4>
+                          <p className="text-green-600 font-bold text-base">
+                            ${item.price.toLocaleString()}<span className="text-gray-500 text-xs">/{item.unit}</span>
+                          </p>
+                          
+                          {/* Controles de cantidad modernos */}
+                          <div className="flex items-center gap-3 mt-3">
+                            <div className="flex items-center bg-white rounded-lg shadow-sm border border-gray-200">
+                              <button
+                                onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
+                                className="p-2 hover:bg-gray-50 rounded-l-lg transition-colors"
+                              >
+                                <Minus size={16} className="text-gray-600" />
+                              </button>
+                              <span className="px-4 py-2 font-bold text-gray-900 min-w-[3rem] text-center">
+                                {item.quantity}
+                              </span>
+                              <button
+                                onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
+                                disabled={item.quantity >= item.stock}
+                                className="p-2 hover:bg-gray-50 rounded-r-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                <Plus size={16} className="text-gray-600" />
+                              </button>
+                            </div>
+                            
+                            <div className="flex-1 text-right">
+                              <p className="font-bold text-lg text-gray-900">
+                                ${(item.price * item.quantity).toLocaleString()}
+                              </p>
+                            </div>
+                            
+                            <button
+                              onClick={() => removeItem(item.id)}
+                              className="p-2 hover:bg-red-50 text-red-500 rounded-lg transition-colors"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                          
+                          {item.quantity >= item.stock && (
+                            <p className="text-xs text-amber-600 mt-1 font-medium">⚠️ Stock máximo alcanzado</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>
           )}
         </div>
 
-        {/* Footer */}
+        {/* Footer moderno */}
         {items.length > 0 && (
-          <div className="border-t p-4">
-            <div className="flex justify-between items-center mb-4">
-              <span className="text-lg font-semibold">Total:</span>
-              <span className="text-2xl font-bold text-green-600">
-                ${getTotalPrice().toLocaleString()}
-              </span>
+          <div className="bg-white border-t border-gray-200 p-6 space-y-6">
+            {/* Resumen de totales */}
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-2xl border border-green-100">
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="text-gray-600 text-sm font-medium">Total a pagar</p>
+                  <p className="text-gray-500 text-xs">{getTotalItems()} productos</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-3xl font-bold text-green-600">
+                    ${getTotalPrice().toLocaleString()}
+                  </p>
+                  <p className="text-green-500 text-xs font-medium">COP</p>
+                </div>
+              </div>
             </div>
             
-            <div className="space-y-2">
+            {/* Botones de acción */}
+            <div className="space-y-3">
               <button
                 onClick={handleCheckout}
                 disabled={isProcessing}
-                className="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 font-medium"
+                className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white py-4 px-6 rounded-2xl font-bold text-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
               >
-                {isProcessing ? 'Procesando...' : 'Realizar Pedidos'}
+                {isProcessing ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Procesando pedido...
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center gap-2">
+                    <ShoppingBag size={20} />
+                    Proceder al Checkout
+                  </div>
+                )}
               </button>
               
               <button
                 onClick={clearCart}
-                className="w-full bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors text-sm"
+                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 px-6 rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
               >
-                Vaciar Carrito
+                <Trash2 size={16} />
+                Eliminar
               </button>
             </div>
             
-            <p className="text-xs text-gray-500 mt-3 text-center">
-              Se crearán pedidos separados por cada agricultor
-            </p>
+            {/* Nota informativa */}
+            <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
+              <div className="flex items-start gap-3">
+                <div className="bg-blue-500 p-1 rounded-lg flex-shrink-0">
+                  <span className="text-white text-sm">ℹ️</span>
+                </div>
+                <div>
+                  <p className="text-blue-800 text-sm font-medium">Pedidos por agricultor</p>
+                  <p className="text-blue-600 text-xs">Se crearán pedidos separados para cada agricultor automáticamente</p>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>

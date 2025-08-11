@@ -27,8 +27,7 @@ export class PedidosRepository {
   async listarPorUsuario(buyerId: string) {
     return prisma.order.findMany({
       where: {
-        buyerId,
-        NOT: { status: "CANCELADO" }
+        buyerId
       },
       include: {
         items: {
@@ -44,6 +43,9 @@ export class PedidosRepository {
             }
           }
         }
+      },
+      orderBy: {
+        createdAt: 'desc'
       }
     });
   }

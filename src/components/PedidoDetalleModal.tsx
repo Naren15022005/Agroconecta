@@ -22,11 +22,11 @@ export default function PedidoDetalleModal({ pedido, onClose, onEstadoChanged }:
       case 'CONTRAENTREGA':
         return 'Confirmar contraentrega';
       case 'TRANSFERENCIA':
-        return 'Confirmar transferencia recibida';
+        return 'Confirmar pedido (pago a plataforma)';
       case 'NEQUI':
-        return 'Confirmar pago Nequi recibido';
+        return 'Confirmar pedido (pago a plataforma)';
       case 'DAVIPLATA':
-        return 'Confirmar pago Daviplata recibido';
+        return 'Confirmar pedido (pago a plataforma)';
       case 'PASARELA':
         return 'Confirmar pago procesado';
       default:
@@ -321,7 +321,7 @@ export default function PedidoDetalleModal({ pedido, onClose, onEstadoChanged }:
                 <div className="text-blue-600 mr-3">💳</div>
                 <div>
                   <h4 className="font-semibold text-blue-800">Pago electrónico</h4>
-                  <p className="text-blue-700 text-sm">Confirma cuando hayas recibido el pago de <strong>${total.toLocaleString('es-CO')}</strong> vía {metodoPago}</p>
+                  <p className="text-blue-700 text-sm">La plataforma ha confirmado el pago de <strong>${total.toLocaleString('es-CO')}</strong> vía {metodoPago}. Puedes proceder con la preparación del pedido.</p>
                 </div>
               </div>
             </div>

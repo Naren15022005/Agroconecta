@@ -16,7 +16,7 @@ import { NotificacionesRepository } from '@/modules/notificaciones/repository';
 //     notes?: string
 //   },
 //   paymentInfo: {
-//     method: 'CONTRAENTREGA' | 'TRANSFERENCIA' | 'NEQUI' | 'DAVIPLATA',
+//     method: 'TRANSFERENCIA' | 'NEQUI',
 //     details?: string
 //   }
 // }
@@ -68,6 +68,14 @@ export async function POST(req: NextRequest) {
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'No autenticado. Inicia sesión para comprar.' }, { status: 401 });
     }
+    // Mapear métodos de entrega del frontend al schema de la DB
+    const deliveryMethodMap: Record<string, string> = {
+      'RECOGER_FINCA': 'ENTREGA_DIRECTA',
+      'MERCADO_LOCAL': 'PUNTO_ENCUENTRO',
+      'COURIER': 'REPARTIDOR_ALIADO',
+      'TRANSPORTADORA': 'EMPRESA_TRANSPORTADORA'
+    };
+
     // Crear Order y OrderItems
     const total = productos.reduce((sum, p) => sum + p.precioUnitario * p.cantidad, 0);
     const orderId = `AGRC_ORD_${Date.now().toString(36)}${Math.random().toString(36).substring(2,8)}`;
@@ -78,13 +86,16 @@ export async function POST(req: NextRequest) {
       price: Number(p.precioUnitario),
       subtotal: Number(p.precioUnitario) * Number(p.cantidad),
     }));
+    
+    const mappedDeliveryMethod = deliveryMethodMap[deliveryInfo.method] || deliveryInfo.method;
+    
     const order = await prisma.order.create({
       data: {
         id: orderId,
         buyerId: session.user.id,
         total,
         status: 'PENDIENTE',
-        deliveryMethod: deliveryInfo.method,
+        deliveryMethod: mappedDeliveryMethod,
         paymentMethod: paymentInfo.method,
         deliveryAddress: deliveryInfo.address || null,
         deliveryNotes: deliveryInfo.notes || null,

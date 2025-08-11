@@ -3,17 +3,31 @@ import { Move, ChartBar, Tractor, ShoppingCart, Wallet, FileText, Bolt } from 'l
 export default async function DashboardCards() {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
   let r;
+  let errorDetails = '';
+  
   try {
+    console.log('DashboardCards: Fetching from', `${baseUrl}/api/admin/dashboard`);
     const res = await fetch(`${baseUrl}/api/admin/dashboard`, { cache: 'no-store' });
+    console.log('DashboardCards: Response status:', res.status);
+    
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
+    
     const data = await res.json();
+    console.log('DashboardCards: Data received:', data);
     r = data?.resumen;
   } catch (err) {
+    console.error('DashboardCards: Error fetching data:', err);
+    errorDetails = err instanceof Error ? err.message : 'Error desconocido';
     r = undefined;
   }
+  
   if (!r) {
     return (
       <div className="bg-white rounded-lg shadow p-6 mb-8 text-center text-red-600">
-        Error al cargar datos del dashboard. Verifica la conexión o intenta más tarde.
+        <p>Error al cargar datos del dashboard. Verifica la conexión o intenta más tarde.</p>
+        {errorDetails && <p className="text-sm mt-2">Detalles: {errorDetails}</p>}
       </div>
     );
   }

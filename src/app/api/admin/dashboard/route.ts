@@ -3,7 +3,9 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET() {
   try {
-    // Usar consultas simples y directas
+    console.log('=== Dashboard API iniciando ===');
+    
+    // Inicializar resumen con valores por defecto
     let resumen = {
       totalRecaudado: 0,
       ganancia: 0,
@@ -24,99 +26,184 @@ export async function GET() {
     let pagos: any[] = [];
 
     try {
-      // Obtener conteo de ventas
-      const ventasResult = await prisma.$queryRaw`SELECT COUNT(*) as count, COALESCE(SUM(total), 0) as total FROM sales`;
-      if (Array.isArray(ventasResult) && ventasResult.length > 0) {
-        const venta = ventasResult[0] as any;
-        resumen.ventasCount = Number(venta.count) || 0;
-        resumen.totalRecaudado = Number(venta.total) || 0;
-        resumen.ventasTotal = Number(venta.total) || 0;
-        resumen.pedidos = Number(venta.count) || 0;
-      }
+      console.log('Obteniendo datos de órdenes...');
+      
+      // Obtener datos básicos de órdenes
+      const orders = await prisma.order.findMany({
+        select: {
+          id: true,
+          total: true,
+          status: true
+        }
+      });
+      
+      console.log(`Encontradas ${orders.length} órdenes`);
+      
+      // Calcular totales
+      const totalRecaudado = orders.reduce((sum, order) => sum + Number(order.total || 0), 0);
+      
+      resumen.ventasCount = orders.length;
+      resumen.totalRecaudado = totalRecaudado;
+      resumen.ventasTotal = totalRecaudado;
+      resumen.pedidos = orders.length;
+      resumen.ganancia = totalRecaudado * 0.05; // 5% comisión
+      resumen.comisionesTotal = resumen.ganancia;
+      resumen.aPagar = totalRecaudado * 0.95; // 95% para agricultores
+      
+      console.log('Totales calculados:', {
+        totalRecaudado: resumen.totalRecaudado,
+        ganancia: resumen.ganancia,
+        aPagar: resumen.aPagar
+      });
 
-      // Obtener comisiones
-      const comisionesResult = await prisma.$queryRaw`SELECT COALESCE(SUM(monto), 0) as total FROM comisiones`;
-      if (Array.isArray(comisionesResult) && comisionesResult.length > 0) {
-        const comision = comisionesResult[0] as any;
-        resumen.ganancia = Number(comision.total) || 0;
-        resumen.comisionesTotal = Number(comision.total) || 0;
-      }
+      // Obtener agricultores básicos
+      try {
+        console.log('Obteniendo agricultores...');
+        
+        const agricultores = await prisma.user.findMany({
+          where: {
+            role: {
+              name: 'CAMPESINO'
+            }
+          },
+          select: {
+            id: true,
+            nombre: true
+          }
+        });
+        
+        console.log(`Encontrados ${agricultores.length} agricultores`);
+        
+        // Calcular ventas reales por agricultor
+        pagos = [];
+        
+        for (const usuario of agricultores) {
+          // Primero obtener el registro de agricultor asociado al usuario
+          const agricultor = await prisma.agricultor.findUnique({
+            where: {
+              user_id: usuario.id
+            },
+            select: {
+              id: true
+            }
+          });
+          
+          if (!agricultor) {
+            // Si no hay registro de agricultor, incluir con ventas 0
+            pagos.push({
+              id: usuario.id,
+              agricultorId: null, // No hay agricultor registrado
+              agricultor: usuario.nombre || 'Sin nombre',
+              ventas: 0,
+              comision: 0,
+              aPagar: 0,
+              estado: 'sin_ventas',
+            });
+            continue;
+          }
+          
+          // Obtener productos del agricultor
+          const productos = await prisma.product.findMany({
+            where: {
+              agricultorId: agricultor.id
+            },
+            select: {
+              id: true,
+              orderItems: {
+                include: {
+                  order: true
+                }
+              }
+            }
+          });
+          
+          let totalVentasAgricultor = 0;
+          
+          // Calcular total de ventas sumando los items de órdenes
+          productos.forEach(producto => {
+            producto.orderItems.forEach(item => {
+              if (item.order && item.order.status !== 'CANCELADO') {
+                totalVentasAgricultor += Number(item.subtotal) || 0;
+              }
+            });
+          });
+          
+          const comision = totalVentasAgricultor * 0.05; // 5% para la plataforma
+          const aPagar = totalVentasAgricultor * 0.95;   // 95% para el agricultor
+          
+          // Verificar si ya existe una liquidación procesada para este agricultor
+          let estadoLiquidacion = 'pendiente';
+          let fechaLiquidacion = null;
+          let numeroTransaccion = null;
+          
+          if (aPagar <= 0) {
+            estadoLiquidacion = 'sin_ventas';
+          } else {
+            // Buscar la última liquidación directa para este agricultor
+            const ultimaLiquidacion = await prisma.walletTransaction.findFirst({
+              where: {
+                wallet: {
+                  userId: usuario.id
+                },
+                type: 'PAGO_DIRECTO_ADMIN'
+              },
+              orderBy: {
+                createdAt: 'desc'
+              }
+            });
 
-      // Obtener billeteras
-      const walletsResult = await prisma.$queryRaw`SELECT COUNT(*) as count, COALESCE(SUM(balance), 0) as total FROM wallets`;
-      if (Array.isArray(walletsResult) && walletsResult.length > 0) {
-        const wallet = walletsResult[0] as any;
-        resumen.walletsCount = Number(wallet.count) || 0;
-        resumen.totalWallets = Number(wallet.total) || 0;
-      }
+            if (ultimaLiquidacion) {
+              const totalLiquidado = await prisma.walletTransaction.aggregate({
+                where: {
+                  wallet: {
+                    userId: usuario.id
+                  },
+                  type: 'PAGO_DIRECTO_ADMIN'
+                },
+                _sum: {
+                  amount: true
+                }
+              });
 
-      // Obtener pagos
-      const pagosResult = await prisma.$queryRaw`
-        SELECT 
-          COUNT(CASE WHEN estado = 'PENDIENTE' THEN 1 END) as pendientes,
-          COUNT(CASE WHEN estado = 'COMPLETADO' THEN 1 END) as completados
-        FROM pagos
-      `;
-      if (Array.isArray(pagosResult) && pagosResult.length > 0) {
-        const pago = pagosResult[0] as any;
-        resumen.pagosPendientes = Number(pago.pendientes) || 0;
-        resumen.pagosCompletados = Number(pago.completados) || 0;
-      }
-
-      // Obtener retiros
-      const retirosResult = await prisma.$queryRaw`
-        SELECT 
-          COUNT(CASE WHEN status = 'PENDIENTE' THEN 1 END) as pendientes,
-          COUNT(CASE WHEN status = 'PROCESADO' THEN 1 END) as procesados
-        FROM withdraw_requests
-      `;
-      if (Array.isArray(retirosResult) && retirosResult.length > 0) {
-        const retiro = retirosResult[0] as any;
-        resumen.retirosPendientes = Number(retiro.pendientes) || 0;
-        resumen.retirosAprobados = Number(retiro.procesados) || 0;
-      }
-
-      // Obtener impuestos
-      const impuestosResult = await prisma.$queryRaw`SELECT COALESCE(SUM(monto), 0) as total FROM impuestos`;
-      if (Array.isArray(impuestosResult) && impuestosResult.length > 0) {
-        const impuesto = impuestosResult[0] as any;
-        resumen.impuestosTotal = Number(impuesto.total) || 0;
-      }
-
-      // Calcular a pagar
-      resumen.aPagar = resumen.totalRecaudado - resumen.ganancia;
-
-      // Obtener agricultores
-      const agricultoresResult = await prisma.$queryRaw`
-        SELECT 
-          u.id,
-          u.nombre,
-          COALESCE(SUM(w.balance), 0) as ventas,
-          COALESCE(SUM(p.monto), 0) as totalPagos,
-          COUNT(CASE WHEN p.estado = 'PENDIENTE' THEN 1 END) as pagosPendientes
-        FROM users u
-        INNER JOIN roles r ON u.roleId = r.id
-        LEFT JOIN wallets w ON u.id = w.userId
-        LEFT JOIN pagos p ON u.id = p.userId
-        WHERE r.name = 'CAMPESINO'
-        GROUP BY u.id, u.nombre
-        LIMIT 10
-      `;
-
-      if (Array.isArray(agricultoresResult)) {
-        pagos = agricultoresResult.map((agricultor: any) => ({
-          id: agricultor.id,
-          agricultor: agricultor.nombre || 'Sin nombre',
-          ventas: Number(agricultor.ventas) || 0,
-          comision: (Number(agricultor.totalPagos) || 0) * 0.05,
-          estado: Number(agricultor.pagosPendientes) > 0 ? 'pendiente' : 'pagado',
-        }));
+              const montoLiquidado = Number(totalLiquidado._sum.amount) || 0;
+              
+              // Si ya se liquidó un monto igual o mayor al que debe cobrar, está liquidado
+              if (montoLiquidado >= aPagar) {
+                estadoLiquidacion = 'liquidado';
+                fechaLiquidacion = ultimaLiquidacion.createdAt.toISOString();
+                numeroTransaccion = `TXN-AGRC-USR-${agricultor.id.slice(-8)}-${ultimaLiquidacion.createdAt.getTime().toString().slice(-6)}`;
+              }
+            }
+          }
+          
+          console.log(`Agricultor ${usuario.nombre}: Ventas=${totalVentasAgricultor}, A pagar=${aPagar}, Estado=${estadoLiquidacion}`);
+          
+          // Solo incluir agricultores con ventas o mostrar todos
+          pagos.push({
+            id: usuario.id,
+            agricultorId: agricultor.id, // Agregar el ID del agricultor
+            agricultor: usuario.nombre || 'Sin nombre',
+            ventas: totalVentasAgricultor,
+            comision: comision,
+            aPagar: aPagar,
+            estado: estadoLiquidacion,
+            fechaLiquidacion: fechaLiquidacion,
+            numeroTransaccion: numeroTransaccion,
+          });
+        }
+        
+        resumen.walletsCount = agricultores.length;
+        
+      } catch (agricultorError) {
+        console.error('Error obteniendo agricultores:', agricultorError);
       }
 
     } catch (dbError) {
       console.error('Error en consultas de base de datos:', dbError);
     }
 
+    console.log('=== Dashboard API completado ===');
+    
     return NextResponse.json({
       resumen,
       pagos,

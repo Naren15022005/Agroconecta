@@ -1,4 +1,4 @@
-import { UserCircle, ShoppingCart, Box, ChartBar, Cog, Users, Move, FileText, Star, Tractor, Bolt } from 'lucide-react';
+import { UserCircle, ShoppingCart, Box, ChartBar, Cog, Users, Move, FileText, Star, Tractor, Bolt, Wallet } from 'lucide-react';
 import DashboardCards from './DashboardCards';
 import PagosAgricultoresTable from './PagosAgricultoresTable';
 import { Suspense } from 'react';
@@ -48,6 +48,18 @@ export default function AdminHome() {
               <a href="/admin/pedidos" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-green-800">
                 <ShoppingCart size={20} />
                 Pedidos
+              </a>
+            </li>
+            <li>
+              <a href="/admin/pagos" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-green-800">
+                <Bolt size={20} />
+                Gestión de Pagos
+              </a>
+            </li>
+            <li>
+              <a href="/admin/billetera" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-green-800">
+                <Wallet size={20} />
+                Mi Billetera
               </a>
             </li>
             <li>
