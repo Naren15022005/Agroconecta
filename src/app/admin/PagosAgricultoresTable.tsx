@@ -1,242 +1,82 @@
-'use client';
 import { Users } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import Toast from '@/components/Toast';
-import LiquidacionModal from '@/components/LiquidacionModal';
 
-interface PagoAgricultor {
-  id: string;
-  agricultor: string;
-  agricultorId: string;
-  ventas: number;
-  comision: number;
-  aPagar: number;
-  estado: 'pendiente' | 'sin_ventas' | 'liquidado';
-  fechaLiquidacion?: string;
-  numeroTransaccion?: string;
-}
-
-interface ToastState {
-  show: boolean;
-  type: 'success' | 'error' | 'warning' | 'loading';
-  message: string;
-}
-
-export default function PagosAgricultoresTable() {
-  const [pagos, setPagos] = useState<PagoAgricultor[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [procesando, setProcesando] = useState<string | null>(null);
-  const [modalAbierto, setModalAbierto] = useState(false);
-  const [liquidacionSeleccionada, setLiquidacionSeleccionada] = useState<PagoAgricultor | null>(null);
-  const [toast, setToast] = useState<ToastState>({
-    show: false,
-    type: 'success',
-    message: ''
-  });
-
-  const showToast = (type: ToastState['type'], message: string) => {
-    setToast({ show: true, type, message });
-  };
-
-  const hideToast = () => {
-    setToast(prev => ({ ...prev, show: false }));
-  };
-
-  const abrirModal = (pago: PagoAgricultor) => {
-    setLiquidacionSeleccionada(pago);
-    setModalAbierto(true);
-  };
-
-  const cerrarModal = () => {
-    setModalAbierto(false);
-    setLiquidacionSeleccionada(null);
-  };
-
-  useEffect(() => {
-    cargarPagos();
-  }, []);
-
-  const cargarPagos = async () => {
-    try {
-      setLoading(true);
-      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-      const res = await fetch(`${baseUrl}/api/admin/dashboard`, { cache: 'no-store' });
-      
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-      }
-      
-      const data = await res.json();
-      setPagos(data?.pagos || []);
-    } catch (err) {
-      console.error('Error fetching pagos:', err);
-      setError(err instanceof Error ? err.message : 'Error desconocido');
-    } finally {
-      setLoading(false);
+export default async function PagosAgricultoresTable() {
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+  let pagos;
+  let errorDetails = '';
+  
+  try {
+    console.log('PagosAgricultoresTable: Fetching from', `${baseUrl}/api/admin/dashboard`);
+    const res = await fetch(`${baseUrl}/api/admin/dashboard`, { cache: 'no-store' });
+    console.log('PagosAgricultoresTable: Response status:', res.status);
+    
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
     }
-  };
-
-  const handlePagar = async (agricultorId: string, monto: number, agricultor: string) => {
-    try {
-      setProcesando(agricultorId);
-      
-      console.log('Enviando pago:', { agricultorId, monto, agricultor });
-      
-      // Mostrar notificación de carga
-      showToast('loading', `Liquidando pago para ${agricultor}...`);
-      
-      const response = await fetch('/api/admin/pagos/procesar', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          agricultorId,
-          monto
-        })
-      });
-
-      const data = await response.json();
-      console.log('Respuesta del servidor:', data);
-
-      if (data.success) {
-        // Actualizar el estado local
-        setPagos(prev => 
-          prev.map(pago => 
-            pago.agricultorId === agricultorId 
-              ? { ...pago, estado: 'liquidado' as const }
-              : pago
-          )
-        );
-        
-        hideToast();
-        setTimeout(() => {
-          showToast('success', `¡Liquidación exitosa! ${monto.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })} enviados a ${agricultor}`);
-        }, 100);
-      } else {
-        hideToast();
-        setTimeout(() => {
-          showToast('error', data.error || 'No se pudo liquidar el pago');
-        }, 100);
-      }
-    } catch (err) {
-      console.error('Error al procesar pago:', err);
-      hideToast();
-      setTimeout(() => {
-        showToast('error', 'Error de conexión al liquidar pago');
-      }, 100);
-    } finally {
-      setProcesando(null);
-    }
-  };
-
-  if (loading) {
-    return (
-      <section className="bg-white rounded-xl shadow-lg p-8 mb-8">
-        <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto mb-4"></div>
-          <p>Cargando pagos...</p>
-        </div>
-      </section>
-    );
+    
+    const data = await res.json();
+    console.log('PagosAgricultoresTable: Data received:', data);
+    pagos = data?.pagos;
+  } catch (err) {
+    console.error('PagosAgricultoresTable: Error fetching data:', err);
+    errorDetails = err instanceof Error ? err.message : 'Error desconocido';
+    pagos = undefined;
   }
-
-  if (error) {
+  
+  if (!Array.isArray(pagos)) {
     return (
-      <section className="bg-white rounded-xl shadow-lg p-8 mb-8">
-        <div className="text-center text-red-600">
-          <p>Error al cargar pagos a agricultores.</p>
-          <p className="text-sm mt-2">Detalles: {error}</p>
-          <button 
-            onClick={cargarPagos}
-            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
-            Reintentar
-          </button>
-        </div>
-      </section>
+      <div className="rounded-lg shadow p-6 mb-8 text-center" style={{ background: 'var(--card)', color: 'var(--danger)' }}>
+        <p>Error al cargar pagos a agricultores. Verifica la conexión o intenta más tarde.</p>
+        {errorDetails && <p className="text-sm mt-2" style={{ color: 'var(--muted)' }}>Detalles: {errorDetails}</p>}
+      </div>
     );
   }
   return (
-    <>
-    <section className="bg-white rounded-xl shadow-lg p-8 mb-8">
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-2xl font-extrabold flex items-center gap-2 text-green-900"><Users size={28} /> Pagos a Agricultores</h3>
-        <span className="text-green-700 font-bold text-base cursor-pointer hover:underline">Ver todos</span>
+  <section className="rounded-lg p-6 mb-8" style={{ background: 'var(--card)', color: '#fff', boxShadow: 'none' }}>
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-xl font-bold flex items-center gap-2" style={{ color: 'var(--purple-fluor)' }}><Users size={24} style={{ color: 'var(--purple-fluor)' }} /> Pagos a Agricultores</h3>
+        <span className="font-semibold cursor-pointer hover:underline" style={{ color: 'var(--purple-fluor)' }}>Ver todos</span>
       </div>
-      <div className="overflow-x-auto">
-        <table className="min-w-full text-base">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="p-4 text-left font-semibold text-gray-800">ID</th>
-              <th className="p-4 text-left font-semibold text-gray-800">Agricultor</th>
-              <th className="p-4 text-right font-semibold text-gray-800">Ventas Totales</th>
-              <th className="p-4 text-right font-semibold text-gray-800">Comisión</th>
-              <th className="p-4 text-right font-semibold text-gray-800">A Liquidar</th>
-              <th className="p-4 text-center font-semibold text-gray-800">Estado</th>
-              <th className="p-4 text-center font-semibold text-gray-800">Acción</th>
+      <table className="w-full text-sm">
+        <thead>
+          <tr style={{ background: 'var(--card)' }}>
+            <th className="p-3 text-left th-hover-morado" style={{ color: 'var(--muted)', transition: 'color 0.2s' }}>ID</th>
+            <th className="p-3 text-left th-hover-morado" style={{ color: 'var(--muted)', transition: 'color 0.2s' }}>Agricultor</th>
+            <th className="p-3 text-right th-hover-morado" style={{ color: 'var(--muted)', transition: 'color 0.2s' }}>Ventas Totales</th>
+            <th className="p-3 text-right th-hover-morado" style={{ color: 'var(--muted)', transition: 'color 0.2s' }}>Comisión</th>
+            <th className="p-3 text-right th-hover-morado" style={{ color: 'var(--muted)', transition: 'color 0.2s' }}>A Pagar</th>
+            <th className="p-3 text-center th-hover-morado" style={{ color: 'var(--muted)', transition: 'color 0.2s' }}>Estado</th>
+            <th className="p-3 text-center th-hover-morado" style={{ color: 'var(--muted)', transition: 'color 0.2s' }}>Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          {pagos.map((p: any) => (
+            <tr key={p.id} style={{ borderBottom: '1px solid var(--glass-2)' }}>
+              <td className="p-3 text-left font-mono text-xs" style={{ color: 'var(--muted)' }}>{p.id}</td>
+              <td className="p-3 text-left font-medium" style={{ color: '#fff' }}>{p.agricultor}</td>
+              <td className="p-3 text-right font-semibold" style={{ color: 'var(--accent)' }}>{p.ventas?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' }) ?? '-'}</td>
+              <td className="p-3 text-right" style={{ color: 'var(--muted)' }}>{p.comision?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' }) ?? '-'}</td>
+              <td className="p-3 text-right font-semibold" style={{ color: 'var(--success)' }}>{p.aPagar?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' }) ?? '-'}</td>
+              <td className="p-3 text-center">
+                {p.estado === 'pendiente' ? (
+                  <span className="px-2 py-1 rounded-full text-xs" style={{ background: 'var(--danger)', color: '#fff' }}>Pendiente</span>
+                ) : p.estado === 'sin_ventas' ? (
+                  <span className="px-2 py-1 rounded-full text-xs" style={{ background: 'var(--glass)', color: 'var(--muted)' }}>Sin Ventas</span>
+                ) : (
+                  <span className="px-2 py-1 rounded-full text-xs" style={{ background: 'var(--success)', color: '#fff' }}>Pagado</span>
+                )}
+              </td>
+              <td className="p-3 text-center">
+                {p.estado === 'pendiente' ? (
+                  <button className="px-3 py-1 rounded text-xs" style={{ background: 'var(--danger)', color: '#fff' }}>Pagar</button>
+                ) : (
+                  <button className="px-3 py-1 rounded text-xs" style={{ background: 'var(--glass)', color: 'var(--muted)' }}>Ver</button>
+                )}
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {pagos.map((p: any) => (
-              <tr key={p.id} className="border-b border-gray-200 hover:bg-green-50">
-                <td className="p-4 text-left font-mono text-sm text-gray-800">{p.id}</td>
-                <td className="p-4 text-left font-bold text-gray-900">{p.agricultor}</td>
-                <td className="p-4 text-right font-bold text-gray-900">{p.ventas?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' }) ?? '-'}</td>
-                <td className="p-4 text-right font-semibold text-purple-700">{p.comision?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' }) ?? '-'}</td>
-                <td className="p-4 text-right font-bold text-green-700">{p.aPagar?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' }) ?? '-'}</td>
-                <td className="p-4 text-center">
-                  {p.estado === 'pendiente' ? (
-                    <span className="bg-yellow-200 text-yellow-900 px-3 py-1 rounded-full text-sm font-semibold shadow">Pendiente</span>
-                  ) : p.estado === 'sin_ventas' ? (
-                    <span className="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm font-semibold">Sin Ventas</span>
-                  ) : p.estado === 'liquidado' ? (
-                    <span className="bg-green-200 text-green-900 px-3 py-1 rounded-full text-sm font-semibold">Liquidado</span>
-                  ) : (
-                    <span className="bg-green-200 text-green-900 px-3 py-1 rounded-full text-sm font-semibold">Liquidado</span>
-                  )}
-                </td>
-                <td className="p-4 text-center">
-                  {p.estado === 'pendiente' ? (
-                    <button 
-                      onClick={() => handlePagar(p.agricultorId, p.aPagar, p.agricultor)}
-                      disabled={procesando === p.agricultorId}
-                      className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm font-bold shadow disabled:bg-gray-400 disabled:cursor-not-allowed"
-                    >
-                      {procesando === p.agricultorId ? 'Liquidando...' : 'Liquidar'}
-                    </button>
-                  ) : (
-                    <button 
-                      onClick={() => abrirModal(p)}
-                      className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 text-sm font-bold shadow transition-colors"
-                    >
-                      Ver
-                    </button>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          ))}
+        </tbody>
+      </table>
     </section>
-
-    {/* Toast de notificaciones */}
-    <Toast
-      type={toast.type}
-      message={toast.message}
-      isVisible={toast.show}
-      onClose={hideToast}
-      autoClose={toast.type !== 'loading'}
-    />
-
-    {/* Modal de detalles de liquidación */}
-    <LiquidacionModal
-      isOpen={modalAbierto}
-      onClose={cerrarModal}
-      liquidacion={liquidacionSeleccionada}
-    />
-    </>
   );
 }

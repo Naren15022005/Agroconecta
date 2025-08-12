@@ -11,79 +11,73 @@ async function getAdminDashboardData() {
 }
 export default function AdminHome() {
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen" style={{ background: 'var(--bg)', color: '#fff' }}>
       {/* Sidebar fijo */}
-      <aside className="w-64 bg-green-900 text-white flex flex-col py-8 px-4 fixed h-screen left-0 top-0 z-20 shadow-xl">
+      <aside className="w-64 flex flex-col py-8 px-4 fixed h-screen left-0 top-0 z-20 shadow-xl" style={{ background: 'var(--card)', color: '#fff' }}>
         <div className="flex items-center gap-3 mb-10 px-2">
-          <Tractor size={32} className="text-green-300" />
-          <span className="text-xl font-bold tracking-wide">AgroConecta</span>
+          <Tractor size={32} style={{ color: 'var(--accent-2)' }} />
+          <span className="text-xl font-bold tracking-wide" style={{ color: 'var(--accent)' }}>AgroConecta</span>
         </div>
         <nav className="flex-1">
           <ul className="space-y-2">
             <li>
-              <a href="/admin" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-green-800 font-semibold">
-                <ChartBar size={20} />
+              <a href="/admin" className="flex items-center gap-3 px-3 py-2 rounded-lg font-semibold" style={{ color: '#fff' }}>
+                <ChartBar size={20} style={{ color: 'var(--accent-2)' }} />
                 Dashboard
               </a>
             </li>
             <li>
-              <a href="/admin/productos" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-green-800">
-                <Box size={20} />
+              <a href="/admin/productos" className="flex items-center gap-3 px-3 py-2 rounded-lg" style={{ color: '#fff' }}>
+                <Box size={20} style={{ color: 'var(--accent-2)' }} />
                 Productos
               </a>
             </li>
             <li>
-              <a href="/admin/agricultores" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-green-800">
-                <Tractor size={20} />
+              <a href="/admin/agricultores" className="flex items-center gap-3 px-3 py-2 rounded-lg" style={{ color: '#fff' }}>
+                <Tractor size={20} style={{ color: 'var(--accent-2)' }} />
                 Agricultores
               </a>
             </li>
             <li>
-              <a href="/admin/usuarios" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-green-800">
-                <Users size={20} />
+              <a href="/admin/usuarios" className="flex items-center gap-3 px-3 py-2 rounded-lg" style={{ color: '#fff' }}>
+                <Users size={20} style={{ color: 'var(--accent-2)' }} />
                 Usuarios
               </a>
             </li>
             <li>
-              <a href="/admin/pedidos" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-green-800">
-                <ShoppingCart size={20} />
+              <a href="/admin/pedidos" className="flex items-center gap-3 px-3 py-2 rounded-lg" style={{ color: '#fff' }}>
+                <ShoppingCart size={20} style={{ color: 'var(--accent-2)' }} />
                 Pedidos
               </a>
             </li>
             <li>
-              <a href="/admin/pagos" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-green-800">
-                <Bolt size={20} />
-                Gestión de Pagos
+              <a href="/admin/pagos" className="flex items-center gap-3 px-3 py-2 rounded-lg" style={{ color: '#fff' }}>
+                <Bolt size={20} style={{ color: 'var(--accent-2)' }} />
+                Pagos
               </a>
             </li>
             <li>
-              <a href="/admin/billetera" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-green-800">
-                <Wallet size={20} />
-                Mi Billetera
-              </a>
-            </li>
-            <li>
-              <a href="/admin/configuracion" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-green-800">
-                <Cog size={20} />
-                Configuración
+              <a href="/admin/billetera" className="flex items-center gap-3 px-3 py-2 rounded-lg" style={{ color: '#fff' }}>
+                <Wallet size={20} style={{ color: 'var(--accent-2)' }} />
+                Billetera
               </a>
             </li>
           </ul>
         </nav>
         <div className="mt-auto px-2">
           <div className="flex items-center gap-2">
-            <UserCircle size={24} />
-            <span className="font-semibold">Administrador</span>
+            <UserCircle size={24} style={{ color: 'var(--accent-2)' }} />
+            <span className="font-semibold" style={{ color: 'var(--muted)' }}>Administrador</span>
           </div>
         </div>
       </aside>
       {/* Contenido principal */}
-      <main className="flex-1 ml-64 p-6">
+      <main className="flex-1 p-6">
         {/* Banner de bienvenida */}
-        <section className="bg-gradient-to-br from-green-600 to-green-400 text-white rounded-xl p-8 mb-8 flex flex-col md:flex-row justify-between items-center shadow">
+        <section className="rounded-xl p-8 mb-8 flex flex-col md:flex-row justify-between items-center shadow" style={{ background: 'var(--card)', color: '#fff' }}>
           <div>
-            <h2 className="text-3xl font-bold mb-2">Bienvenido al Panel de Administración</h2>
-            <p className="text-lg">Gestiona tu plataforma agropecuaria desde un solo lugar</p>
+            <h2 className="text-3xl font-bold mb-2" style={{ color: 'var(--accent)' }}>Bienvenido al Panel de Administración</h2>
+            <p className="text-lg" style={{ color: 'var(--muted)' }}>Gestiona tu plataforma agropecuaria desde un solo lugar</p>
           </div>
         </section>
         {/* Cards de resumen con datos reales */}
@@ -92,31 +86,33 @@ export default function AdminHome() {
           <DashboardCards />
         </Suspense>
         {/* Tabla de pagos a agricultores con datos reales */}
-        <Suspense fallback={<div>Cargando pagos...</div>}>
-          {/* @ts-expect-error Server Component */}
-          <PagosAgricultoresTable />
-        </Suspense>
+        <section className="rounded-xl mb-8" style={{ background: 'var(--card)', boxShadow: '0 2px 8px var(--glass-2)' }}>
+          <Suspense fallback={<div style={{ color: 'var(--muted)', padding: '2rem' }}>Cargando pagos...</div>}>
+            {/* @ts-expect-error Server Component */}
+            <PagosAgricultoresTable />
+          </Suspense>
+        </section>
         {/* Accesos rápidos */}
         <section className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="bg-white rounded-lg shadow p-6 flex flex-col items-center cursor-pointer hover:bg-green-50">
-            <Box size={32} className="text-green-600 mb-2" />
-            <span className="font-semibold">Gestionar Productos</span>
-            <span className="text-gray-500 text-sm">Agregar o editar productos</span>
+          <div className="quick-card p-6 flex flex-col items-center cursor-pointer">
+            <Box size={32} style={{ color: 'var(--purple-fluor)' }} className="mb-2" />
+            <span className="font-semibold" style={{ color: 'var(--purple-fluor)' }}>Gestionar Productos</span>
+            <span style={{ color: 'var(--muted)' }} className="text-sm">Agregar o editar productos</span>
           </div>
-          <div className="bg-white rounded-lg shadow p-6 flex flex-col items-center cursor-pointer hover:bg-green-50">
-            <Users size={32} className="text-blue-600 mb-2" />
-            <span className="font-semibold">Administrar Usuarios</span>
-            <span className="text-gray-500 text-sm">Clientes y agricultores</span>
+          <div className="quick-card p-6 flex flex-col items-center cursor-pointer">
+            <Users size={32} style={{ color: 'var(--purple-fluor)' }} className="mb-2" />
+            <span className="font-semibold" style={{ color: 'var(--purple-fluor)' }}>Administrar Usuarios</span>
+            <span style={{ color: 'var(--muted)' }} className="text-sm">Clientes y agricultores</span>
           </div>
-          <div className="bg-white rounded-lg shadow p-6 flex flex-col items-center cursor-pointer hover:bg-green-50">
-            <Tractor size={32} className="text-orange-600 mb-2" />
-            <span className="font-semibold">Agricultores</span>
-            <span className="text-gray-500 text-sm">Ver y gestionar agricultores</span>
+          <div className="quick-card p-6 flex flex-col items-center cursor-pointer">
+            <Tractor size={32} style={{ color: 'var(--purple-fluor)' }} className="mb-2" />
+            <span className="font-semibold" style={{ color: 'var(--purple-fluor)' }}>Agricultores</span>
+            <span style={{ color: 'var(--muted)' }} className="text-sm">Ver y gestionar agricultores</span>
           </div>
-          <div className="bg-white rounded-lg shadow p-6 flex flex-col items-center cursor-pointer hover:bg-green-50">
-            <Cog size={32} className="text-purple-600 mb-2" />
-            <span className="font-semibold">Configuración</span>
-            <span className="text-gray-500 text-sm">Ajustes de la plataforma</span>
+          <div className="quick-card p-6 flex flex-col items-center cursor-pointer">
+            <Cog size={32} style={{ color: 'var(--purple-fluor)' }} className="mb-2" />
+            <span className="font-semibold" style={{ color: 'var(--purple-fluor)' }}>Configuración</span>
+            <span style={{ color: 'var(--muted)' }} className="text-sm">Ajustes de la plataforma</span>
           </div>
         </section>
       </main>

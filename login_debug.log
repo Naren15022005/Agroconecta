@@ -352,3 +352,9 @@
 [2025-08-11T20:25:10.179Z] AUTH: hash en base de datos: $2b$10$OPcD2v7JzneiFx76tSAl1OBW/rnZ2dix2KAbkHdBr0OXqJUbR5sym
 [2025-08-11T20:25:10.292Z] AUTH: isValidPassword true
 [2025-08-11T20:25:10.293Z] AUTH: Login exitoso
+[2025-08-12T13:08:51.575Z] AUTH: credentials {"email":"pedrojulionavarrogarcia@gmail.com","password":"admin12345","redirect":"false","csrfToken":"b39b37be8a593189f2cc2f1a100602d88b957097f679accf974c2f9c4722fbec","callbackUrl":"http://localhost:3000/auth/signin","json":"true"}
+[2025-08-12T13:08:51.749Z] AUTH: user encontrado {"id":"AGRC_USR_ME3DAME9MD6V","nombre":"adminyo","correo":"pedrojulionavarrogarcia@gmail.com","contraseña":"$2b$10$OPcD2v7JzneiFx76tSAl1OBW/rnZ2dix2KAbkHdBr0OXqJUbR5sym","isActive":true,"createdAt":"2025-08-08T21:58:11.939Z","updatedAt":"2025-08-08T21:58:35.062Z","roleId":"AGRC_ROL_ADMIN","role":{"id":"AGRC_ROL_ADMIN","name":"ADMINISTRADOR","displayName":"Administrador","description":"Administrador del sistema con acceso completo","isActive":true,"createdAt":"2025-08-08T21:25:03.997Z","updatedAt":"2025-08-08T21:25:03.997Z"}}
+[2025-08-12T13:08:51.750Z] AUTH: contraseña ingresada: admin12345
+[2025-08-12T13:08:51.750Z] AUTH: hash en base de datos: $2b$10$OPcD2v7JzneiFx76tSAl1OBW/rnZ2dix2KAbkHdBr0OXqJUbR5sym
+[2025-08-12T13:08:51.879Z] AUTH: isValidPassword true
+[2025-08-12T13:08:51.879Z] AUTH: Login exitoso

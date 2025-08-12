@@ -33,45 +33,45 @@ export default async function DashboardCards() {
   }
   return (
     <section className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-      <div className="bg-white rounded-lg shadow p-6 flex flex-col items-start">
-        <span className="text-gray-500 mb-2">Total Recaudado</span>
-        <span className="text-2xl font-bold text-green-700 mb-2">{r.totalRecaudado?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' }) ?? '-'}</span>
-        <Move size={32} className="text-green-400" />
+      <div className="rounded-lg shadow p-6 flex flex-col items-start" style={{ background: 'var(--card)', color: '#fff' }}>
+        <span style={{ color: 'var(--muted)' }} className="mb-2">Total Recaudado</span>
+        <span style={{ color: 'var(--success)' }} className="text-2xl font-bold mb-2">{r.totalRecaudado?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' }) ?? '-'}</span>
+        <Move size={32} style={{ color: 'var(--success)' }} />
       </div>
-      <div className="bg-white rounded-lg shadow p-6 flex flex-col items-start">
-        <span className="text-gray-500 mb-2">Ganancia AgroConecta</span>
-        <span className="text-2xl font-bold text-blue-700 mb-2">{r.ganancia?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' }) ?? '-'}</span>
-        <ChartBar size={32} className="text-blue-400" />
+      <div className="rounded-lg shadow p-6 flex flex-col items-start" style={{ background: 'var(--card)', color: '#fff' }}>
+        <span style={{ color: 'var(--muted)' }} className="mb-2">Ganancia AgroConecta</span>
+        <span style={{ color: 'var(--accent)' }} className="text-2xl font-bold mb-2">{r.ganancia?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' }) ?? '-'}</span>
+        <ChartBar size={32} style={{ color: 'var(--accent)' }} />
       </div>
-      <div className="bg-white rounded-lg shadow p-6 flex flex-col items-start">
-        <span className="text-gray-500 mb-2">A Pagar a Agricultores</span>
-        <span className="text-2xl font-bold text-orange-700 mb-2">{r.aPagar?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' }) ?? '-'}</span>
-        <Tractor size={32} className="text-orange-400" />
+      <div className="rounded-lg shadow p-6 flex flex-col items-start" style={{ background: 'var(--card)', color: '#fff' }}>
+        <span style={{ color: 'var(--muted)' }} className="mb-2">A Pagar a Agricultores</span>
+        <span style={{ color: 'var(--accent-2)' }} className="text-2xl font-bold mb-2">{r.aPagar?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' }) ?? '-'}</span>
+        <Tractor size={32} style={{ color: 'var(--accent-2)' }} />
       </div>
-      <div className="bg-white rounded-lg shadow p-6 flex flex-col items-start">
-        <span className="text-gray-500 mb-2">Pedidos Realizados</span>
-        <span className="text-2xl font-bold text-purple-700 mb-2">{r.pedidos ?? '-'}</span>
-        <ShoppingCart size={32} className="text-purple-400" />
+      <div className="rounded-lg shadow p-6 flex flex-col items-start" style={{ background: 'var(--card)', color: '#fff' }}>
+        <span style={{ color: 'var(--muted)' }} className="mb-2">Pedidos Realizados</span>
+        <span style={{ color: 'var(--accent-2)' }} className="text-2xl font-bold mb-2">{r.pedidos ?? '-'}</span>
+        <ShoppingCart size={32} style={{ color: 'var(--accent-2)' }} />
       </div>
-      <div className="bg-white rounded-lg shadow p-6 flex flex-col items-start">
-        <span className="text-gray-500 mb-2">Saldo Total Billeteras</span>
-        <span className="text-2xl font-bold text-green-700 mb-2">{r.totalWallets?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' }) ?? '-'}</span>
-        <Wallet size={32} className="text-green-400" />
+      <div className="rounded-lg shadow p-6 flex flex-col items-start" style={{ background: 'var(--card)', color: '#fff' }}>
+        <span style={{ color: 'var(--muted)' }} className="mb-2">Saldo Total Billeteras</span>
+        <span style={{ color: 'var(--success)' }} className="text-2xl font-bold mb-2">{r.totalWallets?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' }) ?? '-'}</span>
+        <Wallet size={32} style={{ color: 'var(--success)' }} />
       </div>
-      <div className="bg-white rounded-lg shadow p-6 flex flex-col items-start">
-        <span className="text-gray-500 mb-2">Ventas Realizadas</span>
-        <span className="text-2xl font-bold text-blue-700 mb-2">{r.ventasCount ?? '-'}</span>
-        <FileText size={32} className="text-blue-400" />
+      <div className="rounded-lg shadow p-6 flex flex-col items-start" style={{ background: 'var(--card)', color: '#fff' }}>
+        <span style={{ color: 'var(--muted)' }} className="mb-2">Ventas Realizadas</span>
+        <span style={{ color: 'var(--accent)' }} className="text-2xl font-bold mb-2">{r.ventasCount ?? '-'}</span>
+        <FileText size={32} style={{ color: 'var(--accent)' }} />
       </div>
-      <div className="bg-white rounded-lg shadow p-6 flex flex-col items-start">
-        <span className="text-gray-500 mb-2">Comisiones Totales</span>
-        <span className="text-2xl font-bold text-orange-700 mb-2">{r.comisionesTotal?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' }) ?? '-'}</span>
-        <Bolt size={32} className="text-orange-400" />
+      <div className="rounded-lg shadow p-6 flex flex-col items-start" style={{ background: 'var(--card)', color: '#fff' }}>
+        <span style={{ color: 'var(--muted)' }} className="mb-2">Comisiones Totales</span>
+        <span style={{ color: 'var(--accent-2)' }} className="text-2xl font-bold mb-2">{r.comisionesTotal?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' }) ?? '-'}</span>
+        <Bolt size={32} style={{ color: 'var(--accent-2)' }} />
       </div>
-      <div className="bg-white rounded-lg shadow p-6 flex flex-col items-start">
-        <span className="text-gray-500 mb-2">Impuestos Totales</span>
-        <span className="text-2xl font-bold text-purple-700 mb-2">{r.impuestosTotal?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' }) ?? '-'}</span>
-        <ChartBar size={32} className="text-purple-400" />
+      <div className="rounded-lg shadow p-6 flex flex-col items-start" style={{ background: 'var(--card)', color: '#fff' }}>
+        <span style={{ color: 'var(--muted)' }} className="mb-2">Impuestos Totales</span>
+        <span style={{ color: 'var(--accent-2)' }} className="text-2xl font-bold mb-2">{r.impuestosTotal?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' }) ?? '-'}</span>
+        <ChartBar size={32} style={{ color: 'var(--accent-2)' }} />
       </div>
     </section>
   );

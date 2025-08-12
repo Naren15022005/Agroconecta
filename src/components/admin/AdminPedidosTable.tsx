@@ -255,7 +255,7 @@ export default function AdminPedidosTable() {
   };
 
   return (
-    <div className="space-y-6">
+  <div className="space-y-6">
       {/* Filtros y Gestión */}
       <PedidosFilters
         onFilterChange={loadPedidos}
@@ -266,14 +266,14 @@ export default function AdminPedidosTable() {
       />
 
       {/* Tabla de Pedidos */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
+  <div className="rounded-lg shadow overflow-hidden" style={{ background: 'var(--card)', color: '#fff' }}>
+        <div className="px-6 py-4 border-b" style={{ borderColor: 'var(--glass)' }}>
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-medium text-gray-900">
+            <h3 className="text-lg font-medium" style={{ color: 'var(--accent-2)' }}>
               Gestión de Pedidos
             </h3>
             {selectedPedidos.length > 0 && (
-              <span className="text-sm text-gray-600">
+              <span className="text-sm" style={{ color: 'var(--muted)' }}>
                 {selectedPedidos.length} pedido(s) seleccionado(s)
               </span>
             )}
@@ -287,13 +287,13 @@ export default function AdminPedidosTable() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y" style={{ background: 'var(--card)', color: '#fff' }}>
+              <thead style={{ background: 'var(--bg)' }}>
                 <tr>
                   <th className="px-6 py-3 text-left">
                     <button
                       onClick={toggleSelectAll}
-                      className="text-gray-400 hover:text-gray-600"
+                      style={{ color: 'var(--muted)' }}
                     >
                       {selectedPedidos.length === pedidos.length && pedidos.length > 0 ? (
                         <CheckSquare className="w-4 h-4" />
@@ -302,30 +302,30 @@ export default function AdminPedidosTable() {
                       )}
                     </button>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--accent-2)' }}>
                     Pedido #
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--accent-2)' }}>
                     Fecha
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--accent-2)' }}>
                     Cliente
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--accent-2)' }}>
                     Estado
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--accent-2)' }}>
                     Total
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--accent-2)' }}>
                     Entrega
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--accent-2)' }}>
                     Acciones
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody style={{ background: 'var(--card)' }}>
                 {pedidos.map((pedido) => (
                   <tr 
                     key={pedido.id} 

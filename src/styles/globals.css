@@ -1,8 +1,80 @@
+/* Quick access card style: solid background, animated hover */
+/* Quick access card style: solid background, animated hover, matches other containers */
+.quick-card {
+  background-color: var(--card) !important;
+  color: #fff;
+  border-radius: 20px;
+  box-shadow: none;
+  transition: transform 0.18s, background 0.18s;
+}
+.quick-card:hover {
+  background: var(--gradient-hover);
+  transform: translateY(-4px) scale(1.03);
+}
+.card-gradient {
+  background: var(--gradient-main);
+  color: #fff;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px var(--glass-2);
+  transition: transform 0.18s, box-shadow 0.18s, background 0.18s;
+}
+.card-gradient:hover {
+  background: var(--gradient-hover);
+  transform: translateY(-4px) scale(1.03);
+  box-shadow: 0 6px 24px rgba(139,92,246,0.18);
+}
+/* Estilos para la tabla de variables de color */
+.color-table {
+  background: var(--card) !important;
+  color: #fff !important;
+  border-radius: 16px;
+  border: 1px solid var(--glass);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  width: 100%;
+  margin: 2rem 0;
+  font-size: 1rem;
+}
+.color-table th {
+  background: var(--bg);
+  color: var(--accent-2);
+  font-weight: 600;
+  padding: 0.75rem;
+}
+.color-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--glass);
+}
+.color-sample {
+  display: inline-block;
+  width: 2.5rem;
+  height: 1.5rem;
+  border-radius: 6px;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+.color-bg { background: var(--bg); }
+.color-card { background: var(--card); }
+.color-muted { background: var(--muted); }
+.color-accent { background: var(--accent); }
+.color-accent-2 { background: var(--accent-2); }
+.color-success { background: var(--success); }
+.color-danger { background: var(--danger); }
+.color-glass { background: var(--glass); }
+.color-glass-2 { background: var(--glass-2); }
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #0f1724;
+  --card: #0b1220;
+  --muted: #98a0b3;
+  --accent: #06b6d4;
+  --accent-2: #7c3aed;
+  --success: #16a34a;
+  --danger: #ef4444;
+  --glass: rgba(255,255,255,0.03);
+  --glass-2: rgba(255,255,255,0.02);
+  --radius: 20px;
+  --purple-fluor: #8f5cff;
 }
 
 @theme inline {
@@ -14,14 +86,44 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --bg: #171717;
+    --card: #22292f;
+    --muted: #ededed;
+      --accent: #22d3ee; /* azul claro */
+      --accent-2: #8b5cf6; /* morado suave */
+      --gradient-main: linear-gradient(90deg, #22d3ee 0%, #8b5cf6 100%);
+      --gradient-hover: linear-gradient(90deg, #38bdf8 0%, #a78bfa 100%);
+      --success: #22d3ee;
+      --danger: #8b5cf6;
+      --purple-fluor: #8b5cf6;
+    --glass-2: rgba(245,158,66,0.08);
+    --radius: 20px;
+    --purple-fluor: #8f5cff;
   }
+/* Botón gradiente azul-morado */
+.btn-gradient {
+  background: var(--gradient-main);
+  color: #fff;
+  border-radius: 999px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: background 0.2s;
+}
+.btn-gradient:hover {
+  background: var(--gradient-hover);
+}
+/* Cards y elementos destacados con gradiente */
+.card-gradient {
+  background: var(--gradient-main);
+  color: #fff;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px var(--glass-2);
+}
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--bg);
+  color: var(--muted);
   font-family: Arial, Helvetica, sans-serif;
 }
 
