@@ -2,6 +2,37 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
 export async function GET() {
+    // Egresos del admin (logística, otros)
+    // Buscar rol admin
+    const adminRole = await prisma.role.findUnique({ where: { name: 'ADMINISTRADOR' } });
+    let egresosAdmin = 0;
+    let ingresosAdmin = 0;
+    let saldoNetoAdmin = 0;
+    if (adminRole) {
+      const adminUsers = await prisma.user.findMany({ where: { roleId: adminRole.id } });
+      const adminUserIds = adminUsers.map(u => u.id);
+      const wallets = await prisma.wallet.findMany({ where: { userId: { in: adminUserIds } } });
+      const walletIds = wallets.map(w => w.id);
+      // Ingresos (comisiones)
+      const ingresosMes = await prisma.walletTransaction.aggregate({
+        where: {
+          walletId: { in: walletIds },
+          type: 'income',
+        },
+        _sum: { amount: true },
+      });
+      // Egresos (logística, otros)
+      const egresosMes = await prisma.walletTransaction.aggregate({
+        where: {
+          walletId: { in: walletIds },
+          type: { in: ['egreso', 'logistica'] },
+        },
+        _sum: { amount: true },
+      });
+      ingresosAdmin = ingresosMes._sum?.amount ?? 0;
+      egresosAdmin = egresosMes._sum?.amount ?? 0;
+      saldoNetoAdmin = ingresosAdmin - egresosAdmin;
+    }
   try {
     console.log('=== Dashboard API iniciando ===');
     
@@ -78,7 +109,7 @@ export async function GET() {
         pagos = [];
         
         for (const usuario of agricultores) {
-          // Primero obtener el registro de agricultor asociado al usuario
+          // Obtener el registro de agricultor asociado al usuario
           const agricultor = await prisma.agricultor.findUnique({
             where: {
               user_id: usuario.id
@@ -87,108 +118,116 @@ export async function GET() {
               id: true
             }
           });
-          
-          if (!agricultor) {
-            // Si no hay registro de agricultor, incluir con ventas 0
-            pagos.push({
-              id: usuario.id,
-              agricultorId: null, // No hay agricultor registrado
-              agricultor: usuario.nombre || 'Sin nombre',
-              ventas: 0,
-              comision: 0,
-              aPagar: 0,
-              estado: 'sin_ventas',
-            });
-            continue;
-          }
-          
-          // Obtener productos del agricultor
-          const productos = await prisma.product.findMany({
-            where: {
-              agricultorId: agricultor.id
-            },
-            select: {
-              id: true,
-              orderItems: {
-                include: {
-                  order: true
-                }
-              }
-            }
-          });
-          
+
           let totalVentasAgricultor = 0;
-          
-          // Calcular total de ventas sumando los items de órdenes
-          productos.forEach(producto => {
-            producto.orderItems.forEach(item => {
-              if (item.order && item.order.status !== 'CANCELADO') {
-                totalVentasAgricultor += Number(item.subtotal) || 0;
-              }
-            });
-          });
-          
-          const comision = totalVentasAgricultor * 0.05; // 5% para la plataforma
-          const aPagar = totalVentasAgricultor * 0.95;   // 95% para el agricultor
-          
-          // Verificar si ya existe una liquidación procesada para este agricultor
-          let estadoLiquidacion = 'pendiente';
-          let fechaLiquidacion = null;
-          let numeroTransaccion = null;
-          
-          if (aPagar <= 0) {
-            estadoLiquidacion = 'sin_ventas';
-          } else {
-            // Buscar la última liquidación directa para este agricultor
-            const ultimaLiquidacion = await prisma.walletTransaction.findFirst({
+          let comision = 0;
+          let aPagar = 0;
+          let estadoPago = 'sin_ventas';
+
+          if (agricultor) {
+            // Obtener productos del agricultor
+            const productos = await prisma.product.findMany({
               where: {
-                wallet: {
-                  userId: usuario.id
-                },
-                type: 'PAGO_DIRECTO_ADMIN'
+                agricultorId: agricultor.id
               },
-              orderBy: {
-                createdAt: 'desc'
+              select: {
+                id: true,
+                orderItems: {
+                  include: {
+                    order: true
+                  }
+                }
               }
             });
 
-            if (ultimaLiquidacion) {
-              const totalLiquidado = await prisma.walletTransaction.aggregate({
-                where: {
-                  wallet: {
-                    userId: usuario.id
-                  },
-                  type: 'PAGO_DIRECTO_ADMIN'
-                },
-                _sum: {
-                  amount: true
+            productos.forEach(producto => {
+              producto.orderItems.forEach(item => {
+                if (item.order && item.order.status !== 'CANCELADO') {
+                  totalVentasAgricultor += Number(item.subtotal) || 0;
                 }
               });
+            });
 
-              const montoLiquidado = Number(totalLiquidado._sum.amount) || 0;
-              
-              // Si ya se liquidó un monto igual o mayor al que debe cobrar, está liquidado
-              if (montoLiquidado >= aPagar) {
-                estadoLiquidacion = 'liquidado';
-                fechaLiquidacion = ultimaLiquidacion.createdAt.toISOString();
-                numeroTransaccion = `TXN-AGRC-USR-${agricultor.id.slice(-8)}-${ultimaLiquidacion.createdAt.getTime().toString().slice(-6)}`;
+            comision = totalVentasAgricultor * 0.05;
+            aPagar = totalVentasAgricultor * 0.95;
+
+            estadoPago = 'pendiente';
+            let sumaPagos = 0;
+            if (aPagar > 0) {
+              const pagosRealizados = await prisma.pago.findMany({
+                where: {
+                  userId: usuario.id,
+                  NOT: {
+                    estado: 'PENDIENTE'
+                  }
+                }
+              });
+              sumaPagos = pagosRealizados.reduce((sum, pago) => sum + Number(pago.monto), 0);
+              // Si no hay pagos, revisar el saldo de la wallet
+              if (sumaPagos < aPagar) {
+                const wallet = await prisma.wallet.findFirst({
+                  where: { userId: usuario.id },
+                  select: { balance: true }
+                });
+                if (wallet && Number(wallet.balance) >= aPagar) {
+                  sumaPagos = Number(wallet.balance);
+                  console.log(`Saldo de wallet para ${usuario.nombre} (${usuario.id}):`, wallet.balance);
+                }
               }
+              console.log(`Pagos realizados para ${usuario.nombre} (${usuario.id}):`, pagosRealizados);
+              console.log(`Suma de pagos (incluyendo wallet): ${sumaPagos} vs aPagar: ${aPagar}`);
+              if (sumaPagos >= aPagar) {
+                estadoPago = 'liquidado';
+              }
+            } else {
+              estadoPago = 'liquidado';
             }
           }
-          
-          console.log(`Agricultor ${usuario.nombre}: Ventas=${totalVentasAgricultor}, A pagar=${aPagar}, Estado=${estadoLiquidacion}`);
-          
-          // Solo incluir agricultores con ventas o mostrar todos
+
           pagos.push({
             id: usuario.id,
-            agricultorId: agricultor.id, // Agregar el ID del agricultor
             agricultor: usuario.nombre || 'Sin nombre',
             ventas: totalVentasAgricultor,
             comision: comision,
             aPagar: aPagar,
-            estado: estadoLiquidacion,
-            fechaLiquidacion: fechaLiquidacion,
-            numeroTransaccion: numeroTransaccion,
+            estado: estadoPago,
+          });
+          if (aPagar > 0) {
+            const pagosRealizados = await prisma.pago.findMany({
+              where: {
+                userId: usuario.id,
+                NOT: {
+                  estado: 'PENDIENTE'
+                }
+              }
+            });
+            sumaPagos = pagosRealizados.reduce((sum, pago) => sum + Number(pago.monto), 0);
+            // Si no hay pagos, revisar el saldo de la wallet
+            if (sumaPagos < aPagar) {
+              const wallet = await prisma.wallet.findFirst({
+                where: { userId: usuario.id },
+                select: { balance: true }
+              });
+              if (wallet && Number(wallet.balance) >= aPagar) {
+                sumaPagos = Number(wallet.balance);
+                console.log(`Saldo de wallet para ${usuario.nombre} (${usuario.id}):`, wallet.balance);
+              }
+            }
+            console.log(`Pagos realizados para ${usuario.nombre} (${usuario.id}):`, pagosRealizados);
+            console.log(`Suma de pagos (incluyendo wallet): ${sumaPagos} vs aPagar: ${aPagar}`);
+            if (sumaPagos >= aPagar) {
+              estadoPago = 'pagado';
+            }
+          } else {
+            estadoPago = 'pagado';
+          }
+          pagos.push({
+            id: usuario.id,
+            agricultor: usuario.nombre || 'Sin nombre',
+            ventas: totalVentasAgricultor,
+            comision: comision,
+            aPagar: aPagar,
+            estado: estadoPago,
           });
         }
         
@@ -205,7 +244,12 @@ export async function GET() {
     console.log('=== Dashboard API completado ===');
     
     return NextResponse.json({
-      resumen,
+      resumen: {
+        ...resumen,
+        ingresosAdmin,
+        egresosAdmin,
+        saldoNetoAdmin,
+      },
       pagos,
       walletTransactions: [],
       transaccionesRecientes: [],

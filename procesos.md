@@ -1,4 +1,97 @@
 
+  # 📅 Resumen de avances y cambios – 20 de agosto de 2025
+  
+    ### Cambios y tareas realizadas hoy
+    Depuración profunda del sistema de rutas y API de billetera admin
+
+    Se identificó y eliminó un archivo bloqueador (route.ts) en la jerarquía de /api/admin, que impedía el acceso correcto a rutas anidadas como /api/admin/billetera/summary.
+    Se realizaron múltiples reinicios y limpiezas de caché para asegurar que Next.js reconociera los cambios en la estructura de rutas.
+    Se verificó la existencia y correcto mapeo de los modelos Prisma (Wallet y WalletTransaction) a las tablas reales de la base de datos (wallets, wallet_transactions).
+    Se corrigió la lógica de búsqueda del rol admin en la API, ajustando el nombre a "ADMINISTRADOR" según la base de datos real.
+    Se implementó una consulta de depuración (/api/admin/billetera/summary/debug) para listar todos los usuarios admin, sus billeteras y transacciones, permitiendo validar la integridad de los datos y la relación entre usuarios, billeteras y movimientos.
+    Unificación y limpieza del sidebar del panel admin
+
+    Se detectó que el dashboard principal tenía un sidebar propio y diferente al global, lo que causaba cambios visuales y recargas al navegar entre secciones.
+    Se eliminó el sidebar duplicado del dashboard principal (page.tsx), asegurando que toda la navegación admin use el layout y sidebar global definidos en layout.tsx.
+    Se corrigieron errores de JSX y parsing causados por wrappers y etiquetas mal cerradas tras la limpieza del sidebar.
+    Se validó que el sidebar ahora se mantiene idéntico y consistente al navegar entre dashboard, billetera y otras secciones, sin recargas ni cambios de tamaño, sombra o resaltado.
+    Revisión y ajuste de estilos para uniformidad visual
+
+    Se analizaron los estilos aplicados en la vista de billetera, eliminando wrappers y clases (.wallet-app) que sobrescribían el layout global y causaban diferencias visuales.
+    Se revisó el CSS para asegurar que los fondos, colores y tarjetas de la billetera no afecten el layout ni el sidebar global.
+    Se propuso y dejó lista la base para que los estados de error y vacío en billetera mantengan la estructura visual y no generen sensación de cambio de interfaz.
+    Depuración de lógica de saldo y movimientos en billetera admin
+
+    Se verificó que la API de billetera admin sumara correctamente los ingresos (comisiones) y egresos (logística) para mostrar el saldo neto real del admin.
+    Se ajustó la lógica para que la billetera admin muestre el neto acumulado de comisiones menos egresos, igual que la vista principal, y se propuso reflejar los mismos cálculos en el dashboard.
+    Se documentó la diferencia entre el saldo global (todas las billeteras) y el saldo neto del admin (solo comisiones y egresos del admin).
+    Solución del problema visual de la vista de billetera
+
+    Se arregló el problema donde la vista de billetera cambiaba el diseño y el sidebar al navegar desde el dashboard, unificando el layout y eliminando estilos que sobrescribían el diseño global.
+    Se validó que la transición entre dashboard y billetera ahora es directa, sin recargas ni cambios visuales inesperados.
+    Documentación y registro de procesos
+
+    Se dejó constancia detallada de cada cambio, iteración y validación visual en el archivo procesos.md.
+    Se documentaron los problemas encontrados, soluciones aplicadas y recomendaciones para futuras sesiones.
+    ⏳ Pendientes para mañana
+    Finalizar integración de lógica de egresos en billetera y dashboard
+
+    Ajustar el endpoint de billetera y el dashboard para mostrar egresos (logística, otros) y el neto real del admin.
+    Validar que los movimientos y el saldo neto coincidan en ambas vistas.
+    Mejorar estados de carga y error en billetera
+
+    Implementar placeholders y mensajes amigables para estados de error o billetera vacía, manteniendo la estructura visual uniforme.
+    Validar y refinar la experiencia visual
+
+    Revisar la integración de la paleta de colores y efectos en todos los componentes de la billetera y dashboard.
+    Asegurar que no haya estilos sobrescritos ni diferencias visuales inesperadas al navegar entre secciones.
+    Pruebas de flujo completo
+
+    Probar el flujo de liquidaciones, pagos y movimientos en la billetera admin para asegurar que los estados y saldos se reflejan correctamente.
+    Validar la experiencia de usuario en dispositivos móviles y diferentes navegadores.
+    Mostrar datos en tiempo real en la billetera
+
+    Ajustar la lógica y el frontend para que la vista de billetera admin muestre datos actualizados en tiempo real, reflejando los movimientos y saldos más recientes.
+    Documentar y dejar registro de los cambios
+
+    Actualizar el archivo de procesos con los avances y decisiones tomadas en la sesión.
+    Estado final:
+    El sistema de rutas, sidebar y billetera admin quedó depurado y unificado. Mañana se debe finalizar la lógica de egresos, mejorar la experiencia visual, validar el flujo completo de billetera y pagos, y asegurar que la vista de billetera muestre datos actualizados en tiempo real.
+--
+
+  # 📅 Resumen de avances y cambios – 19 de agosto de 2025
+    Resumen de la jornada – 19 de agosto
+    Lo que hicimos hoy:
+    Sidebar Admin:
+    Mejoramos el diseño visual del sidebar del panel de administración, eliminando subrayados, ajustando colores, hover y resaltado del link activo para una experiencia más profesional y moderna.
+    Pagos a Agricultores:
+    Analizamos y depuramos la lógica que determina si un agricultor aparece como “pendiente” o “liquidado”, identificando que el sistema solo revisaba la tabla de pagos y no el saldo de la wallet.
+    Corrección de lógica:
+    Ajustamos la lógica para que también considere el saldo de la wallet al determinar si un agricultor ya fue liquidado, replicando el comportamiento esperado.
+    Depuración de errores:
+    Solucionamos errores de variables duplicadas y problemas de sintaxis en los archivos de la tabla de pagos.
+    Componentes React:
+    Añadimos la directiva "use client" para permitir el uso de hooks en los componentes del dashboard.
+    Botón de acción:
+    Implementamos la estructura para que el botón “Pagar” ejecute la acción de liquidar y el botón “Ver” muestre detalles, dejando la base para conectar con la lógica real del sistema.
+    Revisión de endpoints:
+    Se identificó que falta implementar el endpoint real de liquidación y se propuso la estructura para conectarlo con el frontend.
+
+    ### Pendientes para mañana:
+    Implementar endpoint real de liquidación:
+    Crear el endpoint /api/admin/pagos/procesar que registre la liquidación, actualice la wallet y marque al agricultor como liquidado.
+    Conectar frontend con backend:
+    Hacer que el botón “Pagar” invoque el endpoint real y actualice la tabla tras la liquidación.
+    Validaciones y feedback:
+    Mejorar la experiencia de usuario con mensajes de éxito/error y estados de carga en la tabla de pagos.
+    Revisión de flujo completo:
+    Probar el flujo de liquidación de principio a fin para asegurar que los estados y saldos se reflejan correctamente.
+    Ajustes menores:
+    Revisar detalles visuales y de usabilidad en el panel de administración según sea necesario.
+
+---
+
+
   # 📅 Resumen de avances y cambios – 12 de agosto de 2025
 
   ### Contexto y objetivos

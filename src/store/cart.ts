@@ -11,7 +11,6 @@ export interface CartItem {
   campesinoId: string
   campesinoName: string
   imageUrl?: string
-  metodosEntrega?: string // JSON string con los métodos de entrega disponibles
 }
 
 interface CartStore {
@@ -80,7 +79,7 @@ export const useCartStore = create<CartStore>()(
       },
       
       getTotalItems: () => {
-        return get().items.length
+        return get().items.reduce((total, item) => total + item.quantity, 0)
       },
       
       getTotalPrice: () => {

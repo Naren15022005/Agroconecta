@@ -2,41 +2,43 @@
 /* Quick access card style: solid background, animated hover, matches other containers */
 .quick-card {
   background-color: var(--card) !important;
-  color: #fff;
+  color: #2d3632;
   border-radius: 20px;
   box-shadow: none;
   transition: transform 0.18s, background 0.18s;
 }
 .quick-card:hover {
   background: var(--gradient-hover);
+  color: #2d3632;
   transform: translateY(-4px) scale(1.03);
 }
 .card-gradient {
-  background: var(--gradient-main);
-  color: #fff;
+  background: var(--card);
+  color: #2d3632;
   border-radius: 20px;
   box-shadow: 0 2px 8px var(--glass-2);
   transition: transform 0.18s, box-shadow 0.18s, background 0.18s;
 }
 .card-gradient:hover {
-  background: var(--gradient-hover);
+  background: var(--card);
+  color: #2d3632;
   transform: translateY(-4px) scale(1.03);
-  box-shadow: 0 6px 24px rgba(139,92,246,0.18);
+  box-shadow: 0 6px 24px rgba(79,178,134,0.08);
 }
 /* Estilos para la tabla de variables de color */
 .color-table {
   background: var(--card) !important;
-  color: #fff !important;
+  color: #2d3632 !important;
   border-radius: 16px;
   border: 1px solid var(--glass);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
   width: 100%;
   margin: 2rem 0;
   font-size: 1rem;
 }
 .color-table th {
   background: var(--bg);
-  color: var(--accent-2);
+  color: var(--accent);
   font-weight: 600;
   padding: 0.75rem;
 }
@@ -64,67 +66,53 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #0f1724;
-  --card: #0b1220;
-  --muted: #98a0b3;
-  --accent: #06b6d4;
-  --accent-2: #7c3aed;
-  --success: #16a34a;
-  --danger: #ef4444;
-  --glass: rgba(255,255,255,0.03);
-  --glass-2: rgba(255,255,255,0.02);
+  --bg: #181c23;
+  --card: #232a34;
+  --muted: #bfc9d1;
+  --accent: #1cc6e4;
+  --accent-2: #0e8ba8;
+  --success: #1cc6e4;
+  --danger: #3a3f7d; /* azul oscuro casi morado */
+  --danger-bg: #23264a; /* fondo badge/botón de estado */
+  --danger-text: #bfc9d1;
+  --glass: rgba(28, 198, 228, 0.06);
+  --glass-2: rgba(28, 198, 228, 0.03);
   --radius: 20px;
-  --purple-fluor: #8f5cff;
+  --purple-fluor: #1cc6e4;
+  --gradient-main: linear-gradient(135deg, #232a34 0%, #232a34 100%);
+  --gradient-hover: linear-gradient(135deg, #232a34 0%, #232a34 100%);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #171717;
-    --card: #22292f;
-    --muted: #ededed;
-      --accent: #22d3ee; /* azul claro */
-      --accent-2: #8b5cf6; /* morado suave */
-      --gradient-main: linear-gradient(90deg, #22d3ee 0%, #8b5cf6 100%);
-      --gradient-hover: linear-gradient(90deg, #38bdf8 0%, #a78bfa 100%);
-      --success: #22d3ee;
-      --danger: #8b5cf6;
-      --purple-fluor: #8b5cf6;
-    --glass-2: rgba(245,158,66,0.08);
-    --radius: 20px;
-    --purple-fluor: #8f5cff;
-  }
-/* Botón gradiente azul-morado */
-.btn-gradient {
-  background: var(--gradient-main);
-  color: #fff;
-  border-radius: 999px;
-  font-weight: 600;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  transition: background 0.2s;
-}
-.btn-gradient:hover {
-  background: var(--gradient-hover);
-}
-/* Cards y elementos destacados con gradiente */
-.card-gradient {
-  background: var(--gradient-main);
-  color: #fff;
-  border-radius: 20px;
-  box-shadow: 0 2px 8px var(--glass-2);
-}
+html, body, #__next, #root {
+  background: var(--bg) !important;
+  min-height: 100vh;
+  width: 100vw;
+  box-sizing: border-box;
 }
 
 body {
-  background: var(--bg);
-  color: var(--muted);
+  background: var(--bg) !important;
+  color: #f3f6f4;
   font-family: Arial, Helvetica, sans-serif;
+}
+
+.main-bg, .main-container, .app-bg, .app-container {
+  background: var(--bg) !important;
+}
+
+.card-gradient, .quick-card {
+  background: var(--card) !important;
+  color: #f3f6f4;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px var(--glass-2);
+  transition: box-shadow 0.18s, background 0.18s;
+  border: 1px solid #232a34;
+}
+.card-gradient:hover, .quick-card:hover {
+  background: var(--card) !important;
+  color: #f3f6f4;
+  transform: none;
+  box-shadow: 0 2px 8px var(--glass-2);
 }
 
 /* Utilidades para truncar texto */
@@ -199,4 +187,38 @@ body {
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(to bottom, #059669, #047857);
+}
+
+.badge, .status-badge {
+  background: var(--danger-bg);
+  color: var(--danger-text);
+  border-radius: 12px;
+  padding: 0.25em 0.75em;
+  font-size: 0.85em;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  border: 1px solid var(--danger);
+}
+.button-danger, .btn-danger, .action-danger {
+  background: var(--danger-bg);
+  color: var(--danger-text);
+  border-radius: 6px;
+  border: 1px solid var(--danger);
+  font-weight: 600;
+  padding: 0.25em 1em;
+  font-size: 1em;
+  transition: background 0.15s, color 0.15s;
+}
+.button-danger:hover, .btn-danger:hover, .action-danger:hover {
+  background: var(--danger);
+  color: #fff;
+}
+.link, .a, a {
+  color: var(--accent);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.link:hover, .a:hover, a:hover {
+  color: var(--accent-2);
+  text-decoration: none;
 }

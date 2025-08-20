@@ -1,116 +1,129 @@
+
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import styles from './Wallet.module.css';
 import { FaArrowDown, FaArrowUp, FaBell, FaCog, FaCreditCard, FaMoneyBillWave, FaPiggyBank, FaPlus, FaQrcode, FaQuestionCircle, FaShoppingCart, FaUser, FaFileInvoice, FaBuilding, FaBolt, FaMicrochip, FaCcVisa, FaCcMastercard } from 'react-icons/fa';
-// ...existing imports...
 
-const Wallet = () => {
-  const [activeFilter, setActiveFilter] = useState('all');
-  const transactions = [
-    {
-      id: 1,
-      type: 'income',
-      title: 'Pago de cliente',
-      amount: 320000,
-      details: [
-        { icon: <FaUser />, text: 'Juan Pérez' },
-        { icon: <FaFileInvoice />, text: 'Factura #1341' }
-      ]
-    },
-    {
-      id: 2,
-      type: 'expense',
-      title: 'Compra en supermercado',
-      amount: 185400,
-      details: [
-        { icon: <FaUser />, text: 'Éxito' },
-        { icon: <FaCreditCard />, text: 'Visa ****4512' }
-      ]
-    },
-    {
-      id: 3,
-      type: 'income',
-      title: 'Transferencia recibida',
-      amount: 180000,
-      details: [
-        { icon: <FaUser />, text: 'María Ruiz' },
-        { icon: <FaFileInvoice />, text: 'Pago de deuda' }
-      ]
-    },
-    {
-      id: 4,
-      type: 'expense',
-      title: 'Pago de servicios',
-      amount: 120500,
-      details: [
-        { icon: <FaBuilding />, text: 'EPM' },
-        { icon: <FaFileInvoice />, text: 'Factura 789456' }
-      ]
-    },
-    {
-      id: 5,
-      type: 'expense',
-      title: 'Transferencia enviada',
-      amount: 400000,
-      details: [
-        { icon: <FaUser />, text: 'Carlos Mendoza' },
-        { icon: <FaFileInvoice />, text: 'Préstamo' }
-      ]
-    }
-  ];
+// Interfaces principales de la billetera admin
+export interface Transaction {
+  id: number;
+  type: 'income' | 'expense';
+  title: string;
+  amount: number;
+  details: { icon: React.ReactNode; text: string }[];
+}
 
-  const cards = [
-    {
-      id: 1,
-      type: 'Principal',
-      number: '**** **** **** 4512',
-      holder: 'PEDRO GÓMEZ',
-      expiry: '08/27',
-      color: 'linear-gradient(45deg, #2a2d5e, #4a2c7c)',
-  logo: <FaCcVisa className="text-2xl" />
-    },
-    {
-      id: 2,
-      type: 'Dólares',
-      number: '**** **** **** 7821',
-      holder: 'PEDRO GÓMEZ',
-      expiry: '11/28',
-      color: 'linear-gradient(45deg, #1d3b5a, #0b5e7a)',
-  logo: <FaCcMastercard className="text-2xl" />
-    }
-  ];
+export interface Card {
+  id: number;
+  type: string;
+  number: string;
+  holder: string;
+  expiry: string;
+  color: string;
+  logo: React.ReactNode;
+}
 
-  const stats = [
-    {
-      id: 1,
-      title: 'Ingresos (mes)',
-      value: '8.120.000',
-      trend: 'up',
-      trendText: '12% más que el mes pasado',
-      icon: <FaArrowDown />
-    },
-    {
-      id: 2,
-      title: 'Gastos (mes)',
-      value: '3.210.000',
-      trend: 'down',
-      trendText: '4% menos que el mes pasado',
-      icon: <FaArrowUp />
-    },
-    {
-      id: 3,
-      title: 'Ahorro mensual',
-      value: '1.450.000',
-      trend: 'up',
-      trendText: '18% de tus ingresos',
-      icon: <FaPiggyBank />
-    }
-  ];
+export interface Stat {
+  id: number;
+  title: string;
+  value: string;
+  trend: 'up' | 'down';
+  trendText: string;
+  icon: React.ReactNode;
+}
 
-  const quickActions = [
-    { id: 1, title: 'Recargar', icon: <FaArrowDown /> },
-    { id: 2, title: 'Enviar', icon: <FaArrowUp /> },
-    { id: 3, title: 'Recibir', icon: <FaQrcode /> },
-    { id: 4, title: 'Pagar', icon: <FaMoneyBillWave /> }
+export interface QuickAction {
+  id: number;
+  title: string;
+  icon: React.ReactNode;
+}
+
+const Wallet: React.FC = () => {
+  const [activeFilter, setActiveFilter] = useState<string>('all');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [cards, setCards] = useState<Card[]>([]);
+  const [stats, setStats] = useState<Stat[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [balance, setBalance] = useState<string>('0');
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch('/api/admin/billetera/summary');
+        if (!res.ok) throw new Error('Error al obtener datos de billetera');
+        const data = await res.json();
+
+        // Cards
+        setCards(
+          (data.cards || []).map((card: any) => ({
+            ...card,
+            logo: card.logo === 'nequi'
+              ? <img src="https://upload.wikimedia.org/wikipedia/commons/2/2e/Logo_Nequi.png" alt="Nequi" style={{height: 24}} />
+              : card.logo === 'bancolombia'
+                ? <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Bancolombia_logo_2021.png" alt="Bancolombia" style={{height: 24}} />
+                : null
+          }))
+        );
+
+        // Stats
+        setStats([
+          {
+            id: 1,
+            title: 'Ingresos totales (mes)',
+            value: Number(data.ingresosMes || 0).toLocaleString(),
+            trend: 'up',
+            trendText: 'Comisiones recibidas',
+            icon: <FaArrowDown />
+          },
+          {
+            id: 2,
+            title: 'Liquidaciones realizadas (mes)',
+            value: Number(data.liquidacionesMes || 0).toLocaleString(),
+            trend: 'down',
+            trendText: 'Pagos a agricultores',
+            icon: <FaMoneyBillWave />
+          },
+          {
+            id: 3,
+            title: 'Saldo disponible',
+            value: Number(data.saldoDisponible || 0).toLocaleString(),
+            trend: 'up',
+            trendText: 'Monto para retirar',
+            icon: <FaCreditCard />
+          }
+        ]);
+
+        // Balance
+        setBalance(Number(data.saldoDisponible || 0).toLocaleString());
+
+        // Transactions
+        setTransactions(
+          (data.transacciones || []).map((tx: any) => ({
+            id: tx.id,
+            type: tx.type === 'income' ? 'income' : tx.type === 'liquidacion' ? 'liquidacion' : 'expense',
+            title: tx.description || tx.type,
+            amount: Number(tx.amount),
+            details: [
+              { icon: <FaUser />, text: 'Admin' },
+              { icon: <FaFileInvoice />, text: `ID ${tx.id}` }
+            ]
+          }))
+        );
+      } catch (err: any) {
+        setError(err.message || 'Error desconocido');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const quickActions: QuickAction[] = [
+    { id: 1, title: 'Retirar', icon: <FaMoneyBillWave /> },
+    { id: 2, title: 'Enviar a cuenta', icon: <FaArrowUp /> },
   ];
 
   const handleActionClick = (title: string) => {
@@ -121,16 +134,19 @@ const Wallet = () => {
     alert('Agregar nueva tarjeta: Redirigiendo al formulario...');
   };
 
-  const handleTransactionClick = (transaction: any) => {
+  const handleTransactionClick = (transaction: Transaction) => {
     alert(`Detalles de transacción:\n${transaction.title}\n$${transaction.amount.toLocaleString()}`);
   };
 
+  if (loading) return <div style={{ padding: '2rem' }}>Cargando billetera...</div>;
+  if (error) return <div style={{ padding: '2rem', color: 'red' }}>Error: {error}</div>;
+
   return (
-    <div className="wallet-app" style={{ background: "var(--bg)", minHeight: "100vh", color: "#fff" }}>
+    <>
       <WalletHeader />
       <BalanceSection 
-        balance="12.450.780" 
-        equivalent="$3,250 USD" 
+        balance={balance}
+        equivalent={"-"}
         quickActions={quickActions} 
         onActionClick={handleActionClick}
       />
@@ -146,139 +162,59 @@ const Wallet = () => {
         onTransactionClick={handleTransactionClick}
       />
       <WalletFooter />
-      <div style={{ margin: "2rem 0" }}>
-  {/* ColorPaletteTable removed */}
-      </div>
-      <style jsx global>{`
-        .wallet-app {
-          background: var(--bg) !important;
-          color: #fff !important;
-        }
-        .wallet-header, .wallet-footer {
-          background: var(--card) !important;
-          color: #fff !important;
-        }
-        .balance-card, .cards-container .card-item, .transactions-container, .stat-card {
-          background: var(--card) !important;
-          color: #fff !important;
-          border-radius: var(--radius);
-        }
-        .balance-section .balance-title, .section-title, .stat-title {
-          color: #fff !important;
-        }
-        .balance-section .balance-subtitle, .card-label, .transaction-details, .stat-trend {
-          color: var(--muted) !important;
-        }
-        .balance-section::before {
-          background: radial-gradient(circle, var(--accent-2) 0%, transparent 70%);
-        }
-        .balance-section::after {
-          background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
-        }
-        .wallet-logo {
-          background: linear-gradient(135deg, var(--accent), var(--accent-2));
-          color: #fff;
-        }
-        .view-all {
-          color: var(--accent-2);
-        }
-        .card-item.primary-card {
-          background: linear-gradient(45deg, var(--accent-2), var(--accent));
-        }
-        .card-item.secondary-card {
-          background: linear-gradient(45deg, var(--accent), var(--accent-2));
-        }
-        .add-card {
-          background: var(--glass);
-          border: 2px dashed var(--muted);
-        }
-        .add-card:hover {
-          background: var(--glass-2);
-          border-color: var(--accent-2);
-        }
-        .add-card-icon {
-          background: var(--glass);
-          color: var(--accent-2);
-        }
-        .income .transaction-icon {
-          background: var(--glass);
-          color: var(--success);
-        }
-        .expense .transaction-icon {
-          background: var(--glass);
-          color: var(--danger);
-        }
-        .income .transaction-amount {
-          color: var(--success);
-        }
-        .expense .transaction-amount {
-          color: var(--danger);
-        }
-        .filter-btn.active {
-          background: linear-gradient(90deg, var(--accent), var(--accent-2));
-          color: #fff;
-        }
-        .filter-btn {
-          background: var(--glass);
-          color: #fff;
-        }
-        .action-card {
-          background: var(--glass);
-        }
-        .action-card:hover {
-          background: var(--glass-2);
-        }
-        .action-icon {
-          background: linear-gradient(135deg, var(--accent), var(--accent-2));
-          color: #fff;
-        }
-      `}</style>
-    </div>
+      <div style={{ margin: "2rem 0" }} />
+    </>
   );
 };
 
 const WalletHeader = () => (
-  <header className="wallet-header">
-    <div className="wallet-brand">
-      <div className="wallet-logo">A</div>
-      <div className="wallet-brand-text">
+  <header className={styles["wallet-header"]}>
+    <div className={styles["wallet-brand"]}>
+      <div className={styles["wallet-logo"]}>A</div>
+      <div className={styles["wallet-brand-text"]}>
         <h1>Mi Billetera</h1>
       </div>
     </div>
-    <div className="wallet-actions">
-      <div className="wallet-action-btn" title="Notificaciones">
+    <div className={styles["wallet-actions"]}>
+      <div className={styles["wallet-action-btn"]} title="Notificaciones">
         <FaBell />
       </div>
-      <div className="wallet-action-btn" title="Ajustes">
+      <div className={styles["wallet-action-btn"]} title="Ajustes">
         <FaCog />
       </div>
-      <div className="wallet-action-btn" title="Ayuda">
+      <div className={styles["wallet-action-btn"]} title="Ayuda">
         <FaQuestionCircle />
       </div>
     </div>
   </header>
 );
 
-const BalanceSection = ({ balance, equivalent, quickActions, onActionClick }: any) => (
-  <section className="balance-section">
-    <div className="balance-card">
-      <div className="balance-header">
-        <div className="balance-title">Saldo Disponible</div>
-        <div className="balance-currency">COP</div>
+interface BalanceSectionProps {
+  balance: string;
+  equivalent: string;
+  quickActions: QuickAction[];
+  onActionClick: (title: string) => void;
+}
+const BalanceSection: React.FC<BalanceSectionProps> = ({ balance, equivalent, quickActions, onActionClick }) => (
+  <section className={styles["balance-section"]}>
+    <div className={styles["balance-card"]}>
+      <div className={styles["balance-header"]}>
+        <div className={styles["balance-title"]}>Saldo Disponible</div>
+        <div className={styles["balance-currency"]}>COP</div>
       </div>
-      <div className="balance-amount">$ {balance}</div>
-      <div className="balance-subtitle">Equivalente a {equivalent}</div>
-      <div className="quick-actions">
+      <div className={styles["balance-amount"]}>$ {balance}</div>
+      <div className={styles["balance-subtitle"]}>Equivalente a {equivalent}</div>
+      <div className={styles["quick-actions"]}>
         {quickActions.map((action: any) => (
           <div 
             key={action.id} 
-            className="action-card" 
+            className={styles["action-card"]}
             onClick={() => onActionClick(action.title)}
           >
-            <div className="action-icon">
+            <div className={styles["action-icon"]}>
               {action.icon}
             </div>
-            <div className="action-title">{action.title}</div>
+            <div className={styles["action-title"]}>{action.title}</div>
           </div>
         ))}
       </div>
@@ -286,69 +222,76 @@ const BalanceSection = ({ balance, equivalent, quickActions, onActionClick }: an
   </section>
 );
 
-const CardsSection = ({ cards, onAddCard }: any) => (
-  <section className="cards-section">
-    <div className="section-header">
-      <h2 className="section-title">Mis Tarjetas</h2>
-      <a href="#" className="view-all">
+interface CardsSectionProps {
+  cards: Card[];
+  onAddCard: () => void;
+}
+const CardsSection: React.FC<CardsSectionProps> = ({ cards, onAddCard }) => (
+  <section className={styles["cards-section"]}>
+    <div className={styles["section-header"]}>
+      <h2 className={styles["section-title"]}>Mis Tarjetas</h2>
+      <a href="#" className={styles["view-all"]}>
         Ver todas <span>&#8250;</span>
       </a>
     </div>
-    <div className="cards-container">
+    <div className={styles["cards-container"]}>
       {cards.map((card: any) => (
         <div 
           key={card.id} 
-          className="card-item"
+          className={styles["card-item"]}
           style={{ background: card.color }}
         >
-          <div className="card-header">
-            <div className="card-type">{card.type}</div>
-            <div className="card-chip">
+          <div className={styles["card-header"]}>
+            <div className={styles["card-type"]}>{card.type}</div>
+            <div className={styles["card-chip"]}>
               <FaMicrochip />
             </div>
           </div>
-          <div className="card-number">{card.number}</div>
-          <div className="card-footer">
-            <div className="card-info">
-              <div className="card-label">Titular</div>
-              <div className="card-value">{card.holder}</div>
+          <div className={styles["card-number"]}>{card.number}</div>
+          <div className={styles["card-footer"]}>
+            <div className={styles["card-info"]}>
+              <div className={styles["card-label"]}>Titular</div>
+              <div className={styles["card-value"]}>{card.holder}</div>
             </div>
-            <div className="card-info">
-              <div className="card-label">Válida hasta</div>
-              <div className="card-value">{card.expiry}</div>
+            <div className={styles["card-info"]}>
+              <div className={styles["card-label"]}>Válida hasta</div>
+              <div className={styles["card-value"]}>{card.expiry}</div>
             </div>
-            <div className="card-logo">
+            <div className={styles["card-logo"]}>
               {card.logo}
             </div>
           </div>
         </div>
       ))}
-      <div className="card-item add-card" onClick={onAddCard}>
-        <div className="add-card-icon">
+      <div className={`${styles["card-item"]} ${styles["add-card"]}`} onClick={onAddCard}>
+        <div className={styles["add-card-icon"]}>
           <FaPlus />
         </div>
-        <div className="add-card-text">Agregar tarjeta</div>
+        <div className={styles["add-card-text"]}>Agregar tarjeta</div>
       </div>
     </div>
   </section>
 );
 
-const StatsSection = ({ stats }: any) => (
-  <section className="stats-section">
-    <div className="section-header">
-      <h2 className="section-title">Resumen Financiero</h2>
+interface StatsSectionProps {
+  stats: Stat[];
+}
+const StatsSection: React.FC<StatsSectionProps> = ({ stats }) => (
+  <section className={styles["stats-section"]}>
+    <div className={styles["section-header"]}>
+      <h2 className={styles["section-title"]}>Resumen Financiero</h2>
     </div>
-    <div className="stats-container">
+    <div className={styles["stats-container"]}>
       {stats.map((stat: any) => (
-        <div key={stat.id} className="stat-card">
-          <div className="stat-header">
-            <div className="stat-title">{stat.title}</div>
-            <div className="stat-icon">
+        <div key={stat.id} className={styles["stat-card"]}>
+          <div className={styles["stat-header"]}>
+            <div className={styles["stat-title"]}>{stat.title}</div>
+            <div className={styles["stat-icon"]}>
               {stat.icon}
             </div>
           </div>
-          <div className="stat-value">$ {stat.value}</div>
-          <div className={`stat-trend ${stat.trend === 'up' ? 'trend-up' : 'trend-down'}`}>
+          <div className={styles["stat-value"]}>$ {stat.value}</div>
+          <div className={styles["stat-trend"]}>
             {stat.trend === 'up' ? <FaArrowUp /> : <FaArrowDown />}
             {stat.trendText}
           </div>
@@ -358,59 +301,72 @@ const StatsSection = ({ stats }: any) => (
   </section>
 );
 
-const TransactionsSection = ({ transactions, activeFilter, onFilterChange, onTransactionClick }: any) => {
+interface TransactionsSectionProps {
+  transactions: Transaction[];
+  activeFilter: string;
+  onFilterChange: (filter: string) => void;
+  onTransactionClick: (transaction: Transaction) => void;
+}
+const TransactionsSection: React.FC<TransactionsSectionProps> = ({ transactions, activeFilter, onFilterChange, onTransactionClick }) => {
   const filters = [
     { id: 'all', label: 'Todas' },
     { id: 'income', label: 'Ingresos' },
-    { id: 'expense', label: 'Gastos' },
-    { id: 'shopping', label: 'Compras' },
-    { id: 'transfer', label: 'Transferencias' }
+    { id: 'liquidacion', label: 'Liquidaciones' },
+    // { id: 'transfer', label: 'Transferencias' }, // Descomentar si se habilita en el sistema
   ];
   return (
-    <section className="transactions-section">
-      <div className="section-header">
-        <h2 className="section-title">Últimas transacciones</h2>
-        <a href="#" className="view-all">
+    <section className={styles["transactions-section"]}>
+      <div className={styles["section-header"]}>
+        <h2 className={styles["section-title"]}>Últimas transacciones</h2>
+        <a href="#" className={styles["view-all"]}>
           Ver historial <span>&#8250;</span>
         </a>
       </div>
-      <div className="transactions-container">
-        <div className="filters">
+      <div className={styles["transactions-container"]}>
+        <div className={styles["filter-btns"]}>
           {filters.map(filter => (
             <div 
               key={filter.id}
-              className={`filter-btn ${activeFilter === filter.id ? 'active' : ''}`}
+              className={`${styles["filter-btn"]} ${activeFilter === filter.id ? styles["active"] : ""}`}
               onClick={() => onFilterChange(filter.id)}
             >
               {filter.label}
             </div>
           ))}
         </div>
-        <div className="transactions-list">
-          {transactions.map((transaction: any) => (
-            <div 
-              key={transaction.id}
-              className={`transaction-item ${transaction.type}`}
-              onClick={() => onTransactionClick(transaction)}
-            >
-              <div className="transaction-icon">
-                {transaction.type === 'income' ? <FaArrowDown /> : <FaShoppingCart />}
-              </div>
-              <div className="transaction-info">
-                <div className="transaction-title">{transaction.title}</div>
-                <div className="transaction-details">
-                  {transaction.details.map((detail: any, index: number) => (
-                    <div key={index} className="transaction-detail">
-                      {detail.icon} {detail.text}
-                    </div>
-                  ))}
+        <div className={styles["transactions-list"]}>
+          {transactions
+            .filter((transaction: Transaction) => {
+              if (activeFilter === 'all') return true;
+              if (activeFilter === 'income') return transaction.type === 'income';
+              if (activeFilter === 'liquidacion') return transaction.type === 'liquidacion';
+              // if (activeFilter === 'transfer') return transaction.type === 'transfer';
+              return false;
+            })
+            .map((transaction: any) => (
+              <div 
+                key={transaction.id}
+                className={`${styles["transaction-item"]} ${styles[transaction.type]}`}
+                onClick={() => onTransactionClick(transaction)}
+              >
+                <div className={styles["transaction-icon"]}>
+                  {transaction.type === 'income' ? <FaArrowDown /> : transaction.type === 'liquidacion' ? <FaMoneyBillWave /> : <FaShoppingCart />}
+                </div>
+                <div className={styles["transaction-info"]}>
+                  <div className={styles["transaction-title"]}>{transaction.title}</div>
+                  <div className={styles["transaction-details"]}>
+                    {transaction.details.map((detail: any, index: number) => (
+                      <div key={index} className={styles["transaction-meta-item"]}>
+                        {detail.icon} {detail.text}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className={styles["transaction-amount"]}>
+                  {transaction.type === 'income' ? '+' : transaction.type === 'liquidacion' ? '-' : '-'} $ {transaction.amount.toLocaleString()}
                 </div>
               </div>
-              <div className="transaction-amount">
-                {transaction.type === 'income' ? '+' : '-'} $ {transaction.amount.toLocaleString()}
-              </div>
-            </div>
-          ))}
+            ))}
         </div>
       </div>
     </section>
@@ -418,7 +374,7 @@ const TransactionsSection = ({ transactions, activeFilter, onFilterChange, onTra
 };
 
 const WalletFooter = () => (
-  <footer className="wallet-footer">
+  <footer className={styles["wallet-footer"]}>
     AgroConecta Billetera Virtual &copy; 2025 - Todos los derechos reservados
   </footer>
 );

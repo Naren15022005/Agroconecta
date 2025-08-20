@@ -1,0 +1,23 @@
+﻿
+
+StatusCode        : 200
+StatusDescription : OK
+Content           : {"admins":[{"id":"AGRC_USR_ADMIN","nombre":"Administrador Sistema","correo":"admin@agroconecta.com","contraseÃ±a":"$2b$1
+                    0$.x6I2i.ZzFRFANfarfPjEeMCvlapnHGTm.hDT91VZ74g5XzaOMok.","isActive":true,"create...
+RawContent        : HTTP/1.1 200 OK
+                    vary: RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch
+                    Connection: keep-alive
+                    Keep-Alive: timeout=5
+                    Transfer-Encoding: chunked
+                    Content-Type: applica...
+Forms             : {}
+Headers           : {[vary, RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch], [Connection, keep-alive], 
+                    [Keep-Alive, timeout=5], [Transfer-Encoding, chunked]...}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        : mshtml.HTMLDocumentClass
+RawContentLength  : 755
+
+
+
