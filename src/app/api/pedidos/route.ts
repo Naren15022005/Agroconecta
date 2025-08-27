@@ -40,8 +40,12 @@ export async function PATCH(req: NextRequest) {
       if (!pedido.items || pedido.items.length === 0) return NextResponse.json({ error: "Pedido sin productos" }, { status: 400 });
       const esAgricultor = pedido.items.every((item: any) => item.product.agricultorId === agricultor.id);
       if (!esAgricultor) return NextResponse.json({ error: "No autorizado para confirmar este pedido" }, { status: 403 });
-      if (pedido.status !== "PENDIENTE") return NextResponse.json({ error: "Solo se puede confirmar pedidos pendientes" }, { status: 400 });
-      
+
+      // Solo permitir avanzar si el pago fue validado
+      if (pedido.status !== "PAGO_VALIDADO") {
+        return NextResponse.json({ error: "No puedes avanzar el pedido hasta que el pago sea validado por el administrador." }, { status: 400 });
+      }
+
       for (const item of pedido.items) {
         const producto = item.product;
         const disponible = producto.stock - producto.reservedStock;
@@ -49,14 +53,14 @@ export async function PATCH(req: NextRequest) {
           return NextResponse.json({ error: `Stock insuficiente para ${producto.name}` }, { status: 400 });
         }
       }
-      
+
       for (const item of pedido.items) {
         await prisma.product.update({
           where: { id: item.productId },
           data: { reservedStock: { increment: item.quantity } }
         });
       }
-      
+
       await prisma.order.update({ where: { id }, data: { status: "CONFIRMADO" } });
       const notificaciones = new NotificacionesController();
       await notificaciones.crearNotificacion({
@@ -200,7 +204,7 @@ export async function PATCH(req: NextRequest) {
       // Verificar que el usuario sea agricultor
       const agricultor = await prisma.agricultor.findUnique({
         where: { user_id: session.user.id },
-        select: { id: true }
+        select: { id: true, user_id: true }
       });
       if (!agricultor) return NextResponse.json({ error: "Usuario no es agricultor" }, { status: 403 });
 
@@ -211,17 +215,48 @@ export async function PATCH(req: NextRequest) {
             include: {
               product: true
             }
-          }
+          },
+          buyer: true
         }
       });
       if (!pedido) return NextResponse.json({ error: "Pedido no encontrado" }, { status: 404 });
-      
+
       // Verificar que el agricultor es dueño de los productos del pedido
       const esAgricultor = pedido.items.every((item: any) => item.product.agricultorId === agricultor.id);
       if (!esAgricultor) return NextResponse.json({ error: "No autorizado para gestionar este pedido" }, { status: 403 });
-      
+
       if (pedido.status !== "EN_CAMINO") return NextResponse.json({ error: "Solo se puede marcar como entregado desde 'EN_CAMINO'" }, { status: 400 });
+
+      // Actualizar estado a ENTREGADO
       await prisma.order.update({ where: { id }, data: { status: "ENTREGADO" } });
+
+      // Crear una venta y comisión por cada producto del pedido
+      const porcentajeComision = 5.0; // Puedes parametrizar esto
+      for (const item of pedido.items) {
+        // Crear venta
+        const venta = await prisma.sale.create({
+          data: {
+            vendedorId: agricultor.user_id,
+            compradorId: pedido.buyerId,
+            productoId: item.productId,
+            cantidad: item.quantity,
+            precioUnitario: item.product.price,
+            total: Number(item.product.price) * item.quantity,
+            fecha: new Date()
+          }
+        });
+        // Crear comisión
+        const montoComision = Number((Number(item.product.price) * item.quantity * porcentajeComision / 100).toFixed(2));
+        await prisma.comision.create({
+          data: {
+            ventaId: venta.id,
+            porcentaje: porcentajeComision,
+            monto: montoComision,
+            fecha: new Date()
+          }
+        });
+      }
+
       const notificaciones = new NotificacionesController();
       await notificaciones.crearNotificacion({
         userId: pedido.buyerId,

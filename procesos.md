@@ -1,3 +1,80 @@
+  # 📅 Resumen de avances y cambios – 27 de agosto de 2025
+
+  ## 1. Diagnóstico y solución de la billetera admin
+
+  - Se identificó que el saldo de la billetera del admin no reflejaba la comisión real porque la tabla `comisiones` estaba vacía, mientras el panel principal calculaba la comisión "al vuelo" sobre las órdenes.
+  - Se ajustó el endpoint `/api/admin/billetera/summary` para que sume la comisión directamente desde la tabla `comisiones` usando el campo `fecha` de la comisión, asegurando que el saldo disponible sea igual a la comisión real del mes.
+  - Se revisó y corrigió el tipo de dato de `productoId` en la tabla `sales` para que coincida con el tipo de los productos y evitar errores de Prisma.
+  - Se resolvieron problemas de migración de Prisma sin perder datos, aplicando el cambio manualmente en la base de datos y sincronizando el estado de las migraciones.
+
+  ## 2. Lógica de ventas y comisiones
+
+  - Se implementó la lógica para que, al marcar un pedido como "ENTREGADO", se cree automáticamente una venta y una comisión por cada producto del pedido, garantizando trazabilidad y consistencia entre el panel y la billetera.
+  - Se discutió y propuso un script de migración para poblar la tabla `comisiones` con datos históricos, aunque no se implementó aún.
+
+  ## 3. Mejoras en el panel de administración
+
+  - Se filtró la tabla de pagos a agricultores para que solo muestre agricultores con ventas reales (ventas > 0), evitando mostrar usuarios sin actividad.
+  - Se analizó y propuso una mejora en el flujo de validación de pagos por transferencia: ahora el agricultor solo podrá avanzar el estado del pedido si el admin valida el pago, bloqueando el avance si el pago no está validado.
+  - Se acordó crear una nueva vista en el panel admin llamada "Validaciones de pagos", donde se podrán gestionar y auditar todos los pagos pendientes y validados, con registro de hora y fecha para mayor seguridad.
+
+  ## 4. Migraciones y sincronización de Prisma
+
+  - Se solucionaron problemas de drift y migraciones pendientes en Prisma sin perder datos, insertando manualmente la migración en la tabla `_prisma_migrations` y regenerando el cliente de Prisma.
+
+  ---
+
+**Pendientes para la próxima sesión:**
+- Implementar la vista "Validaciones de pagos" en el panel admin, con CRUD y registro de todos los ingresos.
+- Mejorar la experiencia de validación y notificación para admin y agricultores.
+- (Opcional) Crear un script para poblar la tabla `comisiones` con datos históricos de ventas ya entregadas.
+
+---
+
+> **Este resumen cubre todos los cambios, decisiones y mejoras realizadas hoy en el flujo de billetera, ventas, comisiones y validación de pagos en AgroConecta.**
+  
+---
+  # 📅 Resumen de avances y cambios – 21 de agosto de 2025
+
+   ### Resumen de procesos y avances - Billetera Admin AgroConecta
+
+        ✔️ Lo realizado hoy
+        1. Diagnóstico y ajuste del endpoint de billetera admin
+        Se revisó y corrigió el endpoint /api/admin/billetera/summary para que:
+        Calcule correctamente la comisión de la plataforma (usando el campo monto de la tabla comision).
+        Sume el total recaudado y el total a pagar a agricultores.
+        Devuelva el saldo de la billetera del admin (como comisión del mes o saldo real, según configuración).
+        Devuelva tarjetas asociadas (mock) y transacciones recientes.
+        Use nombres de campos compatibles con el frontend (tarjetas, cards, saldoDisponible, etc.).
+        Implemente manejo robusto de errores y logs para depuración.
+        2. Revisión y recomendaciones para el frontend
+        Se explicó el flujo de la vista de billetera:
+        El frontend hace fetch al endpoint y muestra los datos en tarjetas y tablas.
+        Se recomendó asegurar que los nombres de campos coincidan entre backend y frontend.
+        Se sugirió manejar correctamente los estados de loading, error y datos vacíos.
+        Se propuso una estructura robusta de componente React para la vista.
+        3. Checklist de funcionamiento
+        El endpoint responde sin errores 500.
+        El admin tiene una billetera asociada en la base de datos.
+        El saldo de la billetera del admin refleja la comisión del mes o el saldo real.
+        Las tarjetas asociadas aparecen en la respuesta y en la vista.
+        El frontend y backend usan los mismos nombres de campos.
+        Se manejan correctamente los estados de loading y error en la vista.
+        ⏳ Pendientes y próximos pasos
+        Validar en producción que la billetera del admin siempre tenga saldo actualizado (según lógica de negocio).
+        Revisar y ajustar el frontend para que consuma correctamente los campos del endpoint y muestre todos los datos esperados.
+        Agregar pruebas unitarias y de integración para el endpoint y la vista de billetera.
+        Documentar el flujo de liquidación de comisiones y cómo se actualiza el saldo del admin.
+        Revisar la relación entre tablas en Prisma (comision, venta, wallet, user) para evitar errores de consulta.
+        Internacionalización y accesibilidad: asegurar que los textos y formatos sean claros para usuarios con poca experiencia técnica.
+        Optimizar el manejo de errores y logs para facilitar el soporte y la depuración.
+        Revisar seguridad y autenticación en el endpoint para evitar fugas de información sensible.
+        📝 Notas adicionales
+        Si el saldo sigue en 0, revisar que la billetera del admin tenga saldo en la base de datos o que existan comisiones registradas para el mes.
+        Si algún campo no aparece en la vista, revisar la consola de red del navegador y asegurar que el frontend use el nombre correcto.
+        Mantener consistencia en los nombres de campos entre backend y frontend.
+        Actualizar la lógica de negocio en ambos lados si cambian los requerimientos.
+
 
   # 📅 Resumen de avances y cambios – 20 de agosto de 2025
   

@@ -192,43 +192,6 @@ export async function GET() {
             aPagar: aPagar,
             estado: estadoPago,
           });
-          if (aPagar > 0) {
-            const pagosRealizados = await prisma.pago.findMany({
-              where: {
-                userId: usuario.id,
-                NOT: {
-                  estado: 'PENDIENTE'
-                }
-              }
-            });
-            sumaPagos = pagosRealizados.reduce((sum, pago) => sum + Number(pago.monto), 0);
-            // Si no hay pagos, revisar el saldo de la wallet
-            if (sumaPagos < aPagar) {
-              const wallet = await prisma.wallet.findFirst({
-                where: { userId: usuario.id },
-                select: { balance: true }
-              });
-              if (wallet && Number(wallet.balance) >= aPagar) {
-                sumaPagos = Number(wallet.balance);
-                console.log(`Saldo de wallet para ${usuario.nombre} (${usuario.id}):`, wallet.balance);
-              }
-            }
-            console.log(`Pagos realizados para ${usuario.nombre} (${usuario.id}):`, pagosRealizados);
-            console.log(`Suma de pagos (incluyendo wallet): ${sumaPagos} vs aPagar: ${aPagar}`);
-            if (sumaPagos >= aPagar) {
-              estadoPago = 'pagado';
-            }
-          } else {
-            estadoPago = 'pagado';
-          }
-          pagos.push({
-            id: usuario.id,
-            agricultor: usuario.nombre || 'Sin nombre',
-            ventas: totalVentasAgricultor,
-            comision: comision,
-            aPagar: aPagar,
-            estado: estadoPago,
-          });
         }
         
         resumen.walletsCount = agricultores.length;

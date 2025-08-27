@@ -3,103 +3,81 @@ import { prisma } from '@/lib/prisma';
 import { startOfMonth, endOfMonth } from 'date-fns';
 
 export async function GET(req: NextRequest) {
-    // Egresos del mes (logística, otros)
-    const egresosMes = await prisma.walletTransaction.aggregate({
-      where: {
-        walletId: { in: walletIds },
-        type: { in: ['egreso', 'logistica'] },
-        createdAt: { gte: mesInicio, lte: mesFin },
-      },
-      _sum: { amount: true },
-    });
-
-    // Saldo neto: ingresos - egresos
-    const saldoNeto = (ingresosMes._sum?.amount ?? 0) - (egresosMes._sum?.amount ?? 0);
   try {
-    // Buscar el rol ADMIN
-  const adminRole = await prisma.role.findUnique({ where: { name: 'ADMINISTRADOR' } });
-  if (!adminRole) return NextResponse.json({ error: 'Rol ADMINISTRADOR no encontrado' }, { status: 404 });
-
-
-
-    // Buscar todas las billeteras de usuarios admin
-    const adminUsers = await prisma.user.findMany({ where: { roleId: adminRole.id } });
-    const adminUserIds = adminUsers.map(u => u.id);
-    const wallets = await prisma.wallet.findMany({ where: { userId: { in: adminUserIds } } });
-    if (!wallets.length) {
-      return NextResponse.json({ error: 'No hay billeteras de admin' }, { status: 404 });
-    }
-    // Sumar el saldo de todas las billeteras admin
-    const saldoDisponible = wallets.reduce((sum, w) => sum + Number(w.balance), 0);
-    const walletIds = wallets.map(w => w.id);
-
-    // Fechas del mes actual
     const now = new Date();
     const mesInicio = startOfMonth(now);
     const mesFin = endOfMonth(now);
 
-    // Ingresos totales del mes (comisiones)
-    const ingresosMes = await prisma.walletTransaction.aggregate({
+    const ORDER_STATUS_ENTREGADO = 'ENTREGADO';
+
+    const ventasMes = await prisma.order.aggregate({
       where: {
-        walletId: { in: walletIds },
-        type: 'income',
+        status: ORDER_STATUS_ENTREGADO,
         createdAt: { gte: mesInicio, lte: mesFin },
       },
-      _sum: { amount: true },
+      _sum: { total: true },
+      _count: { id: true },
     });
 
-    // Total liquidado a agricultores en el mes
-    const liquidacionesMes = await prisma.walletTransaction.aggregate({
+    // Filtrar por la fecha de la comisión directamente
+    const comisionesMes = await prisma.comision.aggregate({
       where: {
-        walletId: { in: walletIds },
-        type: 'liquidacion',
-        createdAt: { gte: mesInicio, lte: mesFin },
+        fecha: { gte: mesInicio, lte: mesFin }
       },
-      _sum: { amount: true },
+      _sum: { monto: true }
     });
 
-    // Transacciones recientes (últimos 10 movimientos de todas las billeteras admin)
+    const pagosAgricultoresMes = await prisma.sale.aggregate({
+      where: {
+        fecha: { gte: mesInicio, lte: mesFin }
+      },
+      _sum: { total: true }
+    });
+
+    // Obtenemos transacciones sin incluir información del usuario
     const transacciones = await prisma.walletTransaction.findMany({
-      where: { walletId: { in: walletIds } },
       orderBy: { createdAt: 'desc' },
       take: 10,
     });
 
-
-    // Tarjetas asociadas (mock, puedes hacer que venga de BD si lo tienes)
-    const cards = [
+    const tarjetas = [
       {
         id: 1,
-        type: 'Neki',
-        number: '**** **** **** 1234',
-        holder: 'ADMIN AGRO',
-        expiry: '09/28',
+        tipo: 'Nequi',
+        numero: '**** **** **** 1234',
+        titular: 'ADMIN AGRO',
+        vencimiento: '09/28',
         color: 'linear-gradient(45deg, #ff4e50, #f9d423)',
         logo: 'nequi',
       },
       {
         id: 2,
-        type: 'Bancolombia',
-        number: '**** **** **** 5678',
-        holder: 'ADMIN AGRO',
-        expiry: '12/29',
+        tipo: 'Bancolombia',
+        numero: '**** **** **** 5678',
+        titular: 'ADMIN AGRO',
+        vencimiento: '12/29',
         color: 'linear-gradient(45deg, #0057b8, #ffd600)',
         logo: 'bancolombia',
       },
     ];
 
+    const saldoComision = comisionesMes._sum?.monto ?? 0;
+    const totalPagosAgricultores = pagosAgricultoresMes._sum?.total ?? 0;
 
     return NextResponse.json({
-  saldoDisponible,
-  ingresosMes: ingresosMes._sum?.amount ?? 0,
-  egresosMes: egresosMes._sum?.amount ?? 0,
-  saldoNeto,
-  liquidacionesMes: liquidacionesMes._sum?.amount ?? 0,
-  cards,
-  transacciones,
+      saldoDisponible: saldoComision,
+      saldoApp: saldoComision,
+      totalRecaudado: ventasMes._sum?.total ?? 0,
+      aPagarAgricultores: Math.max(0, totalPagosAgricultores - saldoComision),
+      saldoTotalBilleteras: saldoComision,
+      ventasRealizadas: ventasMes._count?.id ?? 0,
+      comisionesTotales: saldoComision,
+      tarjetas,
+      cards: tarjetas,
+      transacciones,
     });
   } catch (error: any) {
-    const message = typeof error === 'object' && error !== null && 'message' in error ? (error as any).message : 'Error desconocido';
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('API admin/billetera/summary error:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
