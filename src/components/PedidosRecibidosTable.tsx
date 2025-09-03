@@ -120,13 +120,13 @@ function getEstadoColor(estado: string) {
     case 'pendiente':
       return 'bg-yellow-100 text-yellow-800';
     case 'confirmado':
-      return 'bg-blue-100 text-blue-800';
+  return 'bg-gray-100 text-gray-800';
     case 'en_preparacion':
       return 'bg-orange-100 text-orange-800';
     case 'listo_envio':
       return 'bg-cyan-100 text-cyan-800';
     case 'en_camino':
-      return 'bg-indigo-100 text-indigo-800';
+  return 'bg-gray-200 text-gray-700';
     case 'listo_recoger':
       return 'bg-purple-100 text-purple-800';
     case 'entregado':

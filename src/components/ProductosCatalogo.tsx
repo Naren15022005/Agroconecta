@@ -218,11 +218,11 @@ export default function ProductosCatalogo({
   // Colores suaves y discretos para el mensaje
   const coloresPasteles = [
     "bg-gray-50 border-gray-200 text-gray-600",
-    "bg-blue-50 border-blue-200 text-blue-600", 
+  "bg-gray-50 border-gray-200 text-gray-700", 
     "bg-green-50 border-green-200 text-green-600",
     "bg-purple-50 border-purple-200 text-purple-600",
     "bg-amber-50 border-amber-200 text-amber-600",
-    "bg-indigo-50 border-indigo-200 text-indigo-600",
+  "bg-gray-100 border-gray-300 text-gray-700",
     "bg-rose-50 border-rose-200 text-rose-600",
     "bg-cyan-50 border-cyan-200 text-cyan-600",
     "bg-orange-50 border-orange-200 text-orange-600",
@@ -230,7 +230,7 @@ export default function ProductosCatalogo({
     "bg-red-50 border-red-200 text-red-600",
     "bg-teal-50 border-teal-200 text-teal-600",
     "bg-violet-50 border-violet-200 text-violet-600",
-    "bg-sky-50 border-sky-200 text-sky-600",
+  "bg-gray-100 border-gray-200 text-gray-600",
     "bg-emerald-50 border-emerald-200 text-emerald-600"
   ];
 
@@ -475,7 +475,7 @@ export default function ProductosCatalogo({
                     <span className="truncate">{producto.ubicacion}</span>
                   </div>
                   <div className="flex items-center space-x-2 text-xs text-gray-400">
-                    <Calendar className="w-4 h-4 text-blue-500" />
+                    <Calendar className="w-4 h-4 text-gray-500" />
                     <span>{producto.fecha}</span>
                   </div>
                 </div>
@@ -570,7 +570,7 @@ export default function ProductosCatalogo({
                           <span>{producto.ubicacion}</span>
                         </div>
                         <div className="flex items-center space-x-1">
-                          <Calendar className="w-4 h-4 text-blue-500" />
+                          <Calendar className="w-4 h-4 text-gray-500" />
                           <span>{producto.fecha}</span>
                         </div>
                       </div>

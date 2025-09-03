@@ -12,14 +12,28 @@ async function createBackup() {
 
   const backup: any = {
     timestamp: new Date().toISOString(),
-    description: 'Backup completo - roles, categorías, subcategorías y usuario admin funcionando',
+    description: 'Backup completo de todas las tablas',
     data: {
       roles: [],
       categories: [],
       subcategories: [],
       users: [],
       products: [],
-      orders: []
+      orders: [],
+      paymentTransactions: [],
+      cartItems: [],
+      accounts: [],
+      verificationTokens: [],
+      sessions: [],
+      wallets: [],
+      walletTransactions: [],
+      sales: [],
+      comisiones: [],
+      impuestos: [],
+      withdrawRequests: [],
+      pagos: [],
+      transacciones: [],
+      notifications: []
     }
   };
 
@@ -66,10 +80,40 @@ async function createBackup() {
     console.log('📦 Respaldando pedidos...');
     backup.data.orders = await prisma.order.findMany({
       include: {
-        items: true
+        items: true,
+        paymentTransactions: true
       }
     });
     console.log(`✅ ${backup.data.orders.length} pedidos respaldados`);
+
+    // Backup de paymentTransactions
+    backup.data.paymentTransactions = await prisma.paymentTransaction.findMany();
+    // Backup de cartItems
+    backup.data.cartItems = await prisma.cartItem.findMany();
+    // Backup de accounts
+    backup.data.accounts = await prisma.account.findMany();
+    // Backup de verificationTokens
+    backup.data.verificationTokens = await prisma.verificationToken.findMany();
+    // Backup de sessions
+    backup.data.sessions = await prisma.session.findMany();
+    // Backup de wallets
+    backup.data.wallets = await prisma.wallet.findMany({ include: { transactions: true } });
+    // Backup de walletTransactions
+    backup.data.walletTransactions = await prisma.walletTransaction.findMany();
+    // Backup de sales
+    backup.data.sales = await prisma.sale.findMany({ include: { comisiones: true, impuestos: true } });
+    // Backup de comisiones
+    backup.data.comisiones = await prisma.comision.findMany();
+    // Backup de impuestos
+    backup.data.impuestos = await prisma.impuesto.findMany();
+    // Backup de withdrawRequests
+    backup.data.withdrawRequests = await prisma.withdrawRequest.findMany();
+    // Backup de pagos
+    backup.data.pagos = await prisma.pago.findMany();
+    // Backup de transacciones
+    backup.data.transacciones = await prisma.transaccion.findMany();
+    // Backup de notificaciones
+    backup.data.notifications = await prisma.notification.findMany();
 
     // Guardar backup
     const backupDir = path.join(process.cwd(), 'backups');

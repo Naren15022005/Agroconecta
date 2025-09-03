@@ -159,10 +159,10 @@ export default function PagosAdminPanel() {
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-blue-600 text-sm font-medium">Total Pagos</p>
-              <p className="text-2xl font-bold text-blue-900">{estadisticas.total}</p>
+              <p className="text-gray-700 text-sm font-medium">Total Pagos</p>
+              <p className="text-2xl font-bold text-gray-900">{estadisticas.total}</p>
             </div>
-            <RefreshCw className="h-8 w-8 text-blue-400" />
+            <RefreshCw className="h-8 w-8 text-gray-500" />
           </div>
         </div>
         

@@ -165,7 +165,7 @@ export default function PedidoDetalleModal({ pedido, onClose, onEstadoChanged }:
               <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                   </div>
@@ -232,10 +232,10 @@ export default function PedidoDetalleModal({ pedido, onClose, onEstadoChanged }:
                   }`}>
                     <svg className={`w-8 h-8 ${
                       estado === 'pendiente' ? 'text-yellow-600' :
-                      estado === 'confirmado' ? 'text-blue-600' :
+                      estado === 'confirmado' ? 'text-gray-700' :
                       estado === 'en_preparacion' ? 'text-orange-600' :
                       estado === 'listo_envio' ? 'text-cyan-600' :
-                      estado === 'en_camino' ? 'text-indigo-600' :
+                      estado === 'en_camino' ? 'text-gray-600' :
                       estado === 'entregado' ? 'text-green-600' :
                       estado === 'cancelado' ? 'text-red-600' : 'text-gray-600'
                     }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -260,10 +260,10 @@ export default function PedidoDetalleModal({ pedido, onClose, onEstadoChanged }:
                 
                 <div className={`px-4 py-2 rounded-full text-sm font-semibold ${
                   estado === 'pendiente' ? 'bg-yellow-200 text-yellow-800' :
-                  estado === 'confirmado' ? 'bg-blue-200 text-blue-800' :
+                  estado === 'confirmado' ? 'bg-gray-200 text-gray-800' :
                   estado === 'en_preparacion' ? 'bg-orange-200 text-orange-800' :
                   estado === 'listo_envio' ? 'bg-cyan-200 text-cyan-800' :
-                  estado === 'en_camino' ? 'bg-indigo-200 text-indigo-800' :
+                  estado === 'en_camino' ? 'bg-gray-200 text-gray-700' :
                   estado === 'entregado' ? 'bg-green-200 text-green-800' :
                   estado === 'cancelado' ? 'bg-red-200 text-red-800' : 'bg-gray-200 text-gray-800'
                 }`}>
@@ -318,10 +318,10 @@ export default function PedidoDetalleModal({ pedido, onClose, onEstadoChanged }:
           {['TRANSFERENCIA', 'NEQUI', 'DAVIPLATA'].includes(metodoPago || '') && (
             <div className="bg-blue-50 border-l-4 border-blue-400 rounded-r-xl p-4">
               <div className="flex items-start">
-                <div className="text-blue-600 mr-3">💳</div>
+                <div className="text-gray-700 mr-3">💳</div>
                 <div>
-                  <h4 className="font-semibold text-blue-800">Pago electrónico</h4>
-                  <p className="text-blue-700 text-sm">La plataforma ha confirmado el pago de <strong>${total.toLocaleString('es-CO')}</strong> vía {metodoPago}. Puedes proceder con la preparación del pedido.</p>
+                  <h4 className="font-semibold text-gray-900">Pago electrónico</h4>
+                  <p className="text-gray-700 text-sm">La plataforma ha confirmado el pago de <strong>${total.toLocaleString('es-CO')}</strong> vía {metodoPago}. Puedes proceder con la preparación del pedido.</p>
                 </div>
               </div>
             </div>

@@ -30,6 +30,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
   }
 
+  // Bloquear avance si el pago no ha sido validado, excepto si se cancela
+  if (!pedido.pagoVerificado && nuevoEstado !== 'CANCELADO') {
+    return NextResponse.json({ error: 'El pago aún no ha sido validado por el administrador.' }, { status: 403 });
+  }
+
   // Actualiza el estado del pedido
   const pedidoActualizado = await prisma.order.update({
     where: { id: pedidoId },

@@ -202,9 +202,9 @@ export default function AdminPedidosTable() {
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
       'PENDIENTE': 'bg-yellow-100 text-yellow-800',
-      'EN_PREPARACION': 'bg-blue-100 text-blue-800',
+  'EN_PREPARACION': 'bg-gray-100 text-gray-800',
       'EN_PUNTO': 'bg-cyan-100 text-cyan-800',
-      'EN_CAMINO': 'bg-indigo-100 text-indigo-800',
+  'EN_CAMINO': 'bg-gray-200 text-gray-700',
       'ENTREGADO': 'bg-green-100 text-green-800',
       'CANCELADO': 'bg-red-100 text-red-800'
     };
@@ -379,7 +379,7 @@ export default function AdminPedidosTable() {
                       {pedido.archived ? (
                         <button
                           onClick={() => handleUnarchive(pedido.id)}
-                          className="text-blue-600 hover:text-blue-900 inline-flex items-center"
+                          className="text-gray-700 hover:text-gray-900 inline-flex items-center"
                         >
                           <RotateCcw className="w-4 h-4 mr-1" />
                           Desarchivar

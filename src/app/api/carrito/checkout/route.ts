@@ -86,25 +86,60 @@ export async function POST(req: NextRequest) {
       price: Number(p.precioUnitario),
       subtotal: Number(p.precioUnitario) * Number(p.cantidad),
     }));
-    
+
     const mappedDeliveryMethod = deliveryMethodMap[deliveryInfo.method] || deliveryInfo.method;
-    
-    const order = await prisma.order.create({
-      data: {
-        id: orderId,
-        buyerId: session.user.id,
-        total,
-        status: 'PENDIENTE',
-        deliveryMethod: mappedDeliveryMethod,
-        paymentMethod: paymentInfo.method,
-        deliveryAddress: deliveryInfo.address || null,
-        deliveryNotes: deliveryInfo.notes || null,
-        notes: paymentInfo.details || null, // Using notes field for payment details
-        items: {
-          create: orderItems
+
+    // Si el método de pago requiere validación, crear el pedido con pagoVerificado en false y crear transacción pendiente
+    let order;
+    if (["TRANSFERENCIA", "NEQUI", "DAVIPLATA"].includes(paymentInfo.method)) {
+      // Crear el pedido con pagoVerificado en false
+      order = await prisma.order.create({
+        data: {
+          id: orderId,
+          buyerId: session.user.id,
+          total,
+          status: 'PENDIENTE',
+          deliveryMethod: mappedDeliveryMethod,
+          paymentMethod: paymentInfo.method,
+          deliveryAddress: deliveryInfo.address || null,
+          deliveryNotes: deliveryInfo.notes || null,
+          notes: paymentInfo.details || null,
+          pagoVerificado: false,
+          items: {
+            create: orderItems
+          }
         }
-      }
-    });
+      });
+      // Crear transacción pendiente
+      await prisma.paymentTransaction.create({
+        data: {
+          pedidoId: orderId,
+          compradorId: session.user.id,
+          agricultorId: agricultorId,
+          monto: total,
+          metodo: paymentInfo.method,
+          estado: "PENDIENTE"
+        }
+      });
+    } else {
+      order = await prisma.order.create({
+        data: {
+          id: orderId,
+          buyerId: session.user.id,
+          total,
+          status: 'PENDIENTE',
+          deliveryMethod: mappedDeliveryMethod,
+          paymentMethod: paymentInfo.method,
+          deliveryAddress: deliveryInfo.address || null,
+          deliveryNotes: deliveryInfo.notes || null,
+          notes: paymentInfo.details || null, // Using notes field for payment details
+          pagoVerificado: true,
+          items: {
+            create: orderItems
+          }
+        }
+      });
+    }
     // Actualizar stock
     for (const prod of productos) {
       await prisma.product.update({

@@ -1,0 +1,1 @@
+-- Agrega aquí el SQL de la migración faltante o déjalo vacío si ya todo está correcto en la base de datos.

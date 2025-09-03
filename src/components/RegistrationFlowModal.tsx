@@ -78,10 +78,10 @@ export function RegistrationFlowModal({
             </p>
             
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-6 mb-6">
-              <p className="text-blue-800 font-semibold text-lg mb-2">
+              <p className="text-gray-900 font-semibold text-lg mb-2">
                 {userEmail}
               </p>
-              <p className="text-blue-600 text-sm">
+              <p className="text-gray-700 text-sm">
                 Revisa tu bandeja de entrada y haz clic en el enlace para activar tu cuenta
               </p>
             </div>

@@ -116,6 +116,27 @@ export async function PATCH(req: NextRequest) {
           mensaje = "La plataforma ha confirmado tu pago. Tu pedido está en preparación.";
       }
       
+      // Si el método de pago requiere validación, crear transacción pendiente y bloquear avance si no está validado
+      if (["TRANSFERENCIA", "NEQUI", "DAVIPLATA"].includes(pedido.paymentMethod)) {
+        // Crear transacción pendiente si no existe
+        const existePago = await prisma.paymentTransaction.findFirst({ where: { pedidoId: pedido.id } });
+        if (!existePago) {
+          await prisma.paymentTransaction.create({
+            data: {
+              pedidoId: pedido.id,
+              compradorId: pedido.buyerId,
+              agricultorId: pedido.items[0].product.agricultorId,
+              monto: pedido.total,
+              metodo: pedido.paymentMethod,
+              estado: "PENDIENTE"
+            }
+          });
+        }
+        // Bloquear avance si el pago no está validado
+        if (!pedido.pagoVerificado) {
+          return NextResponse.json({ error: "El pago aún no ha sido validado por el administrador." }, { status: 403 });
+        }
+      }
       await prisma.order.update({ where: { id }, data: { status: "EN_PREPARACION" } });
       const notificaciones = new NotificacionesController();
       await notificaciones.crearNotificacion({

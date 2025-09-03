@@ -20,7 +20,7 @@ export default function PedidosCrudGestion({ pedidos, onVerDetalle }: Props) {
       case 'pendiente':
         return `${baseClasses} bg-yellow-100 text-yellow-800 border border-yellow-200`;
       case 'confirmado':
-        return `${baseClasses} bg-blue-100 text-blue-800 border border-blue-200`;
+  return `${baseClasses} bg-gray-100 text-gray-800 border border-gray-200`;
       case 'enviado':
         return `${baseClasses} bg-purple-100 text-purple-800 border border-purple-200`;
       case 'entregado':

@@ -10,7 +10,7 @@ const sidebarLinks = [
   { href: '/admin/usuarios', label: 'Usuarios', icon: Users },
   { href: '/admin/pedidos', label: 'Pedidos', icon: ShoppingCart },
   { href: '/admin/pagos', label: 'Pagos', icon: Bolt },
-  { href: '/admin/validaciones-pagos', label: 'Validaciones de pagos', icon: Cog },
+  { href: '/admin/validaciones-pagos', label: 'Validaciones', icon: Cog },
   { href: '/admin/billetera', label: 'Billetera', icon: Wallet },
 ];
 

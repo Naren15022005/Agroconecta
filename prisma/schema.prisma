@@ -210,13 +210,31 @@ model Order {
   archivedAt              DateTime?
   archivedBy              String?
   mercadoPagoPreferenceId String?
+  pagoVerificado          Boolean        @default(false)
   items                   OrderItem[]
   buyer                   User           @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  paymentTransactions     PaymentTransaction[]
 
   @@index([buyerId], map: "orders_buyerId_fkey")
   @@index([archived])
   @@index([status, archived])
   @@map("orders")
+}
+model PaymentTransaction {
+  id           String   @id @default(cuid())
+  pedidoId     String
+  compradorId  String
+  agricultorId String
+  monto        Decimal  @db.Decimal(12, 2)
+  metodo       String
+  estado       String   @default("PENDIENTE")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  order        Order    @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+
+  @@index([pedidoId], map: "payment_transactions_pedidoId_fkey")
+  @@map("payment_transactions")
 }
 
 model OrderItem {
