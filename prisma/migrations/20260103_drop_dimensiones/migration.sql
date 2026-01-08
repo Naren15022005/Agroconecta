@@ -1,0 +1,5 @@
+BEGIN;
+
+ALTER TABLE "products" DROP COLUMN IF EXISTS "dimensiones";
+
+COMMIT;

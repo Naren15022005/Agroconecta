@@ -40,7 +40,22 @@ export async function POST(req: NextRequest) {
     }
 
     // Validar que el rol sea válido y obtener el roleId
-    const roleRecord = await prisma.role.findUnique({ where: { name: role } });
+    // Check DB connectivity early to return a helpful 503 instead of a crash
+    try {
+      await prisma.$connect();
+    } catch (dbErr: any) {
+      console.error('DB connection failed:', String(dbErr));
+      return NextResponse.json({ success: false, error: 'Base de datos inaccesible. Asegúrate de que Postgres esté iniciado.' }, { status: 503 });
+    }
+
+    let roleRecord: any = null;
+    try {
+      roleRecord = await prisma.role.findUnique({ where: { name: role } });
+    } catch (findErr: any) {
+      console.error('Error fetching role:', String(findErr));
+      return NextResponse.json({ success: false, error: 'No se pudo validar el rol — problema de conexión a la base de datos.' }, { status: 503 });
+    }
+
     if (!roleRecord) {
       return NextResponse.json({
         success: false,
@@ -108,8 +123,8 @@ export async function POST(req: NextRequest) {
       // ADMINISTRADOR no necesita perfil
     } catch (profileError) {
       // Si falla la creación del perfil, eliminar el usuario creado
-      console.error('Error creando perfil:', profileError);
-      await prisma.user.delete({ where: { id: user.id } });
+      console.error('Error creando perfil:', String(profileError));
+      try { await prisma.user.delete({ where: { id: user.id } }); } catch (e) { console.error('Error cleaning up user after profile failure:', String(e)); }
       return NextResponse.json({
         success: false,
         error: 'Hubo un problema al crear el perfil. Intenta nuevamente o contacta soporte.'
@@ -132,7 +147,7 @@ export async function POST(req: NextRequest) {
     try {
       await sendWelcomeEmail(user.correo, user.nombre, token);
     } catch (emailError) {
-      console.log('Error enviando email de bienvenida:', emailError);
+      console.log('Error enviando email de bienvenida:', String(emailError));
     }
 
     return NextResponse.json({
@@ -146,7 +161,7 @@ export async function POST(req: NextRequest) {
       },
     });
   } catch (error: any) {
-    console.error('Error en registro:', error);
+    console.error('Error en registro:', String(error));
     let message = 'Ocurrió un error inesperado. Por favor intenta nuevamente.';
     if (error instanceof Error && error.message) {
       message = error.message;

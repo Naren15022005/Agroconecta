@@ -27,7 +27,8 @@ export async function GET(req: NextRequest) {
             agricultorId: agricultor.id
           }
         }
-      }
+      },
+      status: { not: 'CANCELADO' }
     },
     orderBy: { createdAt: 'desc' },
     include: {

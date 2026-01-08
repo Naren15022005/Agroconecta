@@ -2,16 +2,15 @@
 
 import { useCartStore } from '@/store/cart';
 import { X, Plus, Minus, Trash2, ShoppingBag } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { Dialog } from '@radix-ui/react-dialog';
 
 export default function CartSidebar() {
   const { data: session } = useSession();
   const router = useRouter();
-  const [isProcessing, setIsProcessing] = useState(false);
   const [modal, setModal] = useState<{ open: boolean; success?: boolean; message?: string }>({ open: false });
+  const [isVisible, setIsVisible] = useState(false);
 
   const { 
     items, 
@@ -35,282 +34,223 @@ export default function CartSidebar() {
     }
   };
 
-  const handleCheckout = async () => {
+  const handleCheckout = () => {
+    // El endpoint /api/carrito/checkout requiere deliveryInfo + paymentInfo.
+    // El flujo correcto es ir a /comprador/checkout para recolectar esa info.
     if (!session) {
-      router.push('/auth/signin?callbackUrl=/comprador/mercado');
+      router.push('/auth/signin?callbackUrl=/comprador/checkout');
       return;
     }
-    setIsProcessing(true);
-    try {
-      // Unificar todos los items en un solo array para el endpoint
-      const allItems = items.map(item => ({
-        productoId: item.id,
-        nombre: item.name,
-        cantidad: item.quantity,
-        precioUnitario: item.price,
-        agricultorId: item.campesinoId,
-        stockDisponible: item.stock,
-        metodoEntrega: 'ENTREGA_DIRECTA',
-        metodoPago: 'CONTRAENTREGA',
-      }));
-      const response = await fetch('/api/carrito/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items: allItems }),
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        setModal({ open: true, success: false, message: error.error || 'Error al procesar el pedido.' });
-        return;
-      }
-      clearCart();
-      toggleCart();
-      setModal({ open: true, success: true, message: '¡Tus pedidos fueron creados exitosamente! Pronto recibirás notificaciones.' });
-    } catch (error) {
-      setModal({ open: true, success: false, message: 'Error inesperado al procesar el pedido. Intenta de nuevo.' });
-    } finally {
-      setIsProcessing(false);
-    }
+    toggleCart();
+    router.push('/comprador/checkout');
   };
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    if (isOpen) {
+      setIsVisible(true);
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = prev;
+      };
+    }
+
+    // allow close animation to finish before unmount
+    const t = window.setTimeout(() => setIsVisible(false), 300);
+    return () => window.clearTimeout(t);
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') toggleCart();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isOpen, toggleCart]);
+
+  if (!isOpen && !isVisible) return null;
 
   return (
     <>
-      {/* Modal de confirmación y error */}
-      <Dialog open={modal.open} onOpenChange={open => setModal(m => ({ ...m, open }))}>
-        {modal.open && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-40">
-            <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center">
-              {modal.success ? (
-                <>
-                  <div className="text-green-600 text-4xl mb-2">✔️</div>
-                  <h2 className="text-xl font-bold mb-2">¡Pedido realizado!</h2>
-                  <p className="mb-4">{modal.message}</p>
-                  <button
-                    className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-                    onClick={() => setModal({ open: false })}
-                  >
-                    Cerrar
-                  </button>
-                </>
-              ) : (
-                <>
-                  <div className="text-red-500 text-4xl mb-2">❌</div>
-                  <h2 className="text-xl font-bold mb-2">Ocurrió un error</h2>
-                  <p className="mb-4">{modal.message}</p>
-                  <button
-                    className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400"
-                    onClick={() => setModal({ open: false })}
-                  >
-                    Cerrar
-                  </button>
-                </>
-              )}
+      {/* Modal simple de confirmación y error */}
+      {modal.open && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-neutral-900 border border-neutral-800 p-6 text-center text-neutral-100 shadow-2xl">
+            <div className={`text-3xl mb-2 ${modal.success ? 'text-green-300' : 'text-red-400'}`}>
+              {modal.success ? '✔️' : '❌'}
             </div>
+            <h2 className="text-lg font-bold mb-2">
+              {modal.success ? '¡Pedido realizado!' : 'Ocurrió un error'}
+            </h2>
+            <p className="text-neutral-300 mb-5">{modal.message}</p>
+            <button
+              className="w-full bg-neutral-800 hover:bg-neutral-700 text-neutral-100 py-2.5 rounded-xl font-semibold transition-colors"
+              onClick={() => setModal({ open: false })}
+            >
+              Cerrar
+            </button>
           </div>
-        )}
-      </Dialog>
+        </div>
+      )}
+
       {/* Overlay */}
-      <div 
-        className="fixed inset-0 bg-black bg-opacity-50 z-40"
+      <div
+        className={`fixed inset-0 z-40 bg-black/25 backdrop-blur-sm transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
         onClick={toggleCart}
+        aria-hidden
       />
-      
-      {/* Sidebar con diseño moderno */}
-      <div className="fixed right-0 top-0 h-full w-96 bg-gradient-to-b from-white to-gray-50 shadow-2xl z-50 flex flex-col">
-        {/* Header mejorado */}
-        <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white p-6 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white bg-opacity-10 rounded-full -translate-y-16 translate-x-16"></div>
-          <div className="absolute bottom-0 left-0 w-24 h-24 bg-white bg-opacity-5 rounded-full translate-y-12 -translate-x-12"></div>
-          
-          <div className="relative flex items-center justify-between">
+
+      {/* Panel */}
+      <aside
+        role="dialog"
+        aria-modal="true"
+        aria-label="Carrito de compras"
+        className={`fixed right-0 top-0 z-50 h-dvh w-screen sm:w-96 max-w-md transform bg-neutral-900 border-l border-neutral-800 shadow-2xl transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
+      >
+        <div className="h-full flex flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-800">
             <div className="flex items-center gap-3">
-              <div className="bg-white bg-opacity-20 p-2 rounded-xl">
-                <ShoppingBag size={24} className="text-white" />
+              <div className="rounded-xl bg-neutral-800 p-2">
+                <ShoppingBag size={20} className="text-green-300" />
               </div>
               <div>
-                <h2 className="text-xl font-bold">Carrito de compras</h2>
-                <p className="text-green-100 text-sm">{getTotalItems()} productos seleccionados</p>
+                <h2 className="text-base font-bold text-neutral-100">Carrito de compras</h2>
+                <p className="text-xs text-neutral-300">{getTotalItems()} producto(s)</p>
               </div>
             </div>
             <button
               onClick={toggleCart}
-              className="p-2 hover:bg-white hover:bg-opacity-20 rounded-xl transition-colors"
+              className="p-2 rounded-xl hover:bg-neutral-800 transition-colors"
+              aria-label="Cerrar carrito"
             >
-              <X size={24} />
+              <X size={20} className="text-neutral-200" />
             </button>
           </div>
-        </div>
 
-        {/* Content mejorado */}
-        <div className="flex-1 overflow-y-auto bg-gray-50">
-          {items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-gray-500 p-8">
-              <div className="bg-gradient-to-br from-green-100 to-emerald-100 p-8 rounded-3xl mb-6">
-                <ShoppingBag size={64} className="text-green-500" />
+          {/* Body */}
+          <div className="flex-1 overflow-y-auto p-4">
+            {items.length === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center text-center py-12">
+                <div className="bg-neutral-800 p-7 rounded-3xl mb-5">
+                  <ShoppingBag size={56} className="text-green-300" />
+                </div>
+                <h3 className="text-lg font-bold text-neutral-100">Tu carrito está vacío</h3>
+                <p className="text-sm text-neutral-300 mt-2">Agrega productos desde el Mercado.</p>
               </div>
-              <h3 className="text-xl font-bold text-gray-700 mb-2">Tu carrito está vacío</h3>
-              <p className="text-gray-500 text-center">¡Explora nuestros productos frescos y agrega tus favoritos!</p>
-            </div>
-          ) : (
-            <div className="p-4 space-y-6">
-              {/* Agrupación por agricultor mejorada */}
-              {Object.entries(itemsByVendor).map(([agricultorId, vendor]) => (
-                <div key={agricultorId} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                  {/* Header del agricultor */}
-                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 border-b border-green-100">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-green-500 p-2 rounded-xl">
-                        <span className="text-white text-lg">🚜</span>
+            ) : (
+              <div className="space-y-5">
+                {Object.entries(itemsByVendor).map(([campesinoId, vendor]) => (
+                  <div key={campesinoId} className="rounded-2xl border border-neutral-800 bg-neutral-800/30 overflow-hidden">
+                    <div className="px-4 py-3 border-b border-neutral-800 flex items-center justify-between">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-neutral-100 truncate">{vendor.campesinoName}</p>
+                        <p className="text-xs text-neutral-300">{vendor.items.length} producto(s)</p>
                       </div>
-                      <div>
-                        <h3 className="font-bold text-green-800 text-lg">
-                          {vendor.campesinoName}
-                        </h3>
-                        <p className="text-green-600 text-sm font-medium">
-                          {vendor.items.length} producto{vendor.items.length !== 1 ? 's' : ''} • ${vendor.items.reduce((sum, item) => sum + (item.price * item.quantity), 0).toLocaleString()}
+                      <div className="text-right">
+                        <p className="text-sm font-bold text-green-300">
+                          ${vendor.items.reduce((sum, item) => sum + item.price * item.quantity, 0).toLocaleString()}
                         </p>
                       </div>
                     </div>
-                  </div>
-                  
-                  {/* Productos del agricultor */}
-                  <div className="p-4 space-y-3">
-                    {vendor.items.map((item) => (
-                      <div key={item.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
-                        {/* Imagen del producto */}
-                        <div className="w-16 h-16 rounded-xl overflow-hidden bg-gradient-to-br from-green-100 to-emerald-100 flex-shrink-0 shadow-sm">
-                          {item.imageUrl ? (
-                            <img
-                              src={item.imageUrl}
-                              alt={item.name}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-2xl">
-                              🥬
+
+                    <div className="p-4 space-y-3">
+                      {vendor.items.map((item) => (
+                        <div key={`${item.id}-${item.purchaseUnit ?? ''}`} className="rounded-xl bg-neutral-800 p-3 border border-neutral-700">
+                          <div className="flex items-center gap-3">
+                            <div className="w-14 h-14 rounded-xl bg-neutral-700 overflow-hidden flex-shrink-0">
+                              {item.imageUrl ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                              ) : null}
                             </div>
-                          )}
-                        </div>
-                        
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-bold text-gray-900 text-sm truncate capitalize">{item.name}</h4>
-                          <p className="text-green-600 font-bold text-base">
-                            ${item.price.toLocaleString()}<span className="text-gray-500 text-xs">/{item.unit}</span>
-                          </p>
-                          
-                          {/* Controles de cantidad modernos */}
-                          <div className="flex items-center gap-3 mt-3">
-                            <div className="flex items-center bg-white rounded-lg shadow-sm border border-gray-200">
+
+                            <div className="min-w-0 flex-1">
+                              <p className="font-semibold text-neutral-100 truncate capitalize">{item.name}</p>
+                              <p className="text-sm text-green-300 font-bold">
+                                ${item.price.toLocaleString()} <span className="text-xs text-neutral-400 font-medium">/{item.unit}</span>
+                              </p>
+                            </div>
+
+                            <button
+                              onClick={() => removeItem(item.id)}
+                              className="p-2 rounded-lg hover:bg-red-600/10 transition-colors"
+                              aria-label="Eliminar producto"
+                            >
+                              <Trash2 size={16} className="text-red-400" />
+                            </button>
+                          </div>
+
+                          <div className="mt-3 flex items-center gap-3">
+                            <div className="inline-flex items-center bg-neutral-900 rounded-lg border border-neutral-700">
                               <button
                                 onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
-                                className="p-2 hover:bg-gray-50 rounded-l-lg transition-colors"
+                                className="p-2 hover:bg-neutral-800 rounded-l-lg transition-colors"
+                                aria-label="Disminuir cantidad"
                               >
-                                <Minus size={16} className="text-gray-600" />
+                                <Minus size={16} className="text-neutral-200" />
                               </button>
-                              <span className="px-4 py-2 font-bold text-gray-900 min-w-[3rem] text-center">
+                              <span className="px-4 text-sm font-bold text-neutral-100 min-w-[2.75rem] text-center">
                                 {item.quantity}
                               </span>
                               <button
                                 onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
                                 disabled={item.quantity >= item.stock}
-                                className="p-2 hover:bg-gray-50 rounded-r-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="p-2 hover:bg-neutral-800 rounded-r-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                aria-label="Aumentar cantidad"
                               >
-                                <Plus size={16} className="text-gray-600" />
+                                <Plus size={16} className="text-neutral-200" />
                               </button>
                             </div>
-                            
+
                             <div className="flex-1 text-right">
-                              <p className="font-bold text-lg text-gray-900">
+                              <p className="text-sm font-bold text-neutral-100">
                                 ${(item.price * item.quantity).toLocaleString()}
                               </p>
+                              {item.quantity >= item.stock && (
+                                <p className="text-xs text-amber-400">Stock máximo</p>
+                              )}
                             </div>
-                            
-                            <button
-                              onClick={() => removeItem(item.id)}
-                              className="p-2 hover:bg-red-50 text-red-500 rounded-lg transition-colors"
-                            >
-                              <Trash2 size={16} />
-                            </button>
                           </div>
-                          
-                          {item.quantity >= item.stock && (
-                            <p className="text-xs text-amber-600 mt-1 font-medium">⚠️ Stock máximo alcanzado</p>
-                          )}
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          {items.length > 0 && (
+            <div className="p-4 border-t border-neutral-800 bg-neutral-900/80">
+              <div className="rounded-2xl border border-neutral-800 bg-neutral-800/40 p-4 flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-neutral-300">Total</p>
+                  <p className="text-xs text-neutral-400">{getTotalItems()} producto(s)</p>
                 </div>
-              ))}
+                <p className="text-2xl font-bold text-green-300">${getTotalPrice().toLocaleString()}</p>
+              </div>
+
+              <div className="mt-4 space-y-2">
+                <button
+                  onClick={handleCheckout}
+                  className="w-full rounded-2xl bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white py-3 font-bold transition-colors"
+                >
+                  Proceder al Checkout
+                </button>
+                <button
+                  onClick={clearCart}
+                  className="w-full rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-100 py-2.5 font-semibold transition-colors"
+                >
+                  Vaciar carrito
+                </button>
+              </div>
             </div>
           )}
         </div>
-
-        {/* Footer moderno */}
-        {items.length > 0 && (
-          <div className="bg-white border-t border-gray-200 p-6 space-y-6">
-            {/* Resumen de totales */}
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-2xl border border-green-100">
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="text-gray-600 text-sm font-medium">Total a pagar</p>
-                  <p className="text-gray-500 text-xs">{getTotalItems()} productos</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-3xl font-bold text-green-600">
-                    ${getTotalPrice().toLocaleString()}
-                  </p>
-                  <p className="text-green-500 text-xs font-medium">COP</p>
-                </div>
-              </div>
-            </div>
-            
-            {/* Botones de acción */}
-            <div className="space-y-3">
-              <button
-                onClick={handleCheckout}
-                disabled={isProcessing}
-                className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white py-4 px-6 rounded-2xl font-bold text-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-              >
-                {isProcessing ? (
-                  <div className="flex items-center justify-center gap-2">
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    Procesando pedido...
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center gap-2">
-                    <ShoppingBag size={20} />
-                    Proceder al Checkout
-                  </div>
-                )}
-              </button>
-              
-              <button
-                onClick={clearCart}
-                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 px-6 rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
-              >
-                <Trash2 size={16} />
-                Eliminar
-              </button>
-            </div>
-            
-            {/* Nota informativa */}
-            <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
-              <div className="flex items-start gap-3">
-                <div className="bg-blue-500 p-1 rounded-lg flex-shrink-0">
-                  <span className="text-white text-sm">ℹ️</span>
-                </div>
-                <div>
-                  <p className="text-blue-800 text-sm font-medium">Pedidos por agricultor</p>
-                  <p className="text-blue-600 text-xs">Se crearán pedidos separados para cada agricultor automáticamente</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+      </aside>
     </>
   );
 }

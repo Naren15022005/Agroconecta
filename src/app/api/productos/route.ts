@@ -129,6 +129,12 @@ export async function POST(req: NextRequest) {
     } else if (typeof data.metodosEntrega === 'string') {
       metodosEntrega = data.metodosEntrega;
     }
+    let purchaseUnits = null;
+    if (Array.isArray(data.purchaseUnits)) {
+      purchaseUnits = JSON.stringify(data.purchaseUnits);
+    } else if (typeof data.purchaseUnits === 'string') {
+      purchaseUnits = data.purchaseUnits;
+    }
     const producto = await prisma.product.create({
       data: {
         id: productoId,
@@ -137,7 +143,9 @@ export async function POST(req: NextRequest) {
         price: data.price,
         unit: data.unit || 'kg',
         stock: data.stock || 0,
-        stockMinimo: data.stockMinimo || 0,
+        // Forzar valores por sistema: stock mínimo y reservado siempre 10
+        stockMinimo: 10,
+        reservedStock: 10,
         imageUrl: data.imageUrl || '',
         agricultorId: agricultor.id,
         categoryId: data.categoryId,
@@ -146,10 +154,9 @@ export async function POST(req: NextRequest) {
         fechaCosecha: fechaCosecha,
         tiempoEntrega: data.tiempoEntrega ? data.tiempoEntrega.toString() : "1",
         pesoAproximado: data.pesoAproximado || null,
-        dimensiones: data.dimensiones || null,
-        condicionesAlmacenamiento: data.condicionesAlmacenamiento || null,
         certificaciones: certificaciones,
         metodosEntrega: metodosEntrega,
+        purchaseUnits: purchaseUnits,
         horariosDisponibles: data.horariosDisponibles || null,
         notasEspeciales: data.notasEspeciales || null,
         municipio: data.municipio || null,

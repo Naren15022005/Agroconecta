@@ -19,7 +19,7 @@ export default function RootLayout({
         <meta name="description" content="Conectando directamente campesinos con compradores. Elimina intermediarios y promueve el comercio justo en Colombia." />
       </head>
       <body className={`${inter.className} antialiased`}>
-        <SessionProvider>
+        <SessionProvider refetchOnWindowFocus={false}>
           {children}
         </SessionProvider>
       </body>

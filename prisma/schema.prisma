@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -15,8 +15,8 @@ model Notification {
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
 
-  @@index([userId], map: "notifications_userId_fkey")
-  @@index([pedidoId], map: "notifications_pedidoId_fkey")
+  @@index([userId])
+  @@index([pedidoId])
   @@map("notifications")
 }
 
@@ -57,7 +57,7 @@ model User {
   wallets             Wallet[]
   withdrawRequests    WithdrawRequest[]
 
-  @@index([roleId], map: "users_roleId_fkey")
+  @@index([roleId])
   @@map("users")
 }
 
@@ -90,7 +90,7 @@ model Subcategory {
   products    Product[]
   category    Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
-  @@index([categoryId], map: "subcategories_categoryId_fkey")
+  @@index([categoryId])
   @@map("subcategories")
 }
 
@@ -152,10 +152,9 @@ model Product {
   tiempoEntrega             String?
   stockMinimo               Int?
   pesoAproximado            Decimal?      @db.Decimal(10, 2)
-  dimensiones               String?
-  condicionesAlmacenamiento String?
-  certificaciones           String?       @db.LongText
-  metodosEntrega            String?       @db.LongText
+  certificaciones           String?       @db.Text
+  metodosEntrega            String?       @db.Text
+  purchaseUnits             String?       @db.Text
   horariosDisponibles       String?
   notasEspeciales           String?
   municipio                 String?
@@ -173,9 +172,9 @@ model Product {
   category                  Category      @relation(fields: [categoryId], references: [id], onDelete: NoAction)
   subcategory               Subcategory?  @relation(fields: [subcategoryId], references: [id], onDelete: NoAction)
 
-  @@index([agricultorId], map: "products_agricultorId_fkey")
-  @@index([categoryId], map: "products_categoryId_fkey")
-  @@index([subcategoryId], map: "products_subcategoryId_fkey")
+  @@index([agricultorId])
+  @@index([categoryId])
+  @@index([subcategoryId])
   @@map("products")
 }
 
@@ -190,7 +189,7 @@ model CartItem {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, productId])
-  @@index([productId], map: "cart_items_productId_fkey")
+  @@index([productId])
   @@map("cart_items")
 }
 
@@ -215,7 +214,7 @@ model Order {
   buyer                   User           @relation(fields: [buyerId], references: [id], onDelete: Cascade)
   paymentTransactions     PaymentTransaction[]
 
-  @@index([buyerId], map: "orders_buyerId_fkey")
+  @@index([buyerId])
   @@index([archived])
   @@index([status, archived])
   @@map("orders")
@@ -227,13 +226,14 @@ model PaymentTransaction {
   agricultorId String
   monto        Decimal  @db.Decimal(12, 2)
   metodo       String
+  comprobanteUrl String?
   estado       String   @default("PENDIENTE")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   order        Order    @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
 
-  @@index([pedidoId], map: "payment_transactions_pedidoId_fkey")
+  @@index([pedidoId])
   @@map("payment_transactions")
 }
 
@@ -247,8 +247,8 @@ model OrderItem {
   order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
-  @@index([orderId], map: "order_items_orderId_fkey")
-  @@index([productId], map: "order_items_productId_fkey")
+  @@index([orderId])
+  @@index([productId])
   @@map("order_items")
 }
 
@@ -268,7 +268,7 @@ model Account {
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
-  @@index([userId], map: "accounts_userId_fkey")
+  @@index([userId])
   @@map("accounts")
 }
 
@@ -288,7 +288,7 @@ model Session {
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId], map: "sessions_userId_fkey")
+  @@index([userId])
   @@map("sessions")
 }
 
@@ -301,7 +301,7 @@ model Wallet {
   transactions WalletTransaction[]
   user         User                @relation(fields: [userId], references: [id])
 
-  @@index([userId], map: "wallets_userId_fkey")
+  @@index([userId])
   @@map("wallets")
 }
 
@@ -314,7 +314,7 @@ model WalletTransaction {
   createdAt   DateTime @default(now())
   wallet      Wallet   @relation(fields: [walletId], references: [id])
 
-  @@index([walletId], map: "wallet_transactions_walletId_fkey")
+  @@index([walletId])
   @@map("wallet_transactions")
 }
 
@@ -332,8 +332,8 @@ model Sale {
   comprador      User       @relation("VentasComoComprador", fields: [compradorId], references: [id])
   vendedor       User       @relation("VentasComoVendedor", fields: [vendedorId], references: [id])
 
-  @@index([compradorId], map: "sales_compradorId_fkey")
-  @@index([vendedorId], map: "sales_vendedorId_fkey")
+  @@index([compradorId])
+  @@index([vendedorId])
   @@map("sales")
 }
 
@@ -346,7 +346,7 @@ model WithdrawRequest {
   processedAt DateTime?
   user        User      @relation(fields: [userId], references: [id])
 
-  @@index([userId], map: "withdraw_requests_userId_fkey")
+  @@index([userId])
   @@map("withdraw_requests")
 }
 
@@ -355,11 +355,13 @@ model Pago {
   userId     String
   monto      Decimal  @db.Decimal(12, 2)
   metodoPago String
+  referencia String?
+  comprobanteUrl String?
   estado     String   @default("PENDIENTE")
   fecha      DateTime @default(now())
   user       User     @relation(fields: [userId], references: [id])
 
-  @@index([userId], map: "pagos_userId_fkey")
+  @@index([userId])
   @@map("pagos")
 }
 
@@ -371,7 +373,7 @@ model Comision {
   fecha      DateTime @default(now())
   venta      Sale     @relation(fields: [ventaId], references: [id])
 
-  @@index([ventaId], map: "comisiones_ventaId_fkey")
+  @@index([ventaId])
   @@map("comisiones")
 }
 
@@ -384,7 +386,7 @@ model Impuesto {
   fecha      DateTime @default(now())
   venta      Sale     @relation(fields: [ventaId], references: [id])
 
-  @@index([ventaId], map: "impuestos_ventaId_fkey")
+  @@index([ventaId])
   @@map("impuestos")
 }
 
@@ -397,7 +399,7 @@ model Transaccion {
   fecha      DateTime @default(now())
   user       User     @relation(fields: [userId], references: [id])
 
-  @@index([userId], map: "transacciones_userId_fkey")
+  @@index([userId])
   @@map("transacciones")
 }
 
@@ -435,4 +437,52 @@ enum PaymentMethod {
   NEQUI
   PASARELA
   MERCADOPAGO
+}
+
+enum PaymentOrderState {
+  PENDIENTE
+  PAGADO_INDIVIDUAL
+  PAGADO_MASIVO
+  REEMBOLSADO
+  BLOQUEADO
+}
+
+enum TipoPago {
+  INDIVIDUAL
+  MASIVO
+}
+
+model PaymentOrder {
+  id                 String            @id
+  pedido_id          String
+  agricultor_id      String
+  cliente_nombre     String
+  producto_resumen   String
+  comprobanteUrl     String?
+  monto_bruto        Decimal           @db.Decimal(12,2)
+  comision_plataforma Decimal          @db.Decimal(12,2)
+  monto_neto         Decimal           @db.Decimal(12,2)
+  metodo_pago_cliente String
+  estado             PaymentOrderState @default(PENDIENTE)
+  liquidacion_id     String?
+  pagado_en          DateTime?
+  history            Json?
+  created_at         DateTime          @default(now())
+  updated_at         DateTime          @updatedAt
+
+  @@map("payment_orders")
+}
+
+model Liquidacion {
+  id            String   @id
+  agricultor_id String
+  total_pagado  Decimal  @db.Decimal(12,2)
+  cantidad_pedidos Int
+  tipo_pago     TipoPago
+  fecha_pago    DateTime
+  metodo_pago   String?
+  comprobante_url String?
+  created_at    DateTime @default(now())
+
+  @@map("liquidaciones")
 }

@@ -2,7 +2,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import styles from './Wallet.module.css';
-import { FaArrowDown, FaArrowUp, FaBell, FaCog, FaCreditCard, FaMoneyBillWave, FaPiggyBank, FaPlus, FaQrcode, FaQuestionCircle, FaShoppingCart, FaUser, FaFileInvoice, FaBuilding, FaBolt, FaMicrochip, FaCcVisa, FaCcMastercard } from 'react-icons/fa';
+import { FaArrowDown, FaArrowUp, FaCreditCard, FaMoneyBillWave, FaPiggyBank, FaPlus, FaQrcode, FaShoppingCart, FaUser, FaFileInvoice, FaBuilding, FaBolt, FaMicrochip, FaCcVisa, FaCcMastercard } from 'react-icons/fa';
 
 // Interfaces principales de la billetera admin
 export interface Transaction {
@@ -46,6 +46,8 @@ const Wallet: React.FC = () => {
   const [stats, setStats] = useState<Stat[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [balance, setBalance] = useState<string>('0');
+  const [comisionesTotalesNum, setComisionesTotalesNum] = useState<number>(0);
+  const [totalPagosAgricultoresNum, setTotalPagosAgricultoresNum] = useState<number>(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -68,36 +70,36 @@ const Wallet: React.FC = () => {
           }))
         );
 
-        // Stats
+        // compute net and totals
+        const comisionesTotales = Number(data.comisionesTotales ?? 0);
+        const totalPagosAgricultores = Number(data.totalPagosAgricultores ?? 0);
+        const saldoActualComisiones = Number(data.saldoActualComisiones ?? (comisionesTotales - totalPagosAgricultores));
+        setComisionesTotalesNum(comisionesTotales);
+        setTotalPagosAgricultoresNum(totalPagosAgricultores);
+
+        // Stats - mostrar comisiones acumuladas y ventas del mes
         setStats([
           {
             id: 1,
-            title: 'Ingresos totales (mes)',
-            value: Number(data.ingresosMes || 0).toLocaleString(),
+            title: 'Comisiones acumuladas',
+            value: comisionesTotales.toLocaleString(),
             trend: 'up',
-            trendText: 'Comisiones recibidas',
-            icon: <FaArrowDown />
+            trendText: 'Comisiones retenidas en la plataforma',
+            icon: <FaPiggyBank />
           },
           {
             id: 2,
-            title: 'Liquidaciones realizadas (mes)',
-            value: Number(data.liquidacionesMes || 0).toLocaleString(),
-            trend: 'down',
-            trendText: 'Pagos a agricultores',
-            icon: <FaMoneyBillWave />
-          },
-          {
-            id: 3,
-            title: 'Saldo disponible',
-            value: Number(data.saldoDisponible || 0).toLocaleString(),
+            title: 'Ingresos totales (mes)',
+            value: Number(data.totalRecaudado || 0).toLocaleString(),
             trend: 'up',
-            trendText: 'Monto para retirar',
-            icon: <FaCreditCard />
+            trendText: 'Ventas registradas',
+            icon: <FaArrowDown />
           }
         ]);
 
-        // Balance
-        setBalance(Number(data.saldoDisponible || 0).toLocaleString());
+        // Balance: mostrar las comisiones acumuladas (valor bruto)
+        // El usuario prefiere ver el acumulado total que se ha cobrado como comisión.
+        setBalance(comisionesTotales.toLocaleString());
 
         // Transactions
         setTransactions(
@@ -112,6 +114,7 @@ const Wallet: React.FC = () => {
             ]
           }))
         );
+
       } catch (err: any) {
         setError(err.message || 'Error desconocido');
       } finally {
@@ -150,6 +153,11 @@ const Wallet: React.FC = () => {
         quickActions={quickActions} 
         onActionClick={handleActionClick}
       />
+      <div style={{ maxWidth: 800, margin: '0.5rem auto', color: 'var(--muted)', display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+        <div>Comisiones totales: <span style={{ color: 'var(--accent)', fontWeight: 700 }}>$ {comisionesTotalesNum.toLocaleString()}</span></div>
+        <div>Pagos a agricultores: <span style={{ color: 'var(--danger)', fontWeight: 700 }}>$ {totalPagosAgricultoresNum.toLocaleString()}</span></div>
+        <div>Saldo neto: <span style={{ color: 'var(--success)', fontWeight: 700 }}>$ {Number(comisionesTotalesNum - totalPagosAgricultoresNum).toLocaleString()}</span></div>
+      </div>
       <CardsSection 
         cards={cards} 
         onAddCard={handleAddCard}
@@ -161,7 +169,7 @@ const Wallet: React.FC = () => {
         onFilterChange={setActiveFilter}
         onTransactionClick={handleTransactionClick}
       />
-      <WalletFooter />
+      
       <div style={{ margin: "2rem 0" }} />
     </>
   );
@@ -175,17 +183,7 @@ const WalletHeader = () => (
         <h1>Mi Billetera</h1>
       </div>
     </div>
-    <div className={styles["wallet-actions"]}>
-      <div className={styles["wallet-action-btn"]} title="Notificaciones">
-        <FaBell />
-      </div>
-      <div className={styles["wallet-action-btn"]} title="Ajustes">
-        <FaCog />
-      </div>
-      <div className={styles["wallet-action-btn"]} title="Ayuda">
-        <FaQuestionCircle />
-      </div>
-    </div>
+    
   </header>
 );
 
@@ -373,10 +371,6 @@ const TransactionsSection: React.FC<TransactionsSectionProps> = ({ transactions,
   );
 };
 
-const WalletFooter = () => (
-  <footer className={styles["wallet-footer"]}>
-    AgroConecta Billetera Virtual &copy; 2025 - Todos los derechos reservados
-  </footer>
-);
+
 
 export default Wallet;

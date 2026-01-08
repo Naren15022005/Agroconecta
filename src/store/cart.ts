@@ -8,15 +8,23 @@ export interface CartItem {
   quantity: number
   stock: number
   unit: string
+  purchaseUnit?: string
   campesinoId: string
   campesinoName: string
   imageUrl?: string
+  deliveryMethod?: string
+  preparation?: {
+    acciones: string[]
+    madurez: string
+    tamano: string
+    notas: string
+  }
 }
 
 interface CartStore {
   items: CartItem[]
   isOpen: boolean
-  addItem: (item: Omit<CartItem, 'quantity'>) => void
+  addItem: (item: Omit<CartItem, 'quantity'>, quantity?: number) => void
   removeItem: (itemId: string) => void
   updateQuantity: (itemId: string, quantity: number) => void
   clearCart: () => void
@@ -32,23 +40,23 @@ export const useCartStore = create<CartStore>()(
       items: [],
       isOpen: false,
       
-      addItem: (newItem) => {
+      addItem: (newItem, quantity = 1) => {
         const items = get().items
-        const existingItem = items.find(item => item.id === newItem.id)
-        
+        const existingItem = items.find(item => item.id === newItem.id && item.purchaseUnit === (newItem as any).purchaseUnit)
+
+        const qtyToAdd = Math.max(1, Math.floor(quantity))
+
         if (existingItem) {
-          // Si el item ya existe, incrementar cantidad
           set({
             items: items.map(item =>
-              item.id === newItem.id
-                ? { ...item, quantity: Math.min(item.quantity + 1, item.stock) }
+              item.id === newItem.id && item.purchaseUnit === (newItem as any).purchaseUnit
+                ? { ...item, quantity: Math.min(item.quantity + qtyToAdd, item.stock) }
                 : item
             )
           })
         } else {
-          // Si es nuevo, agregarlo con cantidad 1
           set({
-            items: [...items, { ...newItem, quantity: 1 }]
+            items: [...items, { ...newItem, quantity: Math.min(qtyToAdd, newItem.stock) }]
           })
         }
       },

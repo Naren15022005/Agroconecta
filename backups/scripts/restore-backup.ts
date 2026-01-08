@@ -147,13 +147,13 @@ async function restoreFromBackup(backupFilename: string) {
     // 5. Restaurar productos (requiere usuarios y subcategorías existentes)
     if (backupData.data?.products) {
       console.log('🥕 Restaurando productos...');
-      // Obtener IDs de usuarios existentes
-      const existingUsers = await prisma.user.findMany({ select: { id: true } });
-      const userIds = new Set(existingUsers.map(u => u.id));
+      // Obtener IDs de agricultores existentes (los productos referencian agriccultorId)
+      const existingAgricultores = await prisma.agricultor.findMany({ select: { id: true } });
+      const agricultorIds = new Set(existingAgricultores.map(a => a.id));
       let productosRestaurados = 0;
       let productosOmitidos = 0;
       for (const product of backupData.data.products) {
-        if (!userIds.has(product.agricultorId)) {
+        if (!agricultorIds.has(product.agricultorId)) {
           console.warn(`⚠️  Producto omitido (agricultorId no existe): ${product.id} - ${product.name}`);
           productosOmitidos++;
           continue;

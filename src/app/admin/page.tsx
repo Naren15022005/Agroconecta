@@ -1,31 +1,94 @@
-import { UserCircle, ShoppingCart, Box, ChartBar, Cog, Users, Move, FileText, Star, Tractor, Bolt, Wallet } from 'lucide-react';
+import { TrendingUp, DollarSign, Users, Package, Activity, Clock } from 'lucide-react';
+import Link from 'next/link';
 import DashboardCards from './DashboardCards';
 import PagosAgricultoresTable from './PagosAgricultoresTable';
 import { Suspense } from 'react';
 
-// Server action para obtener datos reales
-async function getAdminDashboardData() {
-  const res = await fetch(process.env.NEXT_PUBLIC_API_URL + '/api/admin/dashboard', { cache: 'no-store' });
-  if (!res.ok) return null;
-  return res.json();
-}
 export default function AdminHome() {
   return (
-    <>
-      {/* Banner de bienvenida */}
-      <section className="rounded-xl p-8 mb-8 flex flex-col md:flex-row justify-between items-center shadow" style={{ background: 'var(--card)', color: 'var(--accent)', boxShadow: '0 2px 16px #232a3433' }}>
-        <div>
-          <h2 className="text-3xl font-bold mb-2" style={{ color: 'var(--accent)' }}>Bienvenido al Panel de Administración</h2>
-          <p className="text-lg" style={{ color: 'var(--muted)' }}>Gestiona tu plataforma agropecuaria desde un solo lugar</p>
+    <div className="space-y-6">
+      {/* Banner de bienvenida simplificado */}
+      <section className="rounded-lg p-6" 
+        style={{ 
+          background: '#232a34',
+          border: '1px solid rgba(28, 198, 228, 0.2)'
+        }}>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center"
+                style={{ background: 'var(--accent)' }}>
+                <Activity size={20} style={{ color: '#0b1114' }} />
+              </div>
+              <div>
+                <p className="text-xs font-medium" style={{ color: '#94a3b8' }}>Panel de Control</p>
+                <h2 className="text-xl font-bold" style={{ color: '#e6faff' }}>Dashboard Administrativo</h2>
+              </div>
+            </div>
+            <p className="text-sm" style={{ color: '#94a3b8' }}>
+              Monitorea el rendimiento de tu plataforma en tiempo real
+            </p>
+          </div>
+          
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" 
+            style={{ 
+              background: 'rgba(28, 198, 228, 0.1)',
+              border: '1px solid rgba(28, 198, 228, 0.2)'
+            }}>
+            <Clock size={14} style={{ color: 'var(--accent)' }} />
+            <span className="text-xs font-medium" style={{ color: 'var(--accent)' }}>
+              Actualizado hace 2 min
+            </span>
+          </div>
         </div>
       </section>
-      <Suspense fallback={<div>Cargando tarjetas...</div>}>
-        <DashboardCards />
-      </Suspense>
-      <section className="rounded-xl p-8 mt-8 shadow" style={{ background: 'var(--card)', color: 'var(--accent)', boxShadow: '0 2px 16px #232a3433' }}>
-        <h3 className="text-2xl font-bold mb-4" style={{ color: 'var(--accent)' }}>Pagos recientes a agricultores</h3>
-        <PagosAgricultoresTable />
-      </section>
-    </>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-8 space-y-6">
+          {/* Cards de métricas */}
+          <Suspense fallback={<div className="flex items-center justify-center py-8"><div className="animate-spin rounded-full h-8 w-8 border-2 border-t-transparent" style={{ borderColor: 'var(--accent)' }}></div></div>}>
+            <DashboardCards />
+          </Suspense>
+
+          {/* Tabla de pagos */}
+          <PagosAgricultoresTable />
+        </div>
+
+        <aside className="lg:col-span-4 space-y-4">
+          <div className="p-5 rounded-lg" style={{ background: '#232a34', border: '1px solid rgba(28, 198, 228, 0.15)' }}>
+            <h3 className="text-base font-semibold mb-3" style={{ color: '#e6faff' }}>Actividad Reciente</h3>
+            <p className="text-xs mb-4" style={{ color: '#94a3b8' }}>Últimas acciones del sistema y alertas rápidas.</p>
+            <ul className="space-y-3">
+              <li className="flex items-start gap-2 pb-3 border-b border-gray-700">
+                <span className="w-1.5 h-1.5 rounded-full mt-1.5" style={{ background: 'var(--accent)' }}></span>
+                <div className="flex-1">
+                  <div className="text-xs" style={{ color: '#e6faff' }}>Pedido #AGRC_ORD_xxx confirmado</div>
+                  <div className="text-xs" style={{ color: '#94a3b8' }}>Hace 3 minutos</div>
+                </div>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="w-1.5 h-1.5 rounded-full mt-1.5" style={{ background: '#f59e0b' }}></span>
+                <div className="flex-1">
+                  <div className="text-xs" style={{ color: '#e6faff' }}>Pago pendiente de validación</div>
+                  <div className="text-xs" style={{ color: '#94a3b8' }}>Hace 12 minutos</div>
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          <div className="p-5 rounded-lg" style={{ background: '#232a34', border: '1px solid rgba(28, 198, 228, 0.15)' }}>
+            <h3 className="text-base font-semibold mb-3" style={{ color: '#e6faff' }}>Acciones rápidas</h3>
+            <div className="flex flex-col gap-2">
+              <Link className="px-4 py-2 rounded-lg text-sm font-medium text-center transition-colors hover:bg-opacity-10" style={{ border: '1px solid var(--accent)', color: 'var(--accent)', background: 'transparent' }} href="/admin/billetera">Billetera</Link>
+              <Link className="px-4 py-2 rounded-lg text-sm font-medium text-center transition-colors hover:bg-opacity-10" style={{ border: '1px solid var(--accent)', color: 'var(--accent)', background: 'transparent' }} href="/admin/validaciones-pagos">Validaciones</Link>
+              <Link className="px-4 py-2 rounded-lg text-sm font-medium text-center transition-colors hover:bg-opacity-10" style={{ border: '1px solid var(--accent)', color: 'var(--accent)', background: 'transparent' }} href="/admin/pagos">Revisar pagos</Link>
+            </div>
+          </div>
+
+        </aside>
+      </div>
+
+      {/* animations moved to global CSS */}
+    </div>
   );
 }

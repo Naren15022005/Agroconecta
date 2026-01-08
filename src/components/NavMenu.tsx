@@ -10,7 +10,8 @@ import {
   User,
   Menu,
   X,
-  LogOut
+  LogOut,
+  Wallet
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { signOut, useSession } from 'next-auth/react';
@@ -19,6 +20,7 @@ const menu = [
   { href: '/agricultor/mercado', label: 'Mercado', icon: Store },
   { href: '/agricultor/mis-productos', label: 'Mis productos', icon: Package },
   { href: '/agricultor/publicar', label: 'Publicar', icon: Plus },
+  { href: '/agricultor/billetera', label: 'miAgrobilletera', icon: Wallet },
   { href: '/agricultor/pedidos', label: 'Pedidos', icon: ShoppingBag },
   { href: '/agricultor/estadisticas', label: 'Estadísticas', icon: BarChart3 },
   { href: '/agricultor/perfil', label: 'Perfil', icon: User },
@@ -31,6 +33,7 @@ export default function NavMenu({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession();
   const [pedidosNuevos, setPedidosNuevos] = useState(0);
   const [mounted, setMounted] = useState(false);
+  const [perfil, setPerfil] = useState<any | null>(null);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -64,6 +67,24 @@ export default function NavMenu({ children }: { children: React.ReactNode }) {
     return () => clearInterval(interval);
   }, [session?.user?.id]);
 
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    let mountedFlag = true;
+    const fetchPerfil = async () => {
+      try {
+        const res = await fetch('/api/agricultor/perfil');
+        if (!res.ok) return;
+        const json = await res.json();
+        if (!mountedFlag) return;
+        setPerfil(json?.agricultor ?? null);
+      } catch (error) {
+        console.log('Error al cargar perfil:', error);
+      }
+    };
+    fetchPerfil();
+    return () => { mountedFlag = false; };
+  }, [session?.user?.id]);
+
   const handleLogout = () => {
     signOut({ callbackUrl: '/auth/signin' });
   };
@@ -71,15 +92,15 @@ export default function NavMenu({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative">
       {/* Topbar fijo */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+      <header className={`fixed top-0 left-0 right-0 z-40 bg-neutral-900 border-b border-neutral-800 shadow-sm transform transition-transform duration-300 ${isOpen ? 'md:translate-x-64 lg:translate-x-72' : ''}`}>
         <div className="flex items-center justify-between h-16 px-4">
           {/* Toggle sidebar + Logo */}
           <div className="flex items-center space-x-4">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-neutral-800 rounded-lg transition-colors"
             >
-              <Menu className="w-6 h-6 text-gray-700" />
+              <Menu className="w-6 h-6 text-neutral-100" />
             </button>
             
             <div className="flex items-center space-x-3">
@@ -87,16 +108,16 @@ export default function NavMenu({ children }: { children: React.ReactNode }) {
                 <span className="text-white font-bold text-sm">A</span>
               </div>
               <div>
-                <h1 className="text-lg font-bold text-gray-900">AgroConecta</h1>
+                <h1 className="text-lg font-bold text-white">AgroConecta</h1>
               </div>
             </div>
           </div>
 
           {/* Información del usuario en topbar */}
           <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2 text-gray-700">
-              <User className="w-5 h-5" />
-              <span className="hidden sm:block font-medium">{session?.user?.name || 'Usuario'}</span>
+            <div className="flex items-center space-x-2 text-neutral-100">
+              <User className="w-5 h-5 text-neutral-100" />
+              <span className="hidden sm:block font-medium text-white">{session?.user?.name || 'Usuario'}</span>
             </div>
           </div>
         </div>
@@ -104,38 +125,49 @@ export default function NavMenu({ children }: { children: React.ReactNode }) {
 
       {/* Sidebar */}
       <nav className={`
-        fixed top-16 left-0 z-40
-        w-80 bg-white border-r border-gray-200 shadow-xl
+        fixed top-0 left-0 z-50
+        w-64 md:w-72 bg-neutral-800 border-r border-neutral-700 shadow-2xl
         transform transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         flex flex-col
-        h-[calc(100vh-4rem)]
+        h-screen
       `}>
         {/* Header del sidebar */}
-        <div className="p-4 border-b border-gray-200">
+        <div className="p-4 border-b border-neutral-700">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-gray-900">Navegación</h2>
+            <h2 className="text-lg font-bold text-neutral-100">Navegación</h2>
             <button
               onClick={() => setIsOpen(false)}
-              className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-1 hover:bg-neutral-700 rounded-lg transition-colors"
             >
-              <X className="w-5 h-5 text-gray-500" />
+              <X className="w-5 h-5 text-neutral-200" />
             </button>
           </div>
         </div>
 
         {/* Información del usuario */}
-        <div className="px-4 py-3 bg-gradient-to-r from-green-50 to-orange-50 border-b border-gray-200">
+        <div className="px-4 py-3 bg-neutral-900/5 border-b border-neutral-700">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-green-600 to-green-700 rounded-full flex items-center justify-center">
-              <User className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 rounded-full overflow-hidden bg-neutral-900/10 border border-neutral-700 flex items-center justify-center">
+              <div className="w-full h-full relative">
+                <img
+                  src={perfil?.foto ?? 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=='}
+                  alt="Avatar"
+                  className="w-full h-full object-cover"
+                />
+                <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200 ${perfil?.foto ? 'opacity-0' : 'opacity-100'}`}>
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-r from-green-600 to-green-700">
+                    <User className="w-5 h-5 text-white" />
+                  </div>
+                </div>
+              </div>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">
-                {session?.user?.name || 'Usuario'}
+              <p className="text-sm font-medium text-neutral-100 truncate">
+                {perfil?.user?.nombre || session?.user?.name || 'Usuario'}
               </p>
-              <p className="text-xs text-gray-500 truncate">
-                {session?.user?.email || 'email@ejemplo.com'}
+              <p className="text-xs text-neutral-400 truncate">
+                {perfil?.user?.correo || session?.user?.email || 'email@ejemplo.com'}
               </p>
             </div>
           </div>
@@ -153,16 +185,16 @@ export default function NavMenu({ children }: { children: React.ReactNode }) {
                     href={href}
                     onClick={() => setIsOpen(false)}
                     className={`
-                      flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200
-                      ${isActive 
-                        ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg' 
-                        : 'text-gray-700 hover:bg-gray-100 hover:text-green-600'
-                      }
-                      group relative
-                    `}
+                        flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200
+                        ${isActive 
+                          ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg' 
+                          : 'text-neutral-200 hover:bg-neutral-700 hover:text-green-400'
+                        }
+                        group relative
+                      `}
                   >
-                    <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-gray-500 group-hover:text-green-600'}`} />
-                    <span className="font-medium">{label}</span>
+                      <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-neutral-300 group-hover:text-green-400'}`} />
+                      <span className={`font-medium ${isActive ? 'text-white' : 'text-neutral-200'}`}>{label}</span>
                     {isPedidos && pedidosNuevos > 0 && mounted && (
                       <span className="absolute right-4 top-1/2 -translate-y-1/2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg border border-white animate-bounce">
                         {pedidosNuevos}
@@ -175,22 +207,22 @@ export default function NavMenu({ children }: { children: React.ReactNode }) {
           </ul>
         </div>
 
-        {/* Footer del sidebar con botón de logout */}
-        <div className="p-4 border-t border-gray-200 bg-gray-50">
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50 hover:text-red-700 rounded-xl transition-all duration-200 group"
-          >
-            <LogOut className="w-5 h-5" />
-            <span className="font-medium">Cerrar Sesión</span>
-          </button>
-        </div>
+          {/* Footer del sidebar con botón de logout */}
+          <div className="p-4 border-t border-neutral-700 bg-neutral-800/80">
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center space-x-3 px-4 py-3 text-red-400 hover:bg-red-700/10 hover:text-red-300 rounded-xl transition-all duration-200 group"
+            >
+              <LogOut className="w-5 h-5 text-red-400" />
+              <span className="font-medium">Cerrar Sesión</span>
+            </button>
+          </div>
       </nav>
 
       {/* Contenido principal que se desplaza */}
       <div className={`
         transition-all duration-300 ease-in-out pt-16
-        ${isOpen ? 'ml-80' : 'ml-0'}
+        ${isOpen ? 'md:ml-64 lg:ml-72' : 'ml-0'}
       `}>
         {children}
       </div>

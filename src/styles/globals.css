@@ -78,6 +78,7 @@
   --glass: rgba(28, 198, 228, 0.06);
   --glass-2: rgba(28, 198, 228, 0.03);
   --radius: 20px;
+  --wallet-radius: 20px;
   --purple-fluor: #1cc6e4;
   --gradient-main: linear-gradient(135deg, #232a34 0%, #232a34 100%);
   --gradient-hover: linear-gradient(135deg, #232a34 0%, #232a34 100%);
@@ -86,8 +87,9 @@
 html, body, #__next, #root {
   background: var(--bg) !important;
   min-height: 100vh;
-  width: 100vw;
+  width: 100%;
   box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 body {

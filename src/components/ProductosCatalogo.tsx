@@ -1,9 +1,10 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { Heart, Star, MapPin, Calendar, User, X } from 'lucide-react';
+import { Heart, MapPin, User, X } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useCartStore } from '@/store/cart';
 import { ShoppingCart } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface Producto {
   id: string; // Cambiar a string para productos reales
@@ -11,6 +12,7 @@ interface Producto {
   descripcion: string;
   precio: number;
   unidad: string;
+  purchaseUnits?: string[];
   categoria: string;
   agricultor: string;
   agricultorId?: string;
@@ -30,6 +32,7 @@ const productosDemo: Producto[] = [
     descripcion: "Plátanos frescos y maduros, ideales para cocinar. Cultivados de forma orgánica en las montañas de Antioquia.",
     precio: 2500,
     unidad: "kg",
+    purchaseUnits: ["kg", "caja"] ,
     categoria: "Frutas",
     agricultor: "Carlos Mejía",
     ubicacion: "Medellín, Antioquia",
@@ -45,6 +48,7 @@ const productosDemo: Producto[] = [
     descripcion: "Yuca recién cosechada, perfecta para preparaciones tradicionales. Sin químicos, cultivo natural.",
     precio: 1800,
     unidad: "kg",
+    purchaseUnits: ["kg", "manojo"],
     categoria: "Tubérculos",
     agricultor: "María Rodríguez",
     ubicacion: "Cali, Valle del Cauca",
@@ -60,6 +64,7 @@ const productosDemo: Producto[] = [
     descripcion: "Granos de café premium, tostado medio. Aroma intenso y sabor único de la región cafetera.",
     precio: 15000,
     unidad: "500g",
+    purchaseUnits: ["500g", "1kg"],
     categoria: "Café",
     agricultor: "José Herrera",
     ubicacion: "Manizales, Caldas",
@@ -75,6 +80,7 @@ const productosDemo: Producto[] = [
     descripcion: "Aguacates cremosos y nutritivos, cultivados sin pesticidas. Perfectos para guacamole y ensaladas.",
     precio: 3200,
     unidad: "kg",
+    purchaseUnits: ["kg", "caja"],
     categoria: "Frutas",
     agricultor: "Ana López",
     ubicacion: "Bogotá, Cundinamarca",
@@ -90,6 +96,7 @@ const productosDemo: Producto[] = [
     descripcion: "Cilantro aromático recién cortado, ideal para sazonar comidas típicas colombianas.",
     precio: 800,
     unidad: "manojo",
+    purchaseUnits: ["manojo", "paquete"],
     categoria: "Hierbas",
     agricultor: "Pedro Sánchez",
     ubicacion: "Bucaramanga, Santander",
@@ -105,6 +112,7 @@ const productosDemo: Producto[] = [
     descripcion: "Mazorcas de maíz dulce y tierno, perfectas para arepas y sopas tradicionales.",
     precio: 1200,
     unidad: "unidad",
+    purchaseUnits: ["unidad", "paquete"],
     categoria: "Cereales",
     agricultor: "Luis García",
     ubicacion: "Barranquilla, Atlántico",
@@ -120,6 +128,7 @@ const productosDemo: Producto[] = [
     descripcion: "Queso artesanal elaborado con leche fresca de vacas criollas. Sabor auténtico y textura cremosa.",
     precio: 8500,
     unidad: "kg",
+    purchaseUnits: ["kg", "pieza"],
     categoria: "Lácteos",
     agricultor: "Esperanza Morales",
     ubicacion: "Boyacá, Cundinamarca",
@@ -135,6 +144,7 @@ const productosDemo: Producto[] = [
     descripcion: "Leche entera recién ordeñada, sin procesar. Rica en nutrientes y con el sabor tradicional del campo.",
     precio: 3500,
     unidad: "litro",
+    purchaseUnits: ["litro", "juego"],
     categoria: "Lácteos",
     agricultor: "Roberto Jiménez",
     ubicacion: "Ubaté, Cundinamarca",
@@ -150,15 +160,22 @@ export default function ProductosCatalogo({
   viewMode = 'grid', 
   filtroCategoria = "Todos",
   ordenPor = "recientes",
-  busqueda = ""
+  busqueda = "",
+  filtroCiudad = "Todas",
+  onLoaded
 }: { 
   viewMode?: 'grid' | 'list';
   filtroCategoria?: string;
   ordenPor?: string;
   busqueda?: string;
+  filtroCiudad?: string;
+  onLoaded?: () => void;
 }) {
   const { data: session } = useSession();
+  const router = useRouter();
+  const [miAgricultorId, setMiAgricultorId] = useState<string | null | undefined>(undefined);
   const [productos, setProductos] = useState<Producto[]>([]);
+  const [selectedUnits, setSelectedUnits] = useState<Record<string, string | null>>({});
   const [loading, setLoading] = useState(true);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
@@ -167,6 +184,30 @@ export default function ProductosCatalogo({
   const cart = useCartStore();
   const [miniCartOpen, setMiniCartOpen] = useState(false);
   const [apiError, setApiError] = useState(false);
+
+  // Obtener el perfil agricultor del usuario autenticado (si aplica)
+  useEffect(() => {
+    const fetchPerfilAgric = async () => {
+      try {
+        if (session?.user?.role === 'CAMPESINO' && session?.user?.id) {
+          const r = await fetch(`/api/agricultor/por-user?userId=${session.user.id}`);
+          if (r.ok) {
+            const data = await r.json();
+            if (data?.id) setMiAgricultorId(String(data.id));
+          }
+        } else {
+          setMiAgricultorId(null);
+        }
+      } catch (_) {
+        // noop
+      }
+      finally {
+        // Ensure we mark loaded even on error (null means no perfil)
+        setMiAgricultorId(prev => (prev === undefined ? null : prev));
+      }
+    };
+    fetchPerfilAgric();
+  }, [session?.user?.id, session?.user?.role]);
 
   // Cargar productos desde la API
   useEffect(() => {
@@ -182,9 +223,18 @@ export default function ProductosCatalogo({
             descripcion: p.description,
             precio: p.price,
             unidad: p.unit,
+            purchaseUnits: (() => {
+              try {
+                if (!p.purchaseUnits) return undefined;
+                if (Array.isArray(p.purchaseUnits)) return p.purchaseUnits;
+                return JSON.parse(p.purchaseUnits);
+              } catch (_) {
+                return typeof p.purchaseUnits === 'string' ? [p.purchaseUnits] : undefined;
+              }
+            })(),
             categoria: p.category?.name || 'Sin categoría',
             agricultor: p.agricultor?.user?.nombre || 'Agricultor desconocido',
-            agricultorId: p.agricultorId || '',
+            agricultorId: p.agricultorId || p.agricultor?.id || '',
             ubicacion: 'Colombia',
             fecha: 'Hace unas horas',
             imagen: p.imageUrl || '🌿',
@@ -207,6 +257,7 @@ export default function ProductosCatalogo({
         console.error('Error al cargar productos desde la API:', error);
       } finally {
         setLoading(false);
+        try { if (typeof onLoaded === 'function') onLoaded(); } catch(e) { /* ignore */ }
       }
     };
     cargarProductos();
@@ -283,10 +334,39 @@ export default function ProductosCatalogo({
     );
   };
 
+  const abrirDetalle = (producto: Producto) => {
+    // Navegar a la vista de detalle completa en lugar de modal
+    router.push(`/mercado/producto/${encodeURIComponent(producto.id)}`);
+  };
+
+  const toggleSelectUnit = (productId: string, unit: string) => {
+    setSelectedUnits(prev => {
+      const cur = prev[productId];
+      return { ...prev, [productId]: cur === unit ? null : unit };
+    });
+  };
+
+  // La lógica de confirmación detallada ahora se maneja en la vista de detalle completa
+
   // Función para agregar producto al carrito
   const handleAddToCart = (producto: any) => {
     if (apiError) {
       mostrarToast('No se puede agregar productos demo al carrito. Intenta recargar la página cuando la conexión se restablezca.', 'bg-red-50 border-red-200 text-red-600', '⚠️');
+      return;
+    }
+    // Si el usuario es agricultor y aún no sabemos su perfil, evitar acción hasta resolver
+    if (session?.user?.role === 'CAMPESINO' && miAgricultorId === undefined) {
+      mostrarToast('Verificando perfil de agricultor...', 'bg-amber-50 border-amber-200 text-amber-700', '⚠️');
+      return;
+    }
+    // Evitar que un agricultor agregue su propio producto
+    if (miAgricultorId && producto.agricultorId && String(miAgricultorId) === String(producto.agricultorId)) {
+      mostrarToast('No puedes comprar tu propio producto', 'bg-amber-50 border-amber-200 text-amber-700', '⚠️');
+      return;
+    }
+    // Evitar que un agricultor agregue su propio producto
+    if (miAgricultorId && producto.agricultorId && String(miAgricultorId) === String(producto.agricultorId)) {
+      mostrarToast('No puedes comprar tu propio producto', 'bg-amber-50 border-amber-200 text-amber-700', '⚠️');
       return;
     }
     // Validar stock real
@@ -295,12 +375,14 @@ export default function ProductosCatalogo({
       mostrarToast(`Solo quedan ${producto.stock} unidades disponibles de este producto`, 'bg-red-50 border-red-200 text-red-600', '⚠️');
       return;
     }
+    const chosenUnit = selectedUnits[producto.id] ?? producto.unidad
     cart.addItem({
       id: producto.id,
       name: producto.nombre,
       price: producto.precio,
       stock: producto.stock, // Stock real
       unit: producto.unidad,
+      purchaseUnit: chosenUnit,
       campesinoId: producto.agricultorId || 'desconocido',
       campesinoName: producto.agricultor || 'desconocido',
       imageUrl: producto.imagen,
@@ -314,15 +396,18 @@ export default function ProductosCatalogo({
     .filter(producto => {
       // Filtro por categoría
       const coincideCategoria = filtroCategoria === "Todos" || producto.categoria === filtroCategoria;
-      
+
       // Filtro por búsqueda
       const coincideBusqueda = busqueda === "" || 
         producto.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
         producto.descripcion.toLowerCase().includes(busqueda.toLowerCase()) ||
         producto.agricultor.toLowerCase().includes(busqueda.toLowerCase()) ||
         producto.ubicacion.toLowerCase().includes(busqueda.toLowerCase());
-      
-      return coincideCategoria && coincideBusqueda;
+
+      // Filtro por ciudad
+      const coincideCiudad = !filtroCiudad || filtroCiudad === 'Todas' || producto.ubicacion.toLowerCase().includes(filtroCiudad.toLowerCase());
+
+      return coincideCategoria && coincideBusqueda && coincideCiudad;
     })
     .sort((a, b) => {
       switch (ordenPor) {
@@ -347,14 +432,7 @@ export default function ProductosCatalogo({
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
-      <Star
-        key={i}
-        className={`w-4 h-4 ${
-          i < Math.floor(rating) 
-            ? 'fill-yellow-400 text-yellow-400' 
-            : 'text-gray-300'
-        }`}
-      />
+      null
     ));
   };
 
@@ -401,37 +479,38 @@ export default function ProductosCatalogo({
       {/* Grid/Lista de productos */}
       {/* Grid/Lista de productos */}
       {viewMode === 'grid' ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 xl:gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5 xl:gap-6">
           {productosFiltrados.map((producto) => {
             // Determinar si el usuario autenticado es agricultor y dueño del producto
-            const isOwnerAgricultor = session?.user?.role === 'CAMPESINO' && session?.user?.name === producto.agricultor;
+            const isOwnerAgricultor = session?.user?.role === 'CAMPESINO' && !!miAgricultorId && !!producto.agricultorId && String(miAgricultorId) === String(producto.agricultorId);
             return (
             <div
               key={producto.id}
-              className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-green-400 overflow-hidden group w-full ring-1 ring-gray-50 hover:ring-green-100"
+              className="bg-neutral-800 rounded-xl border border-neutral-700 hover:border-green-600 transition-colors duration-200 overflow-hidden group w-full"
               style={{ minWidth: '0', maxWidth: '100%' }}
             >
               {/* Imagen del producto */}
-              <div className="relative bg-gradient-to-br from-green-50 to-amber-50 pt-0 pb-0 px-0 text-center">
+              <div className="relative bg-neutral-800 pt-0 pb-0 px-0 text-center">
                 {producto.imagen && (producto.imagen.startsWith('http') || producto.imagen.startsWith('/')) ? (
-                  <img
+                    <img
                     src={producto.imagen.startsWith('http') ? producto.imagen : `${typeof window !== 'undefined' ? window.location.origin : ''}${producto.imagen}`}
                     alt={producto.nombre}
-                    className="w-full h-36 object-cover rounded-t-2xl hover:scale-105 transition-transform duration-300 cursor-pointer border-b border-gray-100 bg-white mx-auto shadow-sm"
+                    className="w-full h-28 md:h-36 object-cover rounded-t-xl transition-opacity duration-200 hover:opacity-95 cursor-pointer border-b border-neutral-700 bg-neutral-800 mx-auto"
                     style={{ objectPosition: 'center' }}
                     onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                    onClick={() => abrirDetalle(producto)}
                   />
                 ) : (
-                  <div className="text-5xl flex items-center justify-center w-full h-36 bg-gradient-to-br from-green-50 to-amber-50 rounded-t-2xl">
+                  <div className="text-5xl flex items-center justify-center w-full h-28 md:h-36 bg-neutral-800 rounded-t-2xl text-neutral-300 cursor-pointer" onClick={() => abrirDetalle(producto)}>
                     {producto.imagen}
                   </div>
                 )}
                 <button
                   onClick={() => toggleFavorite(producto.id)}
-                  className={`absolute top-3 right-3 p-2 rounded-full transition-all duration-300 hover:scale-110 active:scale-95 ${
+                  className={`absolute top-3 right-3 p-2 rounded-full transition-colors duration-200 ${
                     producto.isFavorite
-                      ? 'bg-red-500 text-white shadow-lg hover:bg-red-600'
-                      : 'bg-white text-gray-400 hover:text-red-500 hover:bg-red-50 shadow-md'
+                      ? 'bg-red-600 text-white hover:bg-red-700'
+                      : 'bg-neutral-800 text-neutral-300 hover:text-red-500 hover:bg-neutral-700'
                   }`}
                 >
                   <Heart className={`w-5 h-5 ${producto.isFavorite ? 'fill-current' : ''}`} />
@@ -439,52 +518,65 @@ export default function ProductosCatalogo({
               </div>
 
               {/* Contenido del producto */}
-              <div className="p-4 space-y-3">
+              <div className="p-2 md:p-3 space-y-3">
                 {/* Header con nombre y precio */}
                 <div className="flex justify-between items-start gap-2">
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1 hover:text-green-600 transition-colors duration-200 cursor-pointer truncate">
+                    <h3 className="text-sm md:text-lg font-semibold text-neutral-100 mb-1 hover:text-green-400 transition-colors duration-200 cursor-pointer truncate" onClick={() => abrirDetalle(producto)}>
                       {producto.nombre}
                     </h3>
-                    <div className="flex items-center space-x-1 mb-1">
-                      {renderStars(producto.rating)}
-                      <span className="text-xs text-gray-500 ml-1">({producto.rating})</span>
-                    </div>
+                    
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <div className="text-xl font-bold text-green-600 hover:text-green-700 transition-colors duration-200">
+                    <div className="text-lg md:text-xl font-bold text-green-400 hover:text-green-500 transition-colors duration-200">
                       {formatearPrecio(producto.precio)}
                     </div>
-                    <div className="text-xs text-gray-400">por {producto.unidad}</div>
+                    <div className="text-xs text-neutral-500">por {producto.unidad}</div>
                   </div>
                 </div>
 
                 {/* Descripción */}
-                <p className="text-gray-500 text-xs leading-relaxed line-clamp-2 mb-1">
+                <p className="text-neutral-300 text-xs md:text-sm leading-relaxed line-clamp-2 mb-1">
                   {producto.descripcion}
                 </p>
 
-                {/* Información del agricultor */}
-                <div className="space-y-1 pt-2 border-t border-gray-100">
-                  <div className="flex items-center space-x-2 text-xs text-gray-500">
-                    <User className="w-4 h-4 text-green-500" />
-                    <span className="font-medium truncate">{producto.agricultor}</span>
+                {/* Unidad(es) de compra */}
+                {producto.purchaseUnits && producto.purchaseUnits.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <div className="text-xs text-neutral-400 mr-2 self-center">Unidad de compra:</div>
+                    {producto.purchaseUnits.map((u) => {
+                      const checked = selectedUnits[producto.id] === u;
+                      return (
+                        <button
+                          key={u}
+                          onClick={() => toggleSelectUnit(producto.id, u)}
+                          className={`text-xs px-2 py-1 rounded-full border transition-colors duration-150 ${checked ? 'bg-green-600 text-white border-green-600' : 'bg-neutral-800 text-neutral-300 border-neutral-700 hover:border-green-600'}`}>
+                          {checked ? '✓ ' : ''}{u}
+                        </button>
+                      )
+                    })}
                   </div>
-                  <div className="flex items-center space-x-2 text-xs text-gray-500">
-                    <MapPin className="w-4 h-4 text-orange-500" />
-                    <span className="truncate">{producto.ubicacion}</span>
-                  </div>
-                  <div className="flex items-center space-x-2 text-xs text-gray-400">
-                    <Calendar className="w-4 h-4 text-gray-500" />
-                    <span>{producto.fecha}</span>
+                )}
+
+                {/* Agricultor y ubicación del producto (agricultor arriba) */}
+                <div className="pt-2 border-t border-neutral-800">
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2 text-sm text-neutral-200 min-w-0">
+                      <User className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      <span className="font-medium truncate">{producto.agricultor}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-neutral-400 min-w-0">
+                      <MapPin className="w-4 h-4 text-orange-500 flex-shrink-0" />
+                      <span className="truncate">{producto.ubicacion}</span>
+                    </div>
                   </div>
                 </div>
 
                 {/* Botón de acción */}
-                <div className="pt-3">
-                  {!isOwnerAgricultor && (
+                <div className="pt-2">
+                  {!(session?.user?.role === 'CAMPESINO' && miAgricultorId === undefined) && !isOwnerAgricultor && (
                     <button
-                      className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-2 px-3 rounded-xl transition-colors duration-200 shadow-md hover:shadow-lg text-sm flex items-center justify-center gap-2"
+                      className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-1.5 md:py-2 px-3 rounded-xl transition-colors duration-200 text-sm flex items-center justify-center gap-2"
                       onClick={() => handleAddToCart(producto)}
                     >
                       <ShoppingCart className="w-4 h-4 mr-1" /> Comprar Ahora
@@ -499,34 +591,34 @@ export default function ProductosCatalogo({
       ) : (
         <div className="space-y-4">
           {productosFiltrados.map((producto) => {
-            const isOwnerAgricultor = session?.user?.role === 'CAMPESINO' && session?.user?.name === producto.agricultor;
+            const isOwnerAgricultor = session?.user?.role === 'CAMPESINO' && !!miAgricultorId && !!producto.agricultorId && String(miAgricultorId) === String(producto.agricultorId);
             return (
             <div
               key={producto.id}
-              className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden"
+              className="bg-neutral-800 hover:bg-neutral-700 rounded-lg border border-neutral-700 transition-colors duration-200 overflow-hidden"
             >
               <div className="flex flex-col md:flex-row">
                 {/* Imagen en vista lista */}
-                <div className="relative bg-gradient-to-br from-green-50 to-orange-50 pt-0 pb-0 px-0 md:w-44 min-w-[140px] max-w-[180px] flex items-stretch justify-center">
+                <div className="relative bg-neutral-800 pt-0 pb-0 px-0 md:w-44 min-w-[90px] md:min-w-[140px] max-w-[180px] flex items-stretch justify-center">
                   {producto.imagen && (producto.imagen.startsWith('http') || producto.imagen.startsWith('/')) ? (
                     <img
                       src={producto.imagen.startsWith('http') ? producto.imagen : `${typeof window !== 'undefined' ? window.location.origin : ''}${producto.imagen}`}
                       alt={producto.nombre}
-                      className="w-full h-full min-h-[120px] min-w-[120px] object-cover rounded-l-2xl rounded-tr-none rounded-br-none hover:scale-105 transition-transform duration-300 cursor-pointer border border-gray-100 bg-white shadow-sm"
+                      className="w-full h-full min-h-[90px] md:min-h-[120px] min-w-[90px] md:min-w-[120px] object-cover rounded-l-xl rounded-tr-none rounded-br-none transition-opacity duration-200 hover:opacity-95 cursor-pointer border border-neutral-800 bg-neutral-800"
                       style={{ objectPosition: 'center', aspectRatio: '1/1' }}
                       onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
                     />
                   ) : (
-                    <div className="text-4xl flex items-center justify-center w-full h-full min-h-[120px] min-w-[120px] bg-white rounded-l-2xl rounded-tr-none rounded-br-none">
+                    <div className="text-4xl flex items-center justify-center w-full h-full min-h-[120px] min-w-[120px] bg-neutral-800 text-neutral-300 rounded-l-2xl rounded-tr-none rounded-br-none">
                       {producto.imagen}
                     </div>
                   )}
                   <button
                     onClick={() => toggleFavorite(producto.id)}
-                    className={`absolute top-3 right-3 p-2 rounded-full transition-all duration-300 hover:scale-110 active:scale-95 ${
+                    className={`absolute top-3 right-3 p-2 rounded-full transition-colors duration-200 ${
                       producto.isFavorite
-                        ? 'bg-red-500 text-white shadow-lg hover:bg-red-600'
-                        : 'bg-white text-gray-400 hover:text-red-500 hover:bg-red-50 shadow-md'
+                        ? 'bg-red-600 text-white hover:bg-red-700'
+                        : 'bg-neutral-800 text-neutral-300 hover:text-red-500 hover:bg-neutral-700'
                     }`}
                   >
                     <Heart className={`w-4 h-4 ${producto.isFavorite ? 'fill-current' : ''}`} />
@@ -534,59 +626,70 @@ export default function ProductosCatalogo({
                 </div>
 
                 {/* Contenido en vista lista */}
-                <div className="flex-1 p-4">
+                <div className="flex-1 p-3 md:p-4">
                   <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
                     {/* Información principal */}
                     <div className="flex-1">
                       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-3">
-                        <h3 className="text-xl font-bold text-gray-900 hover:text-green-600 transition-colors duration-200 cursor-pointer">
+                        <h3 className="text-lg md:text-xl font-bold text-neutral-100 hover:text-green-400 transition-colors duration-200 cursor-pointer">
                           {producto.nombre}
                         </h3>
                         <div className="text-right">
-                          <div className="text-xl font-bold text-green-600">
+                          <div className="text-lg md:text-xl font-bold text-green-400">
                             {formatearPrecio(producto.precio)}
                           </div>
-                          <div className="text-sm text-gray-500">por {producto.unidad}</div>
+                          <div className="text-sm text-neutral-500">por {producto.unidad}</div>
                         </div>
                       </div>
                       
-                      <div className="flex items-center space-x-1 mb-3">
-                        {renderStars(producto.rating)}
-                        <span className="text-sm text-gray-600 ml-2">({producto.rating})</span>
-                      </div>
+                      
 
-                      <p className="text-gray-600 text-sm leading-relaxed mb-4 line-clamp-2">
+                        <p className="text-neutral-300 text-sm md:text-base leading-relaxed mb-4 line-clamp-2">
                         {producto.descripcion}
                       </p>
 
-                      {/* Información del agricultor en línea */}
-                      <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-4">
-                        <div className="flex items-center space-x-1">
-                          <User className="w-4 h-4 text-green-500" />
-                          <span className="font-medium">{producto.agricultor}</span>
+                      {/* Unidad(es) de compra en vista lista */}
+                      {producto.purchaseUnits && producto.purchaseUnits.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-2 items-center">
+                          <div className="text-sm text-neutral-400 mr-2">Unidad de compra:</div>
+                          {producto.purchaseUnits.map((u) => {
+                            const checked = selectedUnits[producto.id] === u;
+                            return (
+                              <button
+                                key={u}
+                                onClick={() => toggleSelectUnit(producto.id, u)}
+                                className={`text-sm px-2 py-1 rounded-full border transition-colors duration-150 ${checked ? 'bg-green-600 text-white border-green-600' : 'bg-neutral-800 text-neutral-300 border-neutral-700 hover:border-green-600'}`}>
+                                {checked ? '✓ ' : ''}{u}
+                              </button>
+                            )
+                          })}
                         </div>
-                        <div className="flex items-center space-x-1">
-                          <MapPin className="w-4 h-4 text-orange-500" />
-                          <span>{producto.ubicacion}</span>
+                      )}
+
+                      {/* Agricultor y ubicación en vista lista (agricultor arriba) */}
+                      <div className="flex flex-col gap-1 mb-2">
+                        <div className="flex items-center gap-2 text-sm text-neutral-200">
+                          <User className="w-4 h-4 text-green-500 flex-shrink-0" />
+                          <span className="font-medium truncate">{producto.agricultor}</span>
                         </div>
-                        <div className="flex items-center space-x-1">
-                          <Calendar className="w-4 h-4 text-gray-500" />
-                          <span>{producto.fecha}</span>
+                        <div className="flex items-center gap-2 text-sm text-neutral-400">
+                          <MapPin className="w-4 h-4 text-orange-500 flex-shrink-0" />
+                          <span className="truncate">{producto.ubicacion}</span>
                         </div>
                       </div>
                     </div>
 
                     {/* Botón de acción */}
-                    <div className="lg:ml-6">
-                      {!isOwnerAgricultor && (
-                        <button
-                          className="w-full lg:w-auto bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200 shadow-lg hover:shadow-xl whitespace-nowrap flex items-center justify-center gap-2"
-                          onClick={() => handleAddToCart(producto)}
-                        >
-                          <ShoppingCart className="w-4 h-4 mr-1" /> Comprar Ahora
-                        </button>
-                      )}
-                    </div>
+                        <div className="lg:ml-6">
+                          {!(session?.user?.role === 'CAMPESINO' && miAgricultorId === undefined) && !isOwnerAgricultor && (
+                            <button
+                                  className="w-full lg:w-auto bg-green-600 hover:bg-green-700 text-white font-semibold py-2 md:py-3 px-4 md:px-6 rounded-xl transition-colors duration-200 whitespace-nowrap flex items-center justify-center gap-2"
+                              onClick={() => handleAddToCart(producto)}
+                            >
+                              <ShoppingCart className="w-4 h-4 mr-1" /> Comprar Ahora
+                            </button>
+                          )}
+                        </div>
                   </div>
                 </div>
               </div>
@@ -598,15 +701,15 @@ export default function ProductosCatalogo({
 
       {/* Mensaje cuando no hay productos */}
       {productosFiltrados.length === 0 && (
-        <div className="text-center py-16 bg-white rounded-xl border border-gray-100">
+        <div className="text-center py-16 bg-neutral-900 rounded-xl border border-neutral-700">
           <div className="text-6xl mb-4">🔍</div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">No se encontraron productos</h3>
-          <p className="text-gray-600 mb-6">
+          <h3 className="text-xl font-semibold text-neutral-100 mb-2">No se encontraron productos</h3>
+          <p className="text-neutral-400 mb-6">
             {busqueda ? `No hay productos que coincidan con "${busqueda}"` : 
              filtroCategoria !== "Todos" ? `No hay productos en la categoría "${filtroCategoria}"` :
              "No hay productos disponibles en este momento"}
           </p>
-          <div className="space-y-2 text-sm text-gray-500">
+          <div className="space-y-2 text-sm text-neutral-500">
             <p>• Intenta con otros términos de búsqueda</p>
             <p>• Cambia los filtros aplicados</p>
             <p>• Explora otras categorías</p>
@@ -616,7 +719,7 @@ export default function ProductosCatalogo({
 
       {/* Mostrar mensaje si la API falla */}
       {apiError && (
-        <div className="bg-red-100 border border-red-300 text-red-700 rounded-lg p-4 mb-6 text-center">
+        <div className="bg-neutral-900 border border-red-500 text-red-400 rounded-lg p-4 mb-6 text-center">
           Error al cargar productos desde el servidor. No es posible comprar productos demo. Intenta recargar la página.<br />
           <span className="font-bold">No podrás agregar productos al carrito hasta que la conexión se restablezca.</span>
         </div>

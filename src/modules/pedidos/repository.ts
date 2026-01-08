@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 export class PedidosRepository {
   async listarTodos() {
-    return prisma.order.findMany({ include: { buyer: true } });
+    return prisma.order.findMany({ where: { status: { not: 'CANCELADO' } }, include: { buyer: true } });
   }
 
   async crearPedido(data: any) {
@@ -27,7 +27,8 @@ export class PedidosRepository {
   async listarPorUsuario(buyerId: string) {
     return prisma.order.findMany({
       where: {
-        buyerId
+        buyerId,
+        status: { not: 'CANCELADO' }
       },
       include: {
         items: {

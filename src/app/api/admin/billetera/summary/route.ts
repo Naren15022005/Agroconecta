@@ -19,13 +19,22 @@ export async function GET(req: NextRequest) {
       _count: { id: true },
     });
 
-    // Filtrar por la fecha de la comisión directamente
-    const comisionesMes = await prisma.comision.aggregate({
+    // Calcular comisiones como 10% de los subtotales de los items de pedidos
+    // que están en CONFIRMADO o ENTREGADO y con pago verificado.
+    // Aggregate only items inside the selected month to match `pagosAgricultoresMes`
+    const itemsAgg = await prisma.orderItem.aggregate({
       where: {
-        fecha: { gte: mesInicio, lte: mesFin }
+        order: {
+          status: { in: ['CONFIRMADO', 'ENTREGADO'] },
+          pagoVerificado: true,
+          createdAt: { gte: mesInicio, lte: mesFin }
+        }
       },
-      _sum: { monto: true }
+      _sum: { subtotal: true }
     });
+
+    // comisiones totales (10% de la suma de subtotales)
+    const comisionesTotales = Number(((itemsAgg._sum?.subtotal ?? 0) * 0.10).toFixed(2));
 
     const pagosAgricultoresMes = await prisma.sale.aggregate({
       where: {
@@ -61,17 +70,23 @@ export async function GET(req: NextRequest) {
       },
     ];
 
-    const saldoComision = comisionesMes._sum?.monto ?? 0;
+    const saldoComision = comisionesTotales;
     const totalPagosAgricultores = pagosAgricultoresMes._sum?.total ?? 0;
 
+    // Saldo actual de comisiones después de restar los pagos ya realizados a agricultores
+    const saldoActualComisiones = Number((saldoComision - totalPagosAgricultores).toFixed(2));
+
     return NextResponse.json({
-      saldoDisponible: saldoComision,
-      saldoApp: saldoComision,
+      saldoDisponible: saldoActualComisiones,
+      saldoApp: saldoActualComisiones,
       totalRecaudado: ventasMes._sum?.total ?? 0,
       aPagarAgricultores: Math.max(0, totalPagosAgricultores - saldoComision),
-      saldoTotalBilleteras: saldoComision,
+      // Exponer tanto el total de comisiones como el saldo neto
+      saldoTotalBilleteras: saldoActualComisiones,
       ventasRealizadas: ventasMes._count?.id ?? 0,
       comisionesTotales: saldoComision,
+      totalPagosAgricultores,
+      saldoActualComisiones,
       tarjetas,
       cards: tarjetas,
       transacciones,

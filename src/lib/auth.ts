@@ -13,6 +13,17 @@ function logToFile(msg: string) {
 }
 
 export const authOptions: NextAuthOptions = {
+  logger: {
+    error(code, metadata) {
+      console.error('[next-auth][error]', code, metadata);
+    },
+    warn(code) {
+      console.warn('[next-auth][warn]', code);
+    },
+    debug(code, metadata) {
+      console.debug('[next-auth][debug]', code, metadata);
+    }
+  },
   adapter: PrismaAdapter(prisma),
   providers: [
     CredentialsProvider({
@@ -98,7 +109,8 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (token && session.user) {
-        session.user.id = token.id || token.sub || null;
+        const idFromToken = (token.id ?? token.sub) as string | undefined;
+        if (idFromToken) session.user.id = idFromToken;
         session.user.role = token.role as string;
       }
       return session;

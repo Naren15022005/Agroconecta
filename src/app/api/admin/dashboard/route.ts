@@ -1,40 +1,66 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+// Safe logger to avoid JSON serialization errors in Next dev streaming
+function safeStringify(obj: any) {
+  const seen = new WeakSet();
+  return JSON.stringify(obj, function (_key, value) {
+    if (typeof value === 'bigint') return value.toString();
+    if (typeof value === 'object' && value !== null) {
+      if (seen.has(value)) return '[Circular]';
+      seen.add(value);
+    }
+    return value;
+  });
+}
+
+function safeLog(...args: any[]) {
+  try {
+    const parts = args.map(a => (typeof a === 'object' ? safeStringify(a) : String(a)));
+    console.log(parts.join(' '));
+  } catch (e) {
+    console.log('safeLog error:', String(e));
+  }
+}
+
 export async function GET() {
-    // Egresos del admin (logística, otros)
-    // Buscar rol admin
-    const adminRole = await prisma.role.findUnique({ where: { name: 'ADMINISTRADOR' } });
     let egresosAdmin = 0;
     let ingresosAdmin = 0;
     let saldoNetoAdmin = 0;
-    if (adminRole) {
-      const adminUsers = await prisma.user.findMany({ where: { roleId: adminRole.id } });
-      const adminUserIds = adminUsers.map(u => u.id);
-      const wallets = await prisma.wallet.findMany({ where: { userId: { in: adminUserIds } } });
-      const walletIds = wallets.map(w => w.id);
-      // Ingresos (comisiones)
-      const ingresosMes = await prisma.walletTransaction.aggregate({
-        where: {
-          walletId: { in: walletIds },
-          type: 'income',
-        },
-        _sum: { amount: true },
-      });
-      // Egresos (logística, otros)
-      const egresosMes = await prisma.walletTransaction.aggregate({
-        where: {
-          walletId: { in: walletIds },
-          type: { in: ['egreso', 'logistica'] },
-        },
-        _sum: { amount: true },
-      });
-      ingresosAdmin = ingresosMes._sum?.amount ?? 0;
-      egresosAdmin = egresosMes._sum?.amount ?? 0;
-      saldoNetoAdmin = ingresosAdmin - egresosAdmin;
-    }
   try {
-    console.log('=== Dashboard API iniciando ===');
+    safeLog('=== Dashboard API iniciando ===');
+
+    // Egresos del admin (logística, otros)
+    try {
+      const adminRole = await prisma.role.findUnique({ where: { name: 'ADMINISTRADOR' } });
+      if (adminRole) {
+        const adminUsers = await prisma.user.findMany({ where: { roleId: adminRole.id } });
+        const adminUserIds = adminUsers.map(u => u.id);
+        const wallets = await prisma.wallet.findMany({ where: { userId: { in: adminUserIds } } });
+        const walletIds = wallets.map(w => w.id);
+        // Ingresos (comisiones)
+        const ingresosMes = await prisma.walletTransaction.aggregate({
+          where: {
+            walletId: { in: walletIds },
+            type: 'income',
+          },
+          _sum: { amount: true },
+        });
+        // Egresos (logística, otros)
+        const egresosMes = await prisma.walletTransaction.aggregate({
+          where: {
+            walletId: { in: walletIds },
+            type: { in: ['egreso', 'logistica'] },
+          },
+          _sum: { amount: true },
+        });
+        ingresosAdmin = ingresosMes._sum?.amount ?? 0;
+        egresosAdmin = egresosMes._sum?.amount ?? 0;
+        saldoNetoAdmin = ingresosAdmin - egresosAdmin;
+      }
+    } catch (adminErr) {
+      safeLog('Error calculating admin finances:', String(adminErr));
+    }
     
     // Inicializar resumen con valores por defecto
     let resumen = {
@@ -57,31 +83,38 @@ export async function GET() {
     let pagos: any[] = [];
 
     try {
-      console.log('Obteniendo datos de órdenes...');
+      safeLog('Obteniendo datos de órdenes...');
       
-      // Obtener datos básicos de órdenes
+      // Obtener datos básicos de órdenes: pedidos confirmados/entregados con pago verificado
       const orders = await prisma.order.findMany({
+        where: { 
+          status: { in: ['CONFIRMADO', 'ENTREGADO'] }, 
+          pagoVerificado: true 
+        },
         select: {
           id: true,
           total: true,
-          status: true
+          status: true,
+          pagoVerificado: true,
+          createdAt: true
         }
       });
       
-      console.log(`Encontradas ${orders.length} órdenes`);
+      safeLog(`Encontradas ${orders.length} órdenes`);
       
       // Calcular totales
       const totalRecaudado = orders.reduce((sum, order) => sum + Number(order.total || 0), 0);
-      
+
       resumen.ventasCount = orders.length;
       resumen.totalRecaudado = totalRecaudado;
       resumen.ventasTotal = totalRecaudado;
       resumen.pedidos = orders.length;
-      resumen.ganancia = totalRecaudado * 0.05; // 5% comisión
+      resumen.ganancia = totalRecaudado * 0.10; // 10% comisión
       resumen.comisionesTotal = resumen.ganancia;
-      resumen.aPagar = totalRecaudado * 0.95; // 95% para agricultores
+      resumen.aPagar = totalRecaudado * 0.90; // 90% para agricultores
+      resumen.ticketPromedio = orders.length > 0 ? (totalRecaudado / orders.length) : 0;
       
-      console.log('Totales calculados:', {
+      safeLog('Totales calculados:', {
         totalRecaudado: resumen.totalRecaudado,
         ganancia: resumen.ganancia,
         aPagar: resumen.aPagar
@@ -89,7 +122,7 @@ export async function GET() {
 
       // Obtener agricultores básicos
       try {
-        console.log('Obteniendo agricultores...');
+        safeLog('Obteniendo agricultores...');
         
         const agricultores = await prisma.user.findMany({
           where: {
@@ -103,7 +136,7 @@ export async function GET() {
           }
         });
         
-        console.log(`Encontrados ${agricultores.length} agricultores`);
+        safeLog(`Encontrados ${agricultores.length} agricultores`);
         
         // Calcular ventas reales por agricultor
         pagos = [];
@@ -141,51 +174,48 @@ export async function GET() {
             });
 
             productos.forEach(producto => {
-              producto.orderItems.forEach(item => {
-                if (item.order && item.order.status !== 'CANCELADO') {
-                  totalVentasAgricultor += Number(item.subtotal) || 0;
-                }
-              });
+            producto.orderItems.forEach(item => {
+              // Contar items cuya orden esté confirmada/entregada y con pago verificado
+              if (item.order && ['CONFIRMADO', 'ENTREGADO'].includes(item.order.status) && item.order.pagoVerificado) {
+                totalVentasAgricultor += Number(item.subtotal) || 0;
+              }
+            });
             });
 
-            comision = totalVentasAgricultor * 0.05;
-            aPagar = totalVentasAgricultor * 0.95;
+            comision = totalVentasAgricultor * 0.10;
+            aPagar = totalVentasAgricultor * 0.90;
 
-            estadoPago = 'pendiente';
-            let sumaPagos = 0;
-            if (aPagar > 0) {
+            // Determine payment status
+            if (totalVentasAgricultor === 0) {
+              estadoPago = 'sin_ventas';
+            } else {
+              estadoPago = 'pendiente';
+              let sumaPagos = 0;
+
+              // Sum Liquidacion records for this agricultor
+              const liquidaciones = await prisma.liquidacion.findMany({ where: { agricultor_id: agricultor?.id } });
+              sumaPagos += liquidaciones.reduce((sum, l) => sum + Number(l.total_pagado), 0);
+
+              // Also check Pago table (completed payments)
               const pagosRealizados = await prisma.pago.findMany({
                 where: {
                   userId: usuario.id,
-                  NOT: {
-                    estado: 'PENDIENTE'
-                  }
+                  NOT: { estado: 'PENDIENTE' }
                 }
               });
-              sumaPagos = pagosRealizados.reduce((sum, pago) => sum + Number(pago.monto), 0);
-              // Si no hay pagos, revisar el saldo de la wallet
-              if (sumaPagos < aPagar) {
-                const wallet = await prisma.wallet.findFirst({
-                  where: { userId: usuario.id },
-                  select: { balance: true }
-                });
-                if (wallet && Number(wallet.balance) >= aPagar) {
-                  sumaPagos = Number(wallet.balance);
-                  console.log(`Saldo de wallet para ${usuario.nombre} (${usuario.id}):`, wallet.balance);
-                }
-              }
-              console.log(`Pagos realizados para ${usuario.nombre} (${usuario.id}):`, pagosRealizados);
-              console.log(`Suma de pagos (incluyendo wallet): ${sumaPagos} vs aPagar: ${aPagar}`);
+              sumaPagos += pagosRealizados.reduce((sum, pago) => sum + Number(pago.monto), 0);
+
+              safeLog(`Liquidaciones para ${usuario.nombre} (${usuario.id}): liquidaciones=${liquidaciones.length}, sumaPagos=${sumaPagos} vs aPagar=${aPagar}`);
+
               if (sumaPagos >= aPagar) {
                 estadoPago = 'liquidado';
               }
-            } else {
-              estadoPago = 'liquidado';
             }
           }
 
           pagos.push({
             id: usuario.id,
+            agricultorId: agricultor?.id,
             agricultor: usuario.nombre || 'Sin nombre',
             ventas: totalVentasAgricultor,
             comision: comision,
@@ -197,14 +227,18 @@ export async function GET() {
         resumen.walletsCount = agricultores.length;
         
       } catch (agricultorError) {
-        console.error('Error obteniendo agricultores:', agricultorError);
+        safeLog('Error obteniendo agricultores:', String(agricultorError));
       }
 
     } catch (dbError) {
-      console.error('Error en consultas de base de datos:', dbError);
+      safeLog('Error en consultas de base de datos:', String(dbError));
     }
 
-    console.log('=== Dashboard API completado ===');
+    // Ensure ingresosAdmin reflects commission from confirmed & validated orders
+    ingresosAdmin = resumen.ganancia;
+    saldoNetoAdmin = ingresosAdmin - egresosAdmin;
+
+    safeLog('=== Dashboard API completado ===');
     
     return NextResponse.json({
       resumen: {
@@ -219,7 +253,7 @@ export async function GET() {
     });
 
   } catch (error) {
-    console.error('Error general en dashboard API:', error);
+    safeLog('Error general en dashboard API:', String(error));
     return NextResponse.json(
       { 
         error: 'Error interno del servidor',

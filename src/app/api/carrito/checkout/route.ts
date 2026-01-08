@@ -40,6 +40,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Método de pago requerido' }, { status: 400 });
   }
 
+  // Regla: un agricultor no puede comprar sus propios productos
+  if (session.user?.role === 'CAMPESINO') {
+    const miPerfilAgric = await prisma.agricultor.findUnique({ where: { user_id: session.user.id } });
+    if (miPerfilAgric) {
+      const intentaComprarPropio = items.some((it: any) => String(it.agricultorId) === String(miPerfilAgric.id));
+      if (intentaComprarPropio) {
+        return NextResponse.json({ error: 'No puedes comprar tus propios productos.' }, { status: 400 });
+      }
+    }
+  }
+
   // Agrupar por agricultor (multi-vendor)
   const pedidosPorAgricultor: Record<string, any[]> = {};
   for (const item of items) {
@@ -118,7 +129,8 @@ export async function POST(req: NextRequest) {
           agricultorId: agricultorId,
           monto: total,
           metodo: paymentInfo.method,
-          estado: "PENDIENTE"
+          estado: "PENDIENTE",
+          comprobanteUrl: paymentInfo.comprobanteUrl || null
         }
       });
     } else {

@@ -53,6 +53,31 @@ export default function MercadoPage() {
     cargarProductos();
   }, []);
 
+  // Simulación de pedidos recibidos y su gestión CRUD
+  const [pedidoEjemplo, setPedidoEjemplo] = useState({
+    id: "PED123456",
+    estado: "pendiente",
+    cliente: { nombre: "María Gómez" },
+    total: 45000,
+    fechaPedido: "2025-07-28T10:30:00Z",
+    productos: [
+      { nombre: "Banano", cantidad: 10, precioUnitario: 2500 },
+      { nombre: "Yuca", cantidad: 5, precioUnitario: 3000 }
+    ],
+    metodoPago: "contra_entrega"
+  });
+
+  // Simular aceptar/rechazar pedido
+  const handleAccionPedido = (accion: 'aceptar' | 'rechazar') => {
+    setPedidoEjemplo((prev) => ({
+      ...prev,
+      estado: accion === 'aceptar' ? 'confirmado' : 'cancelado',
+    }));
+  };
+
+  // Para el CRUD, el pedido solo aparece si no está cancelado
+  const pedidosCrud = pedidoEjemplo.estado !== 'cancelado' ? [pedidoEjemplo] : [];
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -81,30 +106,6 @@ export default function MercadoPage() {
   }
 
 
-  // Simulación de pedidos recibidos y su gestión CRUD
-  const [pedidoEjemplo, setPedidoEjemplo] = useState({
-    id: "PED123456",
-    estado: "pendiente",
-    cliente: { nombre: "María Gómez" },
-    total: 45000,
-    fechaPedido: "2025-07-28T10:30:00Z",
-    productos: [
-      { nombre: "Banano", cantidad: 10, precioUnitario: 2500 },
-      { nombre: "Yuca", cantidad: 5, precioUnitario: 3000 }
-    ],
-    metodoPago: "contra_entrega"
-  });
-
-  // Simular aceptar/rechazar pedido
-  const handleAccionPedido = (accion: 'aceptar' | 'rechazar') => {
-    setPedidoEjemplo((prev) => ({
-      ...prev,
-      estado: accion === 'aceptar' ? 'confirmado' : 'cancelado',
-    }));
-  };
-
-  // Para el CRUD, el pedido solo aparece si no está cancelado
-  const pedidosCrud = pedidoEjemplo.estado !== 'cancelado' ? [pedidoEjemplo] : [];
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -218,9 +219,12 @@ export default function MercadoPage() {
                         /{producto.unit}
                       </span>
                     </div>
-                    <div className="text-sm text-gray-500">
-                      Stock: {producto.stock}
-                    </div>
+                        {/* Hide purchase button for product owner */}
+                        {!(session?.user?.role === 'CAMPESINO' && session?.user?.id && producto.agricultor?.id && String(session.user.id) === String(producto.agricultor.id)) && (
+                          <div className="text-sm text-gray-500">
+                            Stock: {producto.stock}
+                          </div>
+                        )}
                   </div>
 
                   {/* Agricultor */}
@@ -228,10 +232,14 @@ export default function MercadoPage() {
                     Por: {producto.agricultor.user.nombre}
                   </div>
 
-                  {/* Botón de acción */}
-                  <button className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium">
-                    Agregar al Carrito
-                  </button>
+                  {/* Botón de acción (oculto si el usuario es el agricultor propietario) */}
+                  {!(session?.user?.role === 'CAMPESINO' && session?.user?.id && producto.agricultor?.id && String(session.user.id) === String(producto.agricultor.id)) ? (
+                    <button className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium">
+                      Agregar al Carrito
+                    </button>
+                  ) : (
+                    <div className="w-full py-2 px-3 rounded-lg bg-amber-900/10 border border-amber-700 text-amber-300 text-center text-sm">Tu producto</div>
+                  )}
                 </div>
               </div>
             ))}

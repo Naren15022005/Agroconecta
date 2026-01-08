@@ -4,16 +4,19 @@ import { authOptions } from "@/lib/auth";
 import { PedidosController } from "@/modules/pedidos/controller";
 import { NotificacionesController } from "@/modules/notificaciones/controller";
 import { prisma } from "@/lib/prisma";
+import { buildPedidoStatusEmail, sendEmail } from "@/lib/email";
 
 const controller = new PedidosController();
 
 // PATCH único para todos los cambios de estado
 export async function PATCH(req: NextRequest) {
   try {
+    console.log('[api/pedidos] PATCH incoming:', { url: req.url });
     const session = await getServerSession(authOptions);
     if (!session) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     
     const data = await req.json();
+    console.log('[api/pedidos] PATCH - user:', session?.user?.id || session?.user?.email, 'data:', data);
     const { id, status, action } = data;
     if (!id) return NextResponse.json({ error: "ID requerido" }, { status: 400 });
 
@@ -29,6 +32,7 @@ export async function PATCH(req: NextRequest) {
       const pedido = await prisma.order.findUnique({
         where: { id },
         include: {
+          buyer: { select: { correo: true, nombre: true } },
           items: {
             include: {
               product: true
@@ -41,15 +45,15 @@ export async function PATCH(req: NextRequest) {
       const esAgricultor = pedido.items.every((item: any) => item.product.agricultorId === agricultor.id);
       if (!esAgricultor) return NextResponse.json({ error: "No autorizado para confirmar este pedido" }, { status: 403 });
 
-      // Solo permitir avanzar si el pago fue validado
-      if (pedido.status !== "PAGO_VALIDADO") {
-        return NextResponse.json({ error: "No puedes avanzar el pedido hasta que el pago sea validado por el administrador." }, { status: 400 });
-      }
+      // Solo permitir avanzar si el pago fue validado para métodos que lo requieren
+      // Nota: la validación de pago NO debe bloquear la aceptación (CONFIRMADO).
+      // Se valida en pasos posteriores (p. ej. action=marcar_pagado) para métodos que lo requieren.
 
       for (const item of pedido.items) {
         const producto = item.product;
         const disponible = producto.stock - producto.reservedStock;
         if (disponible < item.quantity) {
+          console.error('[api/pedidos] confirmar blocked - stock insuficiente', { pedidoId: id, productId: producto.id, disponible, requested: item.quantity });
           return NextResponse.json({ error: `Stock insuficiente para ${producto.name}` }, { status: 400 });
         }
       }
@@ -63,11 +67,22 @@ export async function PATCH(req: NextRequest) {
 
       await prisma.order.update({ where: { id }, data: { status: "CONFIRMADO" } });
       const notificaciones = new NotificacionesController();
+      const message = `El agricultor ha confirmado tu pedido. Pronto recibirás novedades.`;
       await notificaciones.crearNotificacion({
         userId: pedido.buyerId,
         pedidoId: pedido.id,
-        message: `El agricultor ha confirmado tu pedido. Pronto recibirás novedades.`
+        message
       });
+
+      if (pedido.buyer?.correo) {
+        const email = buildPedidoStatusEmail({
+          buyerName: pedido.buyer?.nombre,
+          pedidoId: pedido.id,
+          status: 'CONFIRMADO',
+          message,
+        });
+        await sendEmail({ to: pedido.buyer.correo, ...email });
+      }
       return NextResponse.json({ ok: true });
     }
 
@@ -83,6 +98,7 @@ export async function PATCH(req: NextRequest) {
       const pedido = await prisma.order.findUnique({ 
         where: { id },
         include: {
+          buyer: { select: { correo: true, nombre: true } },
           items: {
             include: {
               product: true
@@ -144,6 +160,16 @@ export async function PATCH(req: NextRequest) {
         pedidoId: pedido.id,
         message: mensaje
       });
+
+      if (pedido.buyer?.correo) {
+        const email = buildPedidoStatusEmail({
+          buyerName: pedido.buyer?.nombre,
+          pedidoId: pedido.id,
+          status: 'EN_PREPARACION',
+          message: mensaje,
+        });
+        await sendEmail({ to: pedido.buyer.correo, ...email });
+      }
       return NextResponse.json({ ok: true });
     }
 
@@ -159,6 +185,7 @@ export async function PATCH(req: NextRequest) {
       const pedido = await prisma.order.findUnique({ 
         where: { id },
         include: {
+          buyer: { select: { correo: true, nombre: true } },
           items: {
             include: {
               product: true
@@ -176,11 +203,22 @@ export async function PATCH(req: NextRequest) {
       
       await prisma.order.update({ where: { id }, data: { status: "EN_PUNTO" } });
       const notificaciones = new NotificacionesController();
+      const message = `Tu pedido está listo para envío/recogida.`;
       await notificaciones.crearNotificacion({
         userId: pedido.buyerId,
         pedidoId: pedido.id,
-        message: `Tu pedido está listo para envío/recogida.`
+        message
       });
+
+      if (pedido.buyer?.correo) {
+        const email = buildPedidoStatusEmail({
+          buyerName: pedido.buyer?.nombre,
+          pedidoId: pedido.id,
+          status: 'EN_PUNTO',
+          message,
+        });
+        await sendEmail({ to: pedido.buyer.correo, ...email });
+      }
       return NextResponse.json({ ok: true });
     }
 
@@ -196,6 +234,7 @@ export async function PATCH(req: NextRequest) {
       const pedido = await prisma.order.findUnique({ 
         where: { id },
         include: {
+          buyer: { select: { correo: true, nombre: true } },
           items: {
             include: {
               product: true
@@ -212,11 +251,22 @@ export async function PATCH(req: NextRequest) {
       if (pedido.status !== "EN_PUNTO") return NextResponse.json({ error: "Solo se puede avanzar a 'EN_CAMINO' desde 'EN_PUNTO'" }, { status: 400 });
       await prisma.order.update({ where: { id }, data: { status: "EN_CAMINO" } });
       const notificaciones = new NotificacionesController();
+      const message = `Tu pedido está en camino. Pronto lo recibirás.`;
       await notificaciones.crearNotificacion({
         userId: pedido.buyerId,
         pedidoId: pedido.id,
-        message: `Tu pedido está en camino. Pronto lo recibirás.`
+        message
       });
+
+      if (pedido.buyer?.correo) {
+        const email = buildPedidoStatusEmail({
+          buyerName: pedido.buyer?.nombre,
+          pedidoId: pedido.id,
+          status: 'EN_CAMINO',
+          message,
+        });
+        await sendEmail({ to: pedido.buyer.correo, ...email });
+      }
       return NextResponse.json({ ok: true });
     }
 
@@ -252,7 +302,7 @@ export async function PATCH(req: NextRequest) {
       await prisma.order.update({ where: { id }, data: { status: "ENTREGADO" } });
 
       // Crear una venta y comisión por cada producto del pedido
-      const porcentajeComision = 5.0; // Puedes parametrizar esto
+      const porcentajeComision = 10.0; // Puedes parametrizar esto
       for (const item of pedido.items) {
         // Crear venta
         const venta = await prisma.sale.create({
@@ -279,28 +329,73 @@ export async function PATCH(req: NextRequest) {
       }
 
       const notificaciones = new NotificacionesController();
+      const message = `¡Pedido entregado! Gracias por comprar en AgroConecta.`;
       await notificaciones.crearNotificacion({
         userId: pedido.buyerId,
         pedidoId: pedido.id,
-        message: `¡Pedido entregado! Gracias por comprar en AgroConecta.`
+        message
       });
+
+      const buyerCorreo = (pedido as any)?.buyer?.correo;
+      const buyerNombre = (pedido as any)?.buyer?.nombre;
+      if (buyerCorreo) {
+        const email = buildPedidoStatusEmail({
+          buyerName: buyerNombre,
+          pedidoId: pedido.id,
+          status: 'ENTREGADO',
+          message: 'Tu pedido ha sido entregado. ¡Gracias por comprar en AgroConecta!',
+        });
+        await sendEmail({ to: buyerCorreo, ...email });
+      }
       return NextResponse.json({ ok: true });
     }
 
     // Cancelar pedido (por comprador)
     if (!status) return NextResponse.json({ error: "Status requerido" }, { status: 400 });
-    const pedido = await controller.buscarPorId(id);
+    // Only allow cancel flow when status === 'CANCELADO'
+    if (status !== 'CANCELADO') return NextResponse.json({ error: 'Operación de cancelación no válida' }, { status: 400 });
+    const pedido = await prisma.order.findUnique({ where: { id }, include: { items: true, paymentTransactions: true } });
     if (!pedido) return NextResponse.json({ error: "Pedido no encontrado" }, { status: 404 });
     if (pedido.status !== "PENDIENTE") return NextResponse.json({ error: "Solo se puede cancelar pedidos pendientes" }, { status: 400 });
     if (pedido.buyerId !== session.user.id && pedido.buyerId !== session.user.email) {
       return NextResponse.json({ error: "No autorizado para cancelar este pedido" }, { status: 403 });
     }
-    const actualizado = await controller.actualizarPedido(id, { status });
-    // Si el pedido se cancela, eliminar notificaciones asociadas
-    if (status === "CANCELADO") {
-      await prisma.notification.deleteMany({ where: { pedidoId: id } });
+
+    // Perform a safe, atomic cancellation: restore stock/reservedStock, remove payment transactions and notifications, and delete the order.
+    try {
+      await prisma.$transaction(async (tx) => {
+        // Restore stock and reservedStock if applicable
+        for (const item of pedido.items || []) {
+          try {
+            await tx.product.update({
+              where: { id: item.productId },
+              data: {
+                stock: { increment: item.quantity },
+                reservedStock: { decrement: item.quantity }
+              }
+            });
+          } catch (e) {
+            // ignore per-product update errors to avoid blocking cancellation
+            console.warn('[api/pedidos] warning restoring stock for product', item.productId, e);
+          }
+        }
+
+        // Remove any payment transactions related to this order
+        await tx.paymentTransaction.deleteMany({ where: { pedidoId: id } });
+
+        // Remove notifications
+        await tx.notification.deleteMany({ where: { pedidoId: id } });
+
+        // Delete order items then order
+        await tx.orderItem.deleteMany({ where: { orderId: id } }).catch(()=>{});
+        await tx.order.delete({ where: { id } });
+      });
+    } catch (e) {
+      console.error('[api/pedidos] error during cancellation transaction:', e);
+      return NextResponse.json({ error: 'Error al cancelar pedido' }, { status: 500 });
     }
-    return NextResponse.json(actualizado);
+
+    return NextResponse.json({ ok: true, cancelled: true });
   } catch (error) {
     console.error('Error en PATCH pedidos:', error);
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
@@ -310,6 +405,11 @@ export async function PATCH(req: NextRequest) {
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
+    try {
+      console.log('[api/pedidos] GET incoming:', { url: req.url, params: Object.fromEntries(searchParams.entries()) });
+    } catch (e) {
+      console.log('[api/pedidos] GET incoming - unable to stringify params');
+    }
     const buyerId = searchParams.get("buyerId");
     const id = searchParams.get("id");
     

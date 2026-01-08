@@ -13,7 +13,7 @@ export class AdminRepository {
   }
 
   async listarPedidos() {
-    return prisma.order.findMany();
+    return prisma.order.findMany({ where: { status: { not: 'CANCELADO' } } });
   }
 
   async actualizarUsuario(id: string, data: any) {

@@ -1,6 +1,7 @@
 "use client";
-import dynamic from 'next/dynamic';
-const StakeholderSelect = dynamic(() => import('@/components/StakeholderSelect'), { ssr: false });
+export const dynamic = 'force-dynamic';
+import dynamicImport from 'next/dynamic';
+const StakeholderSelect = dynamicImport(() => import('@/components/StakeholderSelect'), { ssr: false });
 import Link from 'next/link'
 import { Tractor } from 'lucide-react'
 import { useState, useEffect } from 'react'

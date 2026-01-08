@@ -3,6 +3,34 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const productId = params.id;
+    const producto = await prisma.product.findUnique({
+      where: { id: productId },
+      include: {
+        category: { select: { id: true, name: true } },
+        agricultor: {
+          select: {
+            id: true,
+            user_id: true,
+            user: { select: { nombre: true } }
+          }
+        }
+      }
+    });
+    if (!producto) {
+      return NextResponse.json({ error: "Producto no encontrado" }, { status: 404 });
+    }
+    return NextResponse.json(producto);
+  } catch (error) {
+    return NextResponse.json({ error: "Error interno del servidor", details: error instanceof Error ? error.message : 'Error desconocido' }, { status: 500 });
+  }
+}
+
 export async function DELETE(
   req: NextRequest,
   { params }: { params: { id: string } }
@@ -85,8 +113,8 @@ export async function PUT(
     // Validar datos requeridos
     const { 
       name, description, price, stock, unit, categoryId, imageUrl, status,
-      fechaCosecha, tiempoEntrega, stockMinimo, pesoAproximado, dimensiones,
-      condicionesAlmacenamiento, certificaciones, metodosEntrega, 
+      fechaCosecha, tiempoEntrega, stockMinimo, pesoAproximado,
+      certificaciones, metodosEntrega, purchaseUnits,
       horariosDisponibles, notasEspeciales, municipio, vereda, tipoCultivo
     } = body;
 
@@ -129,10 +157,9 @@ export async function PUT(
         tiempoEntrega: tiempoEntrega || null,
         stockMinimo: stockMinimo ? parseInt(stockMinimo) : null,
         pesoAproximado: pesoAproximado ? parseFloat(pesoAproximado) : null,
-        dimensiones: dimensiones || null,
-        condicionesAlmacenamiento: condicionesAlmacenamiento || null,
         certificaciones: certificaciones || [],
         metodosEntrega: metodosEntrega || [],
+        purchaseUnits: Array.isArray(purchaseUnits) ? JSON.stringify(purchaseUnits) : (typeof purchaseUnits === 'string' ? purchaseUnits : null),
         horariosDisponibles: horariosDisponibles || null,
         notasEspeciales: notasEspeciales || null,
         municipio: municipio || null,

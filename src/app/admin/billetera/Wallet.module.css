@@ -1,6 +1,4 @@
-:root {
-  --wallet-radius: 20px;
-}
+/* wallet-specific variables were moved to global styles */
 
 
 .wallet-header, .wallet-footer {
