@@ -15,7 +15,8 @@
     "prisma:seed": "tsx prisma/seed.ts",
     "db:setup": "npm run prisma:migrate && npm run prisma:generate && npm run prisma:seed",
     "test": "vitest",
-    "test:ci": "vitest run --coverage",
+    "test:unit": "vitest run --coverage \"tests/*.spec.ts\"",
+    "test:ci": "npm run test:unit",
     "test:watch": "vitest --watch",
     "test:e2e": "playwright test"
   },
