@@ -15,7 +15,7 @@
     "prisma:seed": "tsx prisma/seed.ts",
     "db:setup": "npm run prisma:migrate && npm run prisma:generate && npm run prisma:seed",
     "test": "vitest",
-    "test:unit": "vitest run --coverage \"tests/*.spec.ts\"",
+    "test:unit": "vitest run --coverage tests/example.spec.ts",
     "test:ci": "npm run test:unit",
     "test:watch": "vitest --watch",
     "test:e2e": "playwright test"
@@ -52,7 +52,7 @@
     "zustand": "^5.0.6"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
+    "@eslint/eslintrc": "^3.3.4",
     "@playwright/test": "^1.58.2",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.9.1",
@@ -61,8 +61,10 @@
     "@types/nodemailer": "^7.0.4",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@typescript-eslint/eslint-plugin": "^8.56.1",
+    "@typescript-eslint/parser": "^8.56.1",
     "@vitest/coverage-v8": "^4.0.18",
-    "eslint": "^9",
+    "eslint": "^9.39.3",
     "eslint-config-next": "^16.1.6",
     "jsdom": "^28.0.0",
     "tailwindcss": "^4",

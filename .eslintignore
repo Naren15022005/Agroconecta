@@ -1,0 +1,10 @@
+.next
+node_modules
+coverage
+public
+backups
+backup*
+*.json
+.env
+.env.local
+.DS_Store
