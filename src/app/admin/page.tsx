@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic"
+
 import { TrendingUp, DollarSign, Users, Package, Activity, Clock } from 'lucide-react';
 import Link from 'next/link';
 import DashboardCards from './DashboardCards';
