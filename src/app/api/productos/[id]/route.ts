@@ -160,6 +160,7 @@ export async function PUT(
         certificaciones: certificaciones || [],
         metodosEntrega: metodosEntrega || [],
         purchaseUnits: Array.isArray(purchaseUnits) ? JSON.stringify(purchaseUnits) : (typeof purchaseUnits === 'string' ? purchaseUnits : null),
+        imagenes: Array.isArray(body.imagenes) ? JSON.stringify(body.imagenes) : (typeof body.imagenes === 'string' ? body.imagenes : null),
         horariosDisponibles: horariosDisponibles || null,
         notasEspeciales: notasEspeciales || null,
         municipio: municipio || null,

@@ -5,8 +5,8 @@ import nodemailer from 'nodemailer';
 
 const host = process.env.SMTP_HOST;
 const port = Number(process.env.SMTP_PORT) || 587;
-const user = process.env.SMTP_USER;
-const pass = process.env.SMTP_PASS;
+const user = process.env.SMTP_USER?.replace(/\s+/g, '') || undefined;
+const pass = process.env.SMTP_PASS?.replace(/\s+/g, '') || undefined;
 
 console.log('SMTP configuration from env:');
 console.log({ host, port, user: user ? '*** set ***' : undefined, pass: pass ? '*** set ***' : undefined });

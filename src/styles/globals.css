@@ -5,7 +5,9 @@
   color: #2d3632;
   border-radius: 20px;
   box-shadow: none;
-  transition: transform 0.18s, background 0.18s;
+  transition:
+    transform 0.18s,
+    background 0.18s;
 }
 .quick-card:hover {
   background: var(--gradient-hover);
@@ -17,13 +19,16 @@
   color: #2d3632;
   border-radius: 20px;
   box-shadow: 0 2px 8px var(--glass-2);
-  transition: transform 0.18s, box-shadow 0.18s, background 0.18s;
+  transition:
+    transform 0.18s,
+    box-shadow 0.18s,
+    background 0.18s;
 }
 .card-gradient:hover {
   background: var(--card);
   color: #2d3632;
   transform: translateY(-4px) scale(1.03);
-  box-shadow: 0 6px 24px rgba(79,178,134,0.08);
+  box-shadow: 0 6px 24px rgba(79, 178, 134, 0.08);
 }
 /* Estilos para la tabla de variables de color */
 .color-table {
@@ -31,7 +36,7 @@
   color: #2d3632 !important;
   border-radius: 16px;
   border: 1px solid var(--glass);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   width: 100%;
   margin: 2rem 0;
   font-size: 1rem;
@@ -54,15 +59,33 @@
   margin-right: 0.5rem;
   vertical-align: middle;
 }
-.color-bg { background: var(--bg); }
-.color-card { background: var(--card); }
-.color-muted { background: var(--muted); }
-.color-accent { background: var(--accent); }
-.color-accent-2 { background: var(--accent-2); }
-.color-success { background: var(--success); }
-.color-danger { background: var(--danger); }
-.color-glass { background: var(--glass); }
-.color-glass-2 { background: var(--glass-2); }
+.color-bg {
+  background: var(--bg);
+}
+.color-card {
+  background: var(--card);
+}
+.color-muted {
+  background: var(--muted);
+}
+.color-accent {
+  background: var(--accent);
+}
+.color-accent-2 {
+  background: var(--accent-2);
+}
+.color-success {
+  background: var(--success);
+}
+.color-danger {
+  background: var(--danger);
+}
+.color-glass {
+  background: var(--glass);
+}
+.color-glass-2 {
+  background: var(--glass-2);
+}
 @import "tailwindcss";
 
 :root {
@@ -71,6 +94,9 @@
   --muted: #bfc9d1;
   --accent: #1cc6e4;
   --accent-2: #0e8ba8;
+  --brand-lime: #7ad018;
+  --brand-lime-2: #3fa80f;
+  --brand-lime-3: rgba(122, 208, 24, 0.06);
   --success: #1cc6e4;
   --danger: #3a3f7d; /* azul oscuro casi morado */
   --danger-bg: #23264a; /* fondo badge/botón de estado */
@@ -84,7 +110,10 @@
   --gradient-hover: linear-gradient(135deg, #232a34 0%, #232a34 100%);
 }
 
-html, body, #__next, #root {
+html,
+body,
+#__next,
+#root {
   background: var(--bg) !important;
   min-height: 100vh;
   width: 100%;
@@ -98,19 +127,26 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-.main-bg, .main-container, .app-bg, .app-container {
+.main-bg,
+.main-container,
+.app-bg,
+.app-container {
   background: var(--bg) !important;
 }
 
-.card-gradient, .quick-card {
+.card-gradient,
+.quick-card {
   background: var(--card) !important;
   color: #f3f6f4;
   border-radius: 20px;
   box-shadow: 0 2px 8px var(--glass-2);
-  transition: box-shadow 0.18s, background 0.18s;
+  transition:
+    box-shadow 0.18s,
+    background 0.18s;
   border: 1px solid #232a34;
 }
-.card-gradient:hover, .quick-card:hover {
+.card-gradient:hover,
+.quick-card:hover {
   background: var(--card) !important;
   color: #f3f6f4;
   transform: none;
@@ -141,12 +177,12 @@ body {
 
 /* Ocultar scrollbar pero mantener funcionalidad */
 .scrollbar-hide {
-  -ms-overflow-style: none;  /* Internet Explorer 10+ */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+  scrollbar-width: none; /* Firefox */
 }
 
 .scrollbar-hide::-webkit-scrollbar {
-  display: none;  /* Safari and Chrome */
+  display: none; /* Safari and Chrome */
   width: 0px;
   background: transparent;
 }
@@ -191,7 +227,8 @@ body {
   background: linear-gradient(to bottom, #059669, #047857);
 }
 
-.badge, .status-badge {
+.badge,
+.status-badge {
   background: var(--danger-bg);
   color: var(--danger-text);
   border-radius: 12px;
@@ -201,7 +238,9 @@ body {
   letter-spacing: 0.03em;
   border: 1px solid var(--danger);
 }
-.button-danger, .btn-danger, .action-danger {
+.button-danger,
+.btn-danger,
+.action-danger {
   background: var(--danger-bg);
   color: var(--danger-text);
   border-radius: 6px;
@@ -209,18 +248,223 @@ body {
   font-weight: 600;
   padding: 0.25em 1em;
   font-size: 1em;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
-.button-danger:hover, .btn-danger:hover, .action-danger:hover {
+.button-danger:hover,
+.btn-danger:hover,
+.action-danger:hover {
   background: var(--danger);
   color: #fff;
 }
-.link, .a, a {
+.link,
+.a,
+a {
   color: var(--accent);
   text-decoration: none;
   transition: color 0.15s;
 }
-.link:hover, .a:hover, a:hover {
+.link:hover,
+.a:hover,
+a:hover {
   color: var(--accent-2);
   text-decoration: none;
+}
+
+/* Override anchors in header and hero to ensure high-contrast white text */
+header a,
+header a:visited,
+header a:hover,
+section.hero a,
+section.hero a:visited,
+section.hero a:hover {
+  color: #fff !important;
+  text-decoration: none !important;
+}
+
+/* Ensure CTA links use white text */
+.group a,
+.cta a {
+  color: #fff !important;
+}
+
+/* Mobile nav overrides */
+.mobile-nav a,
+.mobile-nav a:visited,
+.mobile-nav a:hover {
+  color: #fff !important;
+  text-decoration: none !important;
+}
+
+/* Footer links should be high-contrast and match site hover accents */
+footer a,
+footer a:visited {
+  color: #fff !important;
+  text-decoration: none !important;
+}
+footer a:hover {
+  color: var(--accent-2) !important;
+}
+
+/* Mobile nav helpers: ensure vertical centering and comfortable tap targets */
+.mobile-nav .mobile-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.mobile-nav .mobile-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.mobile-nav a,
+.mobile-nav a:visited,
+.mobile-nav a:hover {
+  padding: 6px 8px;
+  display: inline-flex;
+  align-items: center;
+}
+
+@media (max-width: 420px) {
+  /* avoid wrapping on very small screens, allow truncation of brand */
+  .mobile-nav .mobile-brand .truncate {
+    max-width: 8.5rem;
+  }
+}
+
+/* Ensure mobile dropdown from MobileMenu doesn't overflow container */
+.mobile-nav {
+  position: relative;
+}
+.mobile-nav .brand-icon {
+  flex-shrink: 0;
+}
+
+/* Brand icon responsive sizing */
+.brand-icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  object-fit: contain;
+  display: inline-block;
+  overflow: hidden;
+}
+.brand-icon.rounded {
+  border-radius: 0.375rem;
+}
+@media (min-width: 640px) {
+  .brand-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+}
+@media (min-width: 1024px) {
+  .brand-icon {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+}
+
+/* Ensure any image inside brand-icon scales to container and does not overflow */
+.brand-icon img,
+.brand-icon-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* Cart icon animation: subtle pulse + wobble to indicate new items */
+@keyframes cart-pulse-wobble {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  30% {
+    transform: scale(1.06) rotate(-4deg);
+  }
+  60% {
+    transform: scale(1.03) rotate(2deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+.animate-cart {
+  animation: cart-pulse-wobble 900ms ease-in-out infinite;
+}
+
+/* Slightly slower / gentler animation for mobile if needed */
+@media (max-width: 640px) {
+  .animate-cart {
+    animation-duration: 1100ms;
+  }
+}
+
+/* Signin page visual theme matching home gradients */
+
+.signin-bg {
+  background:
+    radial-gradient(
+      1000px 500px at 12% 80%,
+      rgba(122, 208, 24, 0.07),
+      transparent 12%
+    ),
+    radial-gradient(
+      700px 350px at 88% 18%,
+      rgba(63, 168, 15, 0.04),
+      transparent 14%
+    ),
+    var(--bg);
+}
+
+.signin-card {
+  /* Use literal black background for the login card as requested */
+  background: #191919 !important;
+  color: #f3f6f4;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  /* darker ambient shadow with subtle lime rim to match hero accents */
+  box-shadow:
+    0 12px 36px rgba(2, 6, 23, 0.7),
+    0 6px 20px rgba(26, 128, 31, 0.06);
+  border-radius: 20px;
+  backdrop-filter: none;
+}
+
+/* Form inputs matching dark card tone (used on signin) */
+.form-input {
+  /* lighter than card background to create contrast */
+  background: #242424 !important;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #f3f6f4 !important;
+  padding: 0.6rem 0.85rem;
+  border-radius: 0.6rem;
+}
+.form-input::placeholder {
+  color: rgba(243, 246, 244, 0.18) !important;
+}
+.form-input:focus {
+  outline: none !important;
+  box-shadow:
+    0 8px 20px rgba(2, 6, 23, 0.7),
+    0 0 0 6px rgba(122, 208, 24, 0.06);
+  border-color: var(--brand-lime-2);
+}
+
+.form-checkbox {
+  background: var(--card) !important;
+  border: 1px solid rgba(255, 255, 255, 0.04) !important;
+}
+
+.signin-card .brand-icon {
+  filter: drop-shadow(0 6px 16px rgba(7, 89, 82, 0.12));
+}
+
+/* Ensure links inside the signin card use the site's lime accent, overriding global anchor rules */
+.signin-card a,
+.signin-card a:visited {
+  color: var(--brand-lime) !important;
+  text-decoration: none;
+}
+.signin-card a:hover {
+  color: var(--brand-lime-2) !important;
 }

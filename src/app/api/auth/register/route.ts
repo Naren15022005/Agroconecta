@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
+import { validatePassword } from '@/lib/password';
 import { sendWelcomeEmail } from '@/lib/email';
 import { randomBytes } from 'crypto';
 import AgroConectaIdGenerator from '@/lib/id-generator';
@@ -31,12 +32,10 @@ export async function POST(req: NextRequest) {
         error: 'El correo electrónico no es válido.'
       }, { status: 400 });
     }
-    // Validar longitud de contraseña
-    if (password.length < 8) {
-      return NextResponse.json({
-        success: false,
-        error: 'La contraseña debe tener al menos 8 caracteres.'
-      }, { status: 400 });
+    // Validar contraseña con reglas de seguridad
+    const pwCheck = validatePassword(password);
+    if (!pwCheck.ok) {
+      return NextResponse.json({ success: false, error: pwCheck.errors.join(' ') }, { status: 400 });
     }
 
     // Validar que el rol sea válido y obtener el roleId

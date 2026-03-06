@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: agroconecta_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Set DATABASE_URL for tests
+        run: echo "DATABASE_URL=mysql://root:password@127.0.0.1:3306/agroconecta_test" >> $GITHUB_ENV
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Wait for MySQL
+        run: |
+          for i in {1..30}; do
+            if mysqladmin ping -h127.0.0.1 -uroot -ppassword --silent; then
+              echo 'MySQL is up';
+              break;
+            fi
+            echo 'Waiting for MySQL...';
+            sleep 2;
+          done
+
+      - name: Run migrations
+        run: npx prisma migrate deploy
+
+      - name: Seed DB (optional)
+        run: npm run prisma:seed || true
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Run unit tests (Vitest)
+        run: npm run test
+
+      - name: Run E2E tests (Playwright)
+        run: npx playwright test --project=chromium --config=playwright.config.ts

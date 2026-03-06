@@ -12,7 +12,7 @@ interface ProductoDetalle {
   description: string;
   price: number;
   unit: string;
-  purchaseUnits?: string[] | string | null;
+  purchaseUnits?: Array<{ unit: string; equivalencia: number }> | string | null;
   category?: { name: string } | null;
   agricultor?: { id: string; user?: { nombre?: string | null } | null } | null;
   agricultorId?: string | null;
@@ -36,7 +36,7 @@ export default function ProductoDetallePage() {
   const [producto, setProducto] = useState<ProductoDetalle | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedUnit, setSelectedUnit] = useState<string | null>(null);
+  const [selectedPurchaseUnit, setSelectedPurchaseUnit] = useState<{ unit: string; equivalencia: number } | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -55,16 +55,50 @@ export default function ProductoDetallePage() {
         // Normalize purchaseUnits if present
         if (p && p.purchaseUnits) {
           try {
-            if (Array.isArray(p.purchaseUnits)) p.purchaseUnits = p.purchaseUnits;
-            else if (typeof p.purchaseUnits === 'string') p.purchaseUnits = JSON.parse(p.purchaseUnits);
+            if (Array.isArray(p.purchaseUnits)) {
+              p.purchaseUnits = p.purchaseUnits;
+            } else if (typeof p.purchaseUnits === 'string') {
+              p.purchaseUnits = JSON.parse(p.purchaseUnits);
+            }
           } catch (_) {
-            // leave as-is
+            p.purchaseUnits = [];
           }
         }
-        setProducto(p);
-        if (p && Array.isArray(p.purchaseUnits) && p.purchaseUnits.length > 0) {
-          setSelectedUnit(String(p.purchaseUnits[0]));
+        // Normalize imagenes: may be stored as JSON string
+        if (p && p.imagenes) {
+          try {
+            if (Array.isArray(p.imagenes)) {
+              p.imagenes = p.imagenes;
+            } else if (typeof p.imagenes === 'string') {
+              p.imagenes = JSON.parse(p.imagenes);
+            }
+          } catch (_) {
+            p.imagenes = [];
+          }
         }
+        // Normalize metodosEntrega if present (can be stored as JSON string)
+        if (p && p.metodosEntrega) {
+          try {
+            if (Array.isArray(p.metodosEntrega)) {
+              p.metodosEntrega = p.metodosEntrega;
+            } else if (typeof p.metodosEntrega === 'string') {
+              p.metodosEntrega = JSON.parse(p.metodosEntrega);
+            }
+          } catch (_) {
+            p.metodosEntrega = [];
+          }
+        }
+        // DEBUG: log raw product and purchaseUnits to troubleshoot missing presentations in UI
+        try {
+          // eslint-disable-next-line no-console
+          console.log('Producto raw from /api/productos/[id]:', p);
+          // eslint-disable-next-line no-console
+          console.log('producto.purchaseUnits (raw):', p.purchaseUnits);
+        } catch (e) {}
+        // DEBUG: show parsed imagenes
+        try { console.log('producto.imagenes (parsed):', p.imagenes); } catch (e) {}
+        setProducto(p);
+        setSelectedPurchaseUnit(null);
       } catch (e) {
         setError("No se pudo cargar el producto");
       } finally {
@@ -77,21 +111,40 @@ export default function ProductoDetallePage() {
   const formatearPrecio = (precio: number) =>
     new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", minimumFractionDigits: 0 }).format(precio);
 
-  const handleAddToCart = () => {
+  // Parse purchase units
+  const purchaseUnits = useMemo(() => {
+    if (!producto?.purchaseUnits) return [];
+    if (Array.isArray(producto.purchaseUnits)) return producto.purchaseUnits;
+    return [];
+  }, [producto?.purchaseUnits]);
+
+  // Calculate current price based on selected purchase unit
+  const precioActual = useMemo(() => {
+    if (!producto) return 0;
+    if (!selectedPurchaseUnit) return producto.price;
+    if ((selectedPurchaseUnit as any).price != null) return (selectedPurchaseUnit as any).price;
+    return producto.price * selectedPurchaseUnit.equivalencia;
+  }, [producto, selectedPurchaseUnit]);
+
+  const unidadActual = selectedPurchaseUnit?.unit || producto?.unit;
+
+  const handleAddToCart = (qty: number = 1) => {
     if (!producto) return;
     if (producto.stock <= 0) return;
     cart.addItem({
       id: producto.id,
       name: producto.name,
-      price: producto.price,
+      price: precioActual,
       stock: producto.stock,
-      unit: producto.unit,
-      purchaseUnit: selectedUnit ?? producto.unit,
+      unit: unidadActual || producto.unit,
+      purchaseUnit: unidadActual || producto.unit,
       campesinoId: producto.agricultorId || producto.agricultor?.id || "desconocido",
       campesinoName: producto.agricultor?.user?.nombre || "desconocido",
       imageUrl: producto.imageUrl || "",
       metodosEntrega: Array.isArray(producto.metodosEntrega) ? producto.metodosEntrega : null,
-    });
+    }, qty);
+    // Abrir sidebar global del carrito para mostrar la adición
+    cart.toggleCart();
   };
 
   // Mantener el orden de hooks: declarar useMemo/useState antes de cualquier return condicional
@@ -103,7 +156,6 @@ export default function ProductoDetallePage() {
   }, [producto?.imageUrl, producto?.imagenes]);
   const [active, setActive] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [selectedDelivery, setSelectedDelivery] = useState<string | null>(null);
   const [showOwnerAlert, setShowOwnerAlert] = useState(false);
   const canPrev = active > 0;
   const canNext = active < Math.max(gallery.length - 1, 0);
@@ -169,12 +221,12 @@ export default function ProductoDetallePage() {
           {/* Galería izquierda */}
           <div className="lg:col-span-7 flex gap-3">
             {/* Thumbnails verticales */}
-            <div className="hidden sm:flex flex-col gap-2 w-20">
+            <div className="hidden sm:flex flex-col gap-3 w-24 overflow-y-auto max-h-[520px] pr-1">
               {(gallery.length ? gallery : [producto.imageUrl]).filter(Boolean).map((src, i) => (
                 <button
                   key={i}
                   onClick={() => setActive(i)}
-                  className={`border rounded-lg overflow-hidden h-20 w-20 ${i === active ? 'border-green-600' : 'border-neutral-700 hover:border-neutral-600'}`}
+                  className={`rounded-lg overflow-hidden h-20 w-20 flex items-center justify-center transition-transform transform ${i === active ? 'ring-2 ring-green-500 shadow-lg scale-105' : 'border border-neutral-700 hover:scale-105'}`}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={src as string} alt={`Vista ${i+1}`} className="w-full h-full object-cover" />
@@ -185,28 +237,34 @@ export default function ProductoDetallePage() {
             <div className="relative flex-1 bg-neutral-900 border border-neutral-700 rounded-xl overflow-hidden">
               {gallery.length ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={gallery[active]} alt={producto.name} className="w-full h-[360px] md:h-[460px] object-cover" />
+                <div className="w-full h-[360px] md:h-[520px] bg-neutral-800 rounded-xl flex items-center justify-center">
+                  <img src={gallery[active]} alt={producto.name} className="max-h-full max-w-full object-contain rounded-lg shadow-lg" />
+                </div>
               ) : producto.imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={producto.imageUrl} alt={producto.name} className="w-full h-[360px] md:h-[460px] object-cover" />
+                <div className="w-full h-[360px] md:h-[520px] bg-neutral-800 rounded-xl flex items-center justify-center">
+                  <img src={producto.imageUrl} alt={producto.name} className="max-h-full max-w-full object-contain rounded-lg shadow-lg" />
+                </div>
               ) : (
-                <div className="w-full h-[360px] md:h-[460px] flex items-center justify-center text-6xl text-neutral-300">🌿</div>
+                <div className="w-full h-[360px] md:h-[520px] flex items-center justify-center text-6xl text-neutral-300">🌿</div>
               )}
               {gallery.length > 1 && (
                 <>
                   <button
                     onClick={() => canPrev && setActive(a => Math.max(a-1, 0))}
                     disabled={!canPrev}
-                    className={`absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full border ${canPrev ? 'bg-neutral-800/80 hover:bg-neutral-700 border-neutral-600' : 'bg-neutral-800/40 border-neutral-700 cursor-not-allowed'}`}
+                    aria-label="Anterior"
+                    className={`absolute left-3 top-1/2 -translate-y-1/2 p-3 rounded-full ${canPrev ? 'bg-neutral-900/70 hover:bg-neutral-800' : 'bg-neutral-900/40 cursor-not-allowed'} shadow-md`}
                   >
-                    <ChevronLeft className="w-5 h-5" />
+                    <ChevronLeft className="w-5 h-5 text-white" />
                   </button>
                   <button
                     onClick={() => canNext && setActive(a => Math.min(a+1, gallery.length-1))}
                     disabled={!canNext}
-                    className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full border ${canNext ? 'bg-neutral-800/80 hover:bg-neutral-700 border-neutral-600' : 'bg-neutral-800/40 border-neutral-700 cursor-not-allowed'}`}
+                    aria-label="Siguiente"
+                    className={`absolute right-3 top-1/2 -translate-y-1/2 p-3 rounded-full ${canNext ? 'bg-neutral-900/70 hover:bg-neutral-800' : 'bg-neutral-900/40 cursor-not-allowed'} shadow-md`}
                   >
-                    <ChevronRight className="w-5 h-5" />
+                    <ChevronRight className="w-5 h-5 text-white" />
                   </button>
                 </>
               )}
@@ -236,11 +294,53 @@ export default function ProductoDetallePage() {
             <div className="flex items-start gap-6">
               <div>
                 <div className="text-2xl md:text-3xl font-extrabold text-green-400">
-                  {formatearPrecio(producto.price)}
+                  {formatearPrecio(precioActual)}
                 </div>
-                <div className="text-xs text-neutral-400">por {producto.unit}</div>
+                <div className="text-xs text-neutral-400">por {unidadActual}</div>
+                {selectedPurchaseUnit && (
+                  <div className="text-xs text-neutral-500 mt-1">
+                    ({selectedPurchaseUnit.equivalencia} {producto.unit})
+                  </div>
+                )}
               </div>
             </div>
+
+            {/* Selector de opciones de empaque */}
+            {purchaseUnits.length > 0 && (
+              <div className="pt-2 pb-3 border-t border-neutral-700">
+                <label className="text-sm font-medium text-neutral-200 mb-3 block">Opciones de compra</label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {/* Opción base */}
+                  <button
+                    onClick={() => setSelectedPurchaseUnit(null)}
+                    className={`px-3 py-2.5 rounded-lg border text-sm text-left transition-colors ${
+                      !selectedPurchaseUnit
+                        ? 'bg-green-600 text-white border-green-600 shadow-lg'
+                        : 'bg-neutral-800 text-neutral-200 border-neutral-700 hover:bg-neutral-700 hover:border-neutral-600'
+                    }`}
+                  >
+                    <div className="font-semibold">{producto.unit}</div>
+                    <div className="text-xs opacity-80">{formatearPrecio(producto.price)}</div>
+                  </button>
+                  {/* Opciones de empaque mayor */}
+                  {purchaseUnits.map((pu, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setSelectedPurchaseUnit(pu)}
+                      className={`px-3 py-2.5 rounded-lg border text-sm text-left transition-colors ${
+                        selectedPurchaseUnit?.unit === pu.unit
+                          ? 'bg-green-600 text-white border-green-600 shadow-lg'
+                          : 'bg-neutral-800 text-neutral-200 border-neutral-700 hover:bg-neutral-700 hover:border-neutral-600'
+                      }`}
+                    >
+                      <div className="font-semibold">{pu.unit}</div>
+                      <div className="text-xs opacity-80">{formatearPrecio((pu as any).price != null ? (pu as any).price : producto.price * pu.equivalencia)}</div>
+                      <div className="text-xs opacity-60 mt-0.5">{pu.equivalencia} {producto.unit}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm text-neutral-200">
@@ -278,51 +378,10 @@ export default function ProductoDetallePage() {
                     >+</button>
                   </div>
 
-                  {Array.isArray(producto.metodosEntrega) && producto.metodosEntrega.length > 0 && (
-                    <select
-                      value={selectedDelivery ?? ''}
-                      onChange={(e) => setSelectedDelivery(e.target.value || null)}
-                      className="bg-neutral-800 border border-neutral-700 text-neutral-200 rounded-lg px-3 py-2"
-                    >
-                      <option value="">Seleccionar método de entrega</option>
-                      {producto.metodosEntrega.map((m, i) => (
-                        <option key={i} value={m}>{m}</option>
-                      ))}
-                    </select>
-                  )}
-
-                  {Array.isArray(producto.purchaseUnits) && producto.purchaseUnits.length > 0 && (
-                    <div className="flex items-center gap-2">
-                      <div className="text-sm text-neutral-400 mr-2">Unidad de compra:</div>
-                      {producto.purchaseUnits.map((u, i) => (
-                        <button
-                          key={i}
-                          onClick={() => setSelectedUnit(prev => prev === String(u) ? null : String(u))}
-                          className={`text-sm px-3 py-1 rounded-full border ${selectedUnit === String(u) ? 'bg-green-600 text-white border-green-600' : 'bg-neutral-800 text-neutral-300 border-neutral-700 hover:border-green-600'}`}>
-                          {selectedUnit === String(u) ? '✓ ' : ''}{u}
-                        </button>
-                      ))}
-                    </div>
-                  )}
+                  {/* Método de entrega se selecciona en checkout; no se muestra aquí */}
 
                   <button
-                    onClick={() => {
-                      if (!producto) return;
-                      if (producto.stock <= 0) return;
-                      cart.addItem({
-                        id: producto.id,
-                        name: producto.name,
-                        price: producto.price,
-                        stock: producto.stock,
-                        unit: producto.unit,
-                        purchaseUnit: selectedUnit ?? producto.unit,
-                        campesinoId: producto.agricultorId || producto.agricultor?.id || "desconocido",
-                        campesinoName: producto.agricultor?.user?.nombre || "desconocido",
-                        imageUrl: producto.imageUrl || "",
-                        metodosEntrega: Array.isArray(producto.metodosEntrega) ? producto.metodosEntrega : null,
-                        deliveryMethod: selectedDelivery || undefined,
-                      }, quantity)
-                    }}
+                    onClick={() => handleAddToCart(quantity)}
                     disabled={producto.stock <= 0}
                     className={`inline-flex items-center justify-center gap-2 font-semibold px-4 py-2 rounded-xl shadow-sm ${
                       producto.stock <= 0

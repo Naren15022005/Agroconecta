@@ -1,11 +1,12 @@
 "use client";
 
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
+import { signOut } from 'next-auth/react';
 import { useSession } from 'next-auth/react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import CartSidebar from '@/components/CartSidebar';
-import { ShoppingBag, Package, User, LogOut, Home, ShoppingCart } from 'lucide-react';
+import { ShoppingBag, Package, User, LogOut, Home, ShoppingCart, Heart } from 'lucide-react';
 import { useCartStore } from '@/store/cart';
 
 
@@ -17,6 +18,29 @@ export default function CompradorLayout({ children }: { children: ReactNode }) {
     pathname.startsWith('/comprador/mercado') || pathname.startsWith('/comprador/pedidos')
   );
   const cart = useCartStore();
+  const totalItems = useCartStore(state => state.getTotalItems());
+
+  // Redirects must run inside effects to avoid updating other components during render
+  useEffect(() => {
+    if (status === 'unauthenticated' && !isMarket) {
+      router.push('/auth/signin?callbackUrl=/comprador');
+    }
+  }, [status, router]);
+
+  useEffect(() => {
+    if (status === 'authenticated' && session?.user?.role && !isMarket) {
+      const role = session.user.role;
+      if (role !== 'COMPRADOR' && role !== 'EMPRESA') {
+        if (role === 'CAMPESINO') {
+          router.push('/agricultor');
+        } else if (role === 'ADMINISTRADOR') {
+          router.push('/admin');
+        } else {
+          router.push('/');
+        }
+      }
+    }
+  }, [status, session, router]);
 
   // Verificar autenticación
   if (status === 'loading') {
@@ -29,31 +53,22 @@ export default function CompradorLayout({ children }: { children: ReactNode }) {
       </div>
     );
   }
-
-  if (status === 'unauthenticated') {
-    router.push('/auth/signin?callbackUrl=/comprador');
+  if (status === 'unauthenticated' && !isMarket) {
+    // Effect will redirect; avoid rendering while redirecting
     return null;
   }
 
-  // Verificar que el usuario tenga el rol correcto
-  if (session?.user?.role && session.user.role !== 'COMPRADOR' && session.user.role !== 'EMPRESA') {
-    // Si el usuario es agricultor, redirigir a su dashboard
-    if (session.user.role === 'CAMPESINO') {
-      router.push('/agricultor');
+  // If the user is authenticated but has an unexpected role, block render only when not viewing the public market
+  if (session?.user?.role && status === 'authenticated') {
+    const role = session.user.role;
+    if (role !== 'COMPRADOR' && role !== 'EMPRESA' && !isMarket) {
       return null;
     }
-    // Si es admin, redirigir a admin
-    if (session.user.role === 'ADMINISTRADOR') {
-      router.push('/admin');
-      return null;
-    }
-    // Para cualquier otro rol, redirigir a inicio
-    router.push('/');
-    return null;
   }
 
   const handleLogout = () => {
-    router.push('/api/auth/signout');
+    // Use NextAuth signOut helper to clear session and redirect to home
+    signOut({ callbackUrl: '/' });
   };
 
   return (
@@ -70,54 +85,67 @@ export default function CompradorLayout({ children }: { children: ReactNode }) {
             </div>
           </div>
 
-          {/* Center: Navigation (centered) */}
-          <div className="flex-1 flex justify-center">
-            <div className="hidden md:flex items-center space-x-8">
-              <Link
-                href="/comprador/mercado"
-                className="flex items-center space-x-2 text-neutral-200 transition-colors"
-              >
-                <ShoppingBag size={18} className="text-neutral-200" />
-                <span className="font-medium text-neutral-200">Mercado</span>
-              </Link>
-              <Link
-                href="/comprador/pedidos"
-                className="flex items-center space-x-2 text-neutral-200 transition-colors"
-              >
-                <Package size={18} className="text-neutral-200" />
-                <span className="font-medium text-neutral-200">Mis Pedidos</span>
-              </Link>
-            </div>
-          </div>
+          {/* Spacer to keep header layout */}
+          <div className="flex-1" />
 
-          {/* Right: Actions (user, logout, cart) */}
+          {/* Right: Navigation + Actions (user, logout, cart) */}
           <div className="flex items-center space-x-4 flex-shrink-0">
-            <div className="hidden md:flex items-center space-x-3 text-sm">
-              <div className={`flex items-center space-x-2 px-3 py-1 rounded-md bg-neutral-800/40`}>
-                <User size={16} className={`text-neutral-200`} />
-                <span className={`text-neutral-200 font-medium truncate max-w-[12ch]`}>{session?.user?.name || session?.user?.email}</span>
+            {status === 'authenticated' ? (
+              <div className="hidden md:flex items-center space-x-6">
+                <Link
+                  href="/comprador/mercado"
+                  className="flex items-center space-x-2 text-neutral-200 transition-colors"
+                >
+                  <ShoppingBag size={18} className="text-neutral-200" />
+                  <span className="font-medium text-neutral-200">Mercado</span>
+                </Link>
+                <Link
+                  href="/comprador/pedidos"
+                  className="flex items-center space-x-2 text-neutral-200 transition-colors"
+                >
+                  <Package size={18} className="text-neutral-200" />
+                  <span className="font-medium text-neutral-200">Mis Pedidos</span>
+                </Link>
+                <Link
+                  href="/comprador/favoritos"
+                  className="flex items-center space-x-2 text-neutral-200 transition-colors hover:text-red-400"
+                >
+                  <Heart size={18} className="text-red-400" />
+                  <span className="font-medium text-neutral-200">Favoritos</span>
+                </Link>
               </div>
-            </div>
+            ) : null}
 
-            <button
-              onClick={handleLogout}
-              className={`hidden md:flex items-center space-x-1 text-neutral-200 hover:text-red-400 transition-colors px-3 py-1 rounded-md`}
-            >
-              <LogOut size={18} />
-              <span className="hidden md:inline">Salir</span>
-            </button>
+            {status === 'authenticated' && session?.user ? (
+              <>
+                <div className="hidden md:flex items-center space-x-3 text-sm">
+                  <div className={`flex items-center space-x-2 px-3 py-1 rounded-md bg-neutral-800/40`}>
+                    <User size={16} className={`text-neutral-200`} />
+                    <span className={`text-neutral-200 font-medium truncate max-w-[12ch]`}>{session.user.name || session.user.email}</span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleLogout}
+                  className={`hidden md:flex items-center space-x-1 text-neutral-200 hover:text-red-400 transition-colors px-3 py-1 rounded-md`}
+                >
+                  <LogOut size={18} />
+                  <span className="hidden md:inline">Salir</span>
+                </button>
+              </>
+            ) : null}
 
             {/* Carrito al final (más visible) */}
             <button
               id="cart-sidebar-btn"
               onClick={() => cart.toggleCart()}
-              className={`relative p-2 rounded-full transition-colors hover:bg-neutral-800/50`}
+              className={`relative p-2 rounded-full transition-colors hover:bg-neutral-800/50 ${totalItems > 0 ? 'animate-cart' : ''}`}
               aria-label="Abrir carrito"
             >
               <ShoppingCart size={24} className={`text-white`} />
-              {cart.getTotalItems() > 0 && (
+              {totalItems > 0 && (
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 font-bold">
-                  {cart.getTotalItems()}
+                  {totalItems}
                 </span>
               )}
             </button>
@@ -129,29 +157,40 @@ export default function CompradorLayout({ children }: { children: ReactNode }) {
       <div className={`md:hidden bg-neutral-900 border-b border-neutral-800`}>
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-around py-2">
-              <Link
-                href="/comprador/mercado"
-                className="flex flex-col items-center py-2 text-neutral-200"
-              >
-                <ShoppingBag size={20} className="text-neutral-200" />
-                <span className="text-xs mt-1 text-neutral-200">Mercado</span>
-              </Link>
-            <Link
-              href="/comprador/pedidos"
-              className="flex flex-col items-center py-2 text-neutral-200"
-            >
-              <Package size={20} className="text-neutral-200" />
-              <span className="text-xs mt-1 text-neutral-200">Pedidos</span>
-            </Link>
+            {status === 'authenticated' ? (
+              <>
+                <Link
+                  href="/comprador/mercado"
+                  className="flex flex-col items-center py-2 text-neutral-200"
+                >
+                  <ShoppingBag size={20} className="text-neutral-200" />
+                  <span className="text-xs mt-1 text-neutral-200">Mercado</span>
+                </Link>
+                <Link
+                  href="/comprador/pedidos"
+                  className="flex flex-col items-center py-2 text-neutral-200"
+                >
+                  <Package size={20} className="text-neutral-200" />
+                  <span className="text-xs mt-1 text-neutral-200">Pedidos</span>
+                </Link>
+                  <Link
+                    href="/comprador/favoritos"
+                    className="flex flex-col items-center py-2 text-neutral-200 hover:text-red-400"
+                  >
+                    <Heart size={20} className="text-red-400" />
+                    <span className="text-xs mt-1 text-neutral-200">Favoritos</span>
+                  </Link>
+              </>
+            ) : null}
             <button
               onClick={() => cart.toggleCart()}
-              className={`flex flex-col items-center py-2 relative text-neutral-200 hover:text-green-300`}
+              className={`flex flex-col items-center py-2 relative text-neutral-200 hover:text-green-300 ${totalItems > 0 ? 'animate-cart' : ''}`}
               aria-label="Abrir carrito"
             >
               <ShoppingCart size={20} className={`text-neutral-200`} />
-              {cart.getTotalItems() > 0 && (
+              {totalItems > 0 && (
                 <span className="absolute -top-1 -right-2 bg-red-500 text-white text-[10px] rounded-full px-1 py-0.5 font-bold">
-                  {cart.getTotalItems()}
+                  {totalItems}
                 </span>
               )}
               <span className="text-xs mt-1 text-neutral-200">Carrito</span>

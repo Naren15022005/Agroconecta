@@ -2,10 +2,10 @@ generator client {
   provider = "prisma-client-js"
 }
 
-datasource db {
-  provider = "postgresql"
+ datasource db {
+  provider = "mysql"
   url      = env("DATABASE_URL")
-}
+ }
 
 model Notification {
   id        String   @id
@@ -53,6 +53,7 @@ model User {
   ventasComoVendedor  Sale[]            @relation("VentasComoVendedor")
   sessions            Session[]
   transacciones       Transaccion[]
+  favorites           Favorite[]
   role                Role              @relation(fields: [roleId], references: [id], onDelete: NoAction)
   wallets             Wallet[]
   withdrawRequests    WithdrawRequest[]
@@ -147,6 +148,7 @@ model Product {
   reservedStock             Int           @default(0)
   unit                      String
   imageUrl                  String?
+  imagenes                  String?       @db.Text
   status                    ProductStatus @default(DISPONIBLE)
   fechaCosecha              DateTime?
   tiempoEntrega             String?
@@ -168,6 +170,7 @@ model Product {
   isActive                  Boolean       @default(true)
   cartItems                 CartItem[]
   orderItems                OrderItem[]
+  favorites                 Favorite[]
   agricultor                Agricultor    @relation(fields: [agricultorId], references: [id], onDelete: Cascade)
   category                  Category      @relation(fields: [categoryId], references: [id], onDelete: NoAction)
   subcategory               Subcategory?  @relation(fields: [subcategoryId], references: [id], onDelete: NoAction)
@@ -485,4 +488,19 @@ model Liquidacion {
   created_at    DateTime @default(now())
 
   @@map("liquidaciones")
+}
+
+model Favorite {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([userId])
+  @@index([productId])
+  @@map("favorites")
 }

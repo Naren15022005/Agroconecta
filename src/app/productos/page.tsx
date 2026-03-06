@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { Tractor, Search, Filter, ShoppingCart } from 'lucide-react'
+import BrandIcon from '@/components/BrandIcon'
+import { Search, Filter, ShoppingCart } from 'lucide-react'
 
 export default function ProductosPage() {
   // Productos de ejemplo (en el futuro estos vendrán de la base de datos)
@@ -53,7 +54,7 @@ export default function ProductosPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="flex items-center">
-              <Tractor className="h-8 w-8 text-green-600" />
+              <BrandIcon className="h-9 w-9" />
               <span className="ml-2 text-2xl font-bold text-gray-900">AgroConecta</span>
             </Link>
             <nav className="flex space-x-8">
@@ -165,7 +166,7 @@ export default function ProductosPage() {
       <footer className="bg-white border-t">
         <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center">
-            <Tractor className="h-6 w-6 text-green-600" />
+            <BrandIcon className="h-7 w-7" />
             <span className="ml-2 text-lg font-bold text-gray-900">AgroConecta</span>
           </div>
           <p className="mt-2 text-center text-sm text-gray-400">

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { User, Phone, MapPin, BadgeCheck, Image as ImageIcon, Save } from "lucide-react";
+import CitySelector from '@/components/CitySelector';
 
 type PerfilResponse = {
   agricultor: {
@@ -225,7 +226,36 @@ export default function PerfilPage() {
                     <label className="block text-sm text-neutral-300 mb-2">Ubicación</label>
                     <div className="relative">
                       <MapPin className="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
-                      <input className={`${inputBase} pl-9`} value={form.ubicacion} onChange={(e) => setForm((s) => ({ ...s, ubicacion: e.target.value }))} placeholder="Municipio / Vereda" aria-label="Ubicación" />
+                      <div className="pl-9">
+                        <CitySelector
+                          value={form.ubicacion || 'Todas'}
+                          onChange={async (city) => {
+                            // update local form immediately
+                            setForm((s) => ({ ...s, ubicacion: city }));
+                            setSaving(true);
+                            setError(null);
+                            try {
+                              const res = await fetch('/api/agricultor/perfil', {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ ubicacion: city })
+                              });
+                              const j = await res.json();
+                              if (!res.ok) throw new Error(j?.error || 'No se pudo guardar ubicación');
+                              // update perfil state with returned agricultor
+                              setPerfil((p) => p ? ({ ...p, ubicacion: j.agricultor?.ubicacion ?? city }) : p);
+                              setSuccess('Ubicación guardada');
+                              if (savedTimerRef.current) window.clearTimeout(savedTimerRef.current);
+                              savedTimerRef.current = window.setTimeout(() => setSuccess(null), 2500);
+                            } catch (err: any) {
+                              setError(err?.message || 'Error guardando ubicación');
+                            } finally {
+                              setSaving(false);
+                            }
+                          }}
+                          placeholder="Buscar ciudad o departamento..."
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>

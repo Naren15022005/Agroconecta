@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useUserId } from "@/lib/useUserId";
 import { useEffect } from "react";
 import { MapPin, DollarSign, Package, FileText, Camera, Leaf, Save, Trash2, Send, Info, X } from "lucide-react";
+import PackagingModal from '@/components/PackagingModal';
 
 const unidades = [
   { value: 'kg', label: 'Kilogramo (kg)' },
@@ -76,6 +77,12 @@ export default function PublicarPage() {
   // (Mover este useEffect después de la declaración de formData)
 
 
+  type PurchaseUnit = {
+    unit: string;
+    equivalencia: number;
+    price?: number | null;
+  };
+
   type FormDataType = {
     name: string;
     description: string;
@@ -93,7 +100,7 @@ export default function PublicarPage() {
     imageUrl: string;
     stockMinimo: string;
     pesoAproximado: string;
-    purchaseUnits: string[];
+    purchaseUnits: PurchaseUnit[];
     certificaciones: string[];
     metodosEntrega: string[];
     horariosDisponibles: string;
@@ -120,7 +127,7 @@ export default function PublicarPage() {
     pesoAproximado: '',
     purchaseUnits: [],
     certificaciones: [],
-    metodosEntrega: ['domicilio'],
+    metodosEntrega: [],
     horariosDisponibles: '',
     notasEspeciales: '',
     reservedStock: '10',
@@ -210,15 +217,26 @@ export default function PublicarPage() {
     });
   };
 
-  const togglePurchaseUnit = (unit: string) => {
-    setFormData(prev => {
-      if (!Array.isArray(prev.purchaseUnits)) return { ...prev, purchaseUnits: [unit] };
-      const exists = prev.purchaseUnits.includes(unit);
-      return {
-        ...prev,
-        purchaseUnits: exists ? prev.purchaseUnits.filter(u => u !== unit) : [...prev.purchaseUnits, unit]
-      };
-    });
+  const addPurchaseUnit = () => {
+    // now handled by modal
+    setShowPackagingModal(true);
+  };
+
+  const removePurchaseUnit = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      purchaseUnits: prev.purchaseUnits.filter((_, i) => i !== index)
+    }));
+  };
+
+  const [showPackagingModal, setShowPackagingModal] = useState(false);
+
+  const handlePackagingConfirm = (items: PurchaseUnit[]) => {
+    const mapped = items.map(i => ({
+      ...i,
+      price: formData.price && formData.price !== '' ? Number(formData.price) * Number(i.equivalencia) : null
+    }));
+    setFormData(prev => ({ ...prev, purchaseUnits: [...prev.purchaseUnits, ...mapped] }));
   };
 
   // Handler para submit con POST real
@@ -236,34 +254,46 @@ export default function PublicarPage() {
 
     // Determinar la imagen principal a enviar
     let imageUrlToSend = formData.imageUrl;
-    // Si no hay URL y hay imagen subida, sube la imagen base64 a /api/upload
-    if (!imageUrlToSend && previewImages.length > 0) {
-      const base64 = previewImages[0];
-      // Validar base64 mínimo
-      if (!base64 || !base64.startsWith('data:image/')) {
-        alert('La imagen seleccionada no es válida. Intenta seleccionar otra.');
-        console.error('Base64 inválido:', base64);
-        return;
-      }
-      // Log para depuración
-      console.log('Enviando base64 a /api/upload:', base64.substring(0, 100) + '...');
-      try {
-        const uploadRes = await fetch("/api/upload", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ image: base64 }),
-        });
-        if (uploadRes.ok) {
-          const uploadData = await uploadRes.json();
-          imageUrlToSend = uploadData.url || uploadData.imageUrl || '';
-        } else {
-          alert("Error al subir la imagen. Intenta de nuevo.");
-          return;
+    const allImageUrls: string[] = [];
+
+    // Si hay imágenes subidas, sube TODAS a /api/upload
+    if (previewImages.length > 0) {
+      for (let i = 0; i < previewImages.length; i++) {
+        const base64 = previewImages[i];
+        // Validar base64 mínimo
+        if (!base64 || !base64.startsWith('data:image/')) {
+          console.warn(`Imagen ${i + 1} inválida, se omitirá`);
+          continue;
         }
-      } catch (err) {
-        alert("Error de red al subir la imagen");
-        return;
+        try {
+          const uploadRes = await fetch("/api/upload", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ image: base64 }),
+          });
+          if (uploadRes.ok) {
+            const uploadData = await uploadRes.json();
+            const url = uploadData.url || uploadData.imageUrl || '';
+            if (url) {
+              allImageUrls.push(url);
+            }
+          } else {
+            console.warn(`Error al subir imagen ${i + 1}`);
+          }
+        } catch (err) {
+          console.warn(`Error de red al subir imagen ${i + 1}`);
+        }
       }
+
+      // La primera imagen subida es la principal
+      if (allImageUrls.length > 0 && !imageUrlToSend) {
+        imageUrlToSend = allImageUrls[0];
+      }
+    }
+
+    // Si no hay ninguna imagen subida ni URL, intentar sin imagen
+    if (!imageUrlToSend) {
+      imageUrlToSend = '';
     }
 
     const payload = {
@@ -278,6 +308,7 @@ export default function PublicarPage() {
       stockMinimo: 10,
       reservedStock: 10,
       imageUrl: imageUrlToSend,
+      imagenes: allImageUrls.length > 0 ? JSON.stringify(allImageUrls) : null,
       fechaCosecha: formData.fechaCosecha === '' ? null : formData.fechaCosecha,
       tiempoEntrega: formData.tiempoEntrega === '' ? null : formData.tiempoEntrega.toString(),
       pesoAproximado: formData.pesoAproximado === '' ? null : Number(formData.pesoAproximado),
@@ -382,13 +413,81 @@ export default function PublicarPage() {
             <div className="p-5 md:p-6 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                 <div>
-                  <label className="block text-sm font-semibold mb-2 text-neutral-200">Precio *</label>
+                  <label className="block text-sm font-semibold mb-2 text-neutral-200">Precio por {formData.unit || 'unidad'} *</label>
                   <input type="number" value={formData.price} onChange={e => handleInputChange('price', e.target.value)} className="w-full px-4 py-2 border border-neutral-700 rounded-lg focus:outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600/40 bg-neutral-900 text-neutral-100 placeholder-neutral-500" placeholder="Ej: 2500" min="0" required />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold mb-2 text-neutral-200">Stock disponible *</label>
+                  <label className="block text-sm font-semibold mb-2 text-neutral-200">Stock disponible ({formData.unit || 'unidades'}) *</label>
                   <input type="number" value={formData.stock} onChange={e => handleInputChange('stock', e.target.value)} className="w-full px-4 py-2 border border-neutral-700 rounded-lg focus:outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600/40 bg-neutral-900 text-neutral-100 placeholder-neutral-500" placeholder="Ej: 100" min="0" required />
                 </div>
+              </div>
+              
+              {/* Sección de empaques mayores */}
+              <div className="mt-6 pt-6 border-t border-neutral-700">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <label className="block text-sm font-semibold text-neutral-200">Opciones de empaque mayor</label>
+                    <p className="text-xs text-neutral-400 mt-1">Permite a los compradores adquirir cantidades mayores (ej: Caja de 25 {formData.unit || 'unidades'}, Bulto de 50 {formData.unit || 'unidades'})</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={addPurchaseUnit}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-semibold"
+                  >
+                    + Agregar empaque
+                  </button>
+                </div>
+                {formData.purchaseUnits.length > 0 && (
+                  <div className="space-y-2 bg-neutral-900/50 p-4 rounded-xl border border-neutral-700">
+                    {formData.purchaseUnits.map((pu, idx) => (
+                      <div key={idx} className="flex items-center justify-between bg-neutral-800 p-3 rounded-lg border border-neutral-700">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3">
+                            <div>
+                              <span className="font-semibold text-neutral-100">{pu.unit}</span>
+                              <span className="text-sm text-neutral-400 ml-2">= {pu.equivalencia} {formData.unit}</span>
+                            </div>
+                            <div className="ml-4">
+                              <label className="text-xs text-neutral-400">Precio empaque</label>
+                              <div className="mt-1 flex items-center gap-2">
+                                <input
+                                  type="number"
+                                  min={0}
+                                  step="1"
+                                  value={pu.price != null ? pu.price : ''}
+                                  placeholder={formData.price ? String(Number(formData.price) * pu.equivalencia) : ''}
+                                  onChange={(e) => {
+                                    const v = e.target.value === '' ? null : Number(e.target.value);
+                                    setFormData(prev => ({
+                                      ...prev,
+                                      purchaseUnits: prev.purchaseUnits.map((p, i) => i === idx ? { ...p, price: v } : p)
+                                    }));
+                                  }}
+                                  className="w-32 form-input text-sm"
+                                />
+                                <span className="text-xs text-neutral-400">({formData.unit})</span>
+                              </div>
+                            </div>
+                          </div>
+                          {formData.price && (
+                            <div className="text-sm text-green-400 mt-1">
+                              Precio base estimado: ${(parseFloat(formData.price || '0') * pu.equivalencia).toLocaleString('es-CO')}
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => removePurchaseUnit(idx)}
+                            className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               
               
@@ -469,7 +568,6 @@ export default function PublicarPage() {
                         `}
                         onClick={() => toggleMetodoEntrega(metodo.value)}
                         tabIndex={0}
-                        disabled={!selected && formData.metodosEntrega.length > 0}
                       >
                         <span className={`text-xl mb-1 ${selected ? '' : 'opacity-70'}`}>{metodo.icon}</span>
                         <span className={`text-center w-full break-words whitespace-normal leading-tight ${selected ? 'text-green-200' : 'text-neutral-200'}`}>{metodo.label}</span>
@@ -620,6 +718,23 @@ export default function PublicarPage() {
                           Stock: {formData.stock || 0}
                         </div>
                       </div>
+                      
+                      {/* Opciones de empaque mayor */}
+                      {formData.purchaseUnits && formData.purchaseUnits.length > 0 && (
+                        <div className="mb-3 p-3 bg-neutral-900/50 rounded-lg border border-neutral-700">
+                          <div className="text-xs font-semibold text-neutral-300 mb-2">Opciones de compra disponibles:</div>
+                          <div className="space-y-1">
+                            <div className="text-xs text-neutral-400">
+                              ✓ {formData.unit} - ${formData.price ? Number(formData.price).toLocaleString() : '0'}
+                            </div>
+                            {formData.purchaseUnits.map((pu, idx) => (
+                              <div key={idx} className="text-xs text-neutral-400">
+                                ✓ {pu.unit} ({pu.equivalencia} {formData.unit}) - ${pu.price ? Number(pu.price).toLocaleString() : (formData.price ? (Number(formData.price) * pu.equivalencia).toLocaleString() : '0')}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                       {/* Agricultor (simulado) */}
                       <div className="text-xs text-neutral-400 mb-1">
                         Por: Tú (previsualización)
@@ -698,6 +813,12 @@ export default function PublicarPage() {
             </div>
           )}
         </form>
+        <PackagingModal
+          open={showPackagingModal}
+          onClose={() => setShowPackagingModal(false)}
+          onConfirm={handlePackagingConfirm}
+          baseUnitLabel={formData.unit}
+        />
       </div>
     </div>
   );

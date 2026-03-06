@@ -1,0 +1,34 @@
+-- Normalization audit (2026-02-16)
+-- This file records the UPDATE statements applied to normalize legacy AGRC IDs to canonical forms.
+-- DO NOT execute blindly: this is an audit log of changes already applied.
+
+-- users: AGRC_USR_ -> AGRC_USER_
+UPDATE users SET id = 'AGRC_USER_ADMIN' WHERE id = 'AGRC_USR_ADMIN';
+UPDATE users SET id = 'AGRC_USER_MLE1AS4HYY88' WHERE id = 'AGRC_USR_MLE1AS4HYY88';
+UPDATE users SET id = 'AGRC_USER_MLNZUAVNJ83J' WHERE id = 'AGRC_USR_MLNZUAVNJ83J';
+UPDATE users SET id = 'AGRC_USER_MLHDVR6AENCW' WHERE id = 'AGRC_USR_MLHDVR6AENCW';
+
+-- agricultores: AGR -> USER_AGRICULTOR
+UPDATE agricultores SET id = 'AGRC_USER_AGRICULTOR_MLE1AS4P13XF' WHERE id = 'AGRC_AGR_MLE1AS4P13XF';
+
+-- clientes: CLI -> USER_CLIENTE
+UPDATE clientes SET id = 'AGRC_USER_CLIENTE_MLHDVR6OZ6UH' WHERE id = 'AGRC_CLI_MLHDVR6OZ6UH';
+UPDATE clientes SET id = 'AGRC_USER_CLIENTE_MLNZUAVZHSM3' WHERE id = 'AGRC_CLI_MLNZUAVZHSM3';
+
+-- references updated (examples)
+UPDATE products SET agricultorId = 'AGRC_USER_AGRICULTOR_MLE1AS4P13XF' WHERE agricultorId = 'AGRC_AGR_MLE1AS4P13XF';
+UPDATE payment_transactions SET agricultorId = 'AGRC_USER_AGRICULTOR_MLE1AS4P13XF' WHERE agricultorId = 'AGRC_AGR_MLE1AS4P13XF';
+UPDATE payment_orders SET agricultor_id = 'AGRC_USER_AGRICULTOR_MLE1AS4P13XF' WHERE agricultor_id = 'AGRC_AGR_MLE1AS4P13XF';
+UPDATE liquidaciones SET agricultor_id = 'AGRC_USER_AGRICULTOR_MLE1AS4P13XF' WHERE agricultor_id = 'AGRC_AGR_MLE1AS4P13XF';
+
+-- users references examples
+UPDATE accounts SET userId = 'AGRC_USER_MLE1AS4HYY88' WHERE userId = 'AGRC_USR_MLE1AS4HYY88';
+UPDATE sessions SET userId = 'AGRC_USER_MLE1AS4HYY88' WHERE userId = 'AGRC_USR_MLE1AS4HYY88';
+UPDATE clientes SET user_id = 'AGRC_USER_MLE1AS4HYY88' WHERE user_id = 'AGRC_USR_MLE1AS4HYY88';
+UPDATE empresas SET user_id = 'AGRC_USER_MLE1AS4HYY88' WHERE user_id = 'AGRC_USR_MLE1AS4HYY88';
+UPDATE cart_items SET userId = 'AGRC_USER_MLE1AS4HYY88' WHERE userId = 'AGRC_USR_MLE1AS4HYY88';
+UPDATE orders SET buyerId = 'AGRC_USER_MLHDVR6AENCW' WHERE buyerId = 'AGRC_USR_MLHDVR6AENCW';
+UPDATE sales SET compradorId = 'AGRC_USER_MLHDVR6AENCW' WHERE compradorId = 'AGRC_USR_MLHDVR6AENCW';
+UPDATE sales SET vendedorId = 'AGRC_USER_MLE1AS4HYY88' WHERE vendedorId = 'AGRC_USR_MLE1AS4HYY88';
+
+-- End of audit

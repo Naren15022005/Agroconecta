@@ -1,6 +1,6 @@
 "use client";
 import Link from 'next/link';
-import { Tractor } from 'lucide-react';
+import BrandIcon from '@/components/BrandIcon';
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { SuccessModal, ErrorModal } from '@/components/StatusModals';
@@ -65,8 +65,8 @@ export default function ActivarPage() {
         <div className="bg-white rounded-2xl shadow-xl p-8 border border-green-100">
         <div>
           <div className="flex justify-center mb-6">
-            <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center shadow-lg">
-              <Tractor className="h-8 w-8 text-white" />
+              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center shadow-lg">
+              <BrandIcon className="h-9 w-9" />
             </div>
           </div>
           <h2 className="text-center text-3xl font-bold text-gray-900 mb-2">

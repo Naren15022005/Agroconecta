@@ -2,6 +2,7 @@
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { ReactNode } from 'react';
+import BrandIcon from '@/components/BrandIcon'
 import { UserCircle, ShoppingCart, Box, ChartBar, Cog, Users, Tractor, Bolt, Wallet } from 'lucide-react';
 
 const sidebarLinks = [
@@ -26,7 +27,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         <div>
           {/* Header con fondo sutil y borde inferior */}
           <div className="flex items-center gap-3 px-6 py-6" style={{ background: 'var(--bg)' }}>
-            <Tractor size={34} style={{ color: 'var(--accent)' }} />
+            <BrandIcon className="w-10 h-10" />
             <span className="text-2xl font-extrabold tracking-wide ml-2" style={{ color: 'var(--accent)', letterSpacing: '0.01em' }}>AgroConecta</span>
           </div>
           <nav className="flex-1 mt-8">

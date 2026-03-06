@@ -12,6 +12,7 @@ export interface CartItem {
   campesinoId: string
   campesinoName: string
   imageUrl?: string
+  metodosEntrega?: string[] | string | null
   deliveryMethod?: string
   preparation?: {
     acciones: string[]

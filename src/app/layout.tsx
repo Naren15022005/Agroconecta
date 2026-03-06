@@ -2,6 +2,7 @@
 import { Inter } from "next/font/google";
 import "../styles/globals.css";
 import { SessionProvider } from "next-auth/react";
+import CartSidebar from '@/components/CartSidebar';
 
 const inter = Inter({
   subsets: ["latin"],
@@ -21,6 +22,7 @@ export default function RootLayout({
       <body className={`${inter.className} antialiased`}>
         <SessionProvider refetchOnWindowFocus={false}>
           {children}
+          <CartSidebar />
         </SessionProvider>
       </body>
     </html>

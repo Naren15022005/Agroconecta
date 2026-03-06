@@ -157,6 +157,8 @@ export async function POST(req: NextRequest) {
         certificaciones: certificaciones,
         metodosEntrega: metodosEntrega,
         purchaseUnits: purchaseUnits,
+        // Guardar array de imágenes si viene como JSON
+        imagenes: Array.isArray(data.imagenes) ? JSON.stringify(data.imagenes) : (typeof data.imagenes === 'string' ? data.imagenes : null),
         horariosDisponibles: data.horariosDisponibles || null,
         notasEspeciales: data.notasEspeciales || null,
         municipio: data.municipio || null,

@@ -6,13 +6,18 @@ import { useCartStore } from '@/store/cart';
 import { ShoppingCart } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
+interface PurchaseUnit {
+  unit: string;
+  equivalencia: number;
+}
+
 interface Producto {
-  id: string; // Cambiar a string para productos reales
+  id: string;
   nombre: string;
   descripcion: string;
   precio: number;
   unidad: string;
-  purchaseUnits?: string[];
+  purchaseUnits?: PurchaseUnit[];
   categoria: string;
   agricultor: string;
   agricultorId?: string;
@@ -32,7 +37,7 @@ const productosDemo: Producto[] = [
     descripcion: "Plátanos frescos y maduros, ideales para cocinar. Cultivados de forma orgánica en las montañas de Antioquia.",
     precio: 2500,
     unidad: "kg",
-    purchaseUnits: ["kg", "caja"] ,
+    purchaseUnits: [{ unit: "Caja", equivalencia: 20 }],
     categoria: "Frutas",
     agricultor: "Carlos Mejía",
     ubicacion: "Medellín, Antioquia",
@@ -48,7 +53,7 @@ const productosDemo: Producto[] = [
     descripcion: "Yuca recién cosechada, perfecta para preparaciones tradicionales. Sin químicos, cultivo natural.",
     precio: 1800,
     unidad: "kg",
-    purchaseUnits: ["kg", "manojo"],
+    purchaseUnits: [{ unit: "Bulto", equivalencia: 50 }],
     categoria: "Tubérculos",
     agricultor: "María Rodríguez",
     ubicacion: "Cali, Valle del Cauca",
@@ -64,7 +69,7 @@ const productosDemo: Producto[] = [
     descripcion: "Granos de café premium, tostado medio. Aroma intenso y sabor único de la región cafetera.",
     precio: 15000,
     unidad: "500g",
-    purchaseUnits: ["500g", "1kg"],
+    purchaseUnits: [{ unit: "Bolsa 1kg", equivalencia: 2 }],
     categoria: "Café",
     agricultor: "José Herrera",
     ubicacion: "Manizales, Caldas",
@@ -80,7 +85,7 @@ const productosDemo: Producto[] = [
     descripcion: "Aguacates cremosos y nutritivos, cultivados sin pesticidas. Perfectos para guacamole y ensaladas.",
     precio: 3200,
     unidad: "kg",
-    purchaseUnits: ["kg", "caja"],
+    purchaseUnits: [{ unit: "Caja", equivalencia: 10 }, { unit: "Canasta", equivalencia: 25 }],
     categoria: "Frutas",
     agricultor: "Ana López",
     ubicacion: "Bogotá, Cundinamarca",
@@ -96,7 +101,7 @@ const productosDemo: Producto[] = [
     descripcion: "Cilantro aromático recién cortado, ideal para sazonar comidas típicas colombianas.",
     precio: 800,
     unidad: "manojo",
-    purchaseUnits: ["manojo", "paquete"],
+    purchaseUnits: [],
     categoria: "Hierbas",
     agricultor: "Pedro Sánchez",
     ubicacion: "Bucaramanga, Santander",
@@ -112,7 +117,7 @@ const productosDemo: Producto[] = [
     descripcion: "Mazorcas de maíz dulce y tierno, perfectas para arepas y sopas tradicionales.",
     precio: 1200,
     unidad: "unidad",
-    purchaseUnits: ["unidad", "paquete"],
+    purchaseUnits: [{ unit: "Docena", equivalencia: 12 }],
     categoria: "Cereales",
     agricultor: "Luis García",
     ubicacion: "Barranquilla, Atlántico",
@@ -128,7 +133,7 @@ const productosDemo: Producto[] = [
     descripcion: "Queso artesanal elaborado con leche fresca de vacas criollas. Sabor auténtico y textura cremosa.",
     precio: 8500,
     unidad: "kg",
-    purchaseUnits: ["kg", "pieza"],
+    purchaseUnits: [],
     categoria: "Lácteos",
     agricultor: "Esperanza Morales",
     ubicacion: "Boyacá, Cundinamarca",
@@ -144,7 +149,7 @@ const productosDemo: Producto[] = [
     descripcion: "Leche entera recién ordeñada, sin procesar. Rica en nutrientes y con el sabor tradicional del campo.",
     precio: 3500,
     unidad: "litro",
-    purchaseUnits: ["litro", "juego"],
+    purchaseUnits: [{ unit: "Galón", equivalencia: 4 }],
     categoria: "Lácteos",
     agricultor: "Roberto Jiménez",
     ubicacion: "Ubaté, Cundinamarca",
@@ -211,6 +216,19 @@ export default function ProductosCatalogo({
 
   // Cargar productos desde la API
   useEffect(() => {
+    // load user favorites to mark products
+    const loadFavorites = async () => {
+      try {
+        if (!session?.user?.id) return;
+        const r = await fetch('/api/comprador/favoritos');
+        if (!r.ok) return;
+        const favs = await r.json();
+        const favProductIds = new Set(favs.map((f: any) => f.product?.id || f.productId || f.product_id));
+        setProductos(prev => prev.map(p => ({ ...p, isFavorite: favProductIds.has(p.id) })));
+      } catch (e) { /* ignore */ }
+    };
+    loadFavorites();
+
     const cargarProductos = async () => {
       try {
         const res = await fetch('/api/productos');
@@ -327,11 +345,27 @@ export default function ProductosCatalogo({
   };
 
   const toggleFavorite = (id: string) => {
-    setProductos(prev =>
-      prev.map(producto =>
-        producto.id === id ? { ...producto, isFavorite: !producto.isFavorite } : producto
-      )
-    );
+    (async () => {
+      const producto = productos.find(p => p.id === id);
+      if (!producto) return;
+      try {
+        if (producto.isFavorite) {
+          const res = await fetch(`/api/comprador/favoritos?productId=${encodeURIComponent(id)}`, { method: 'DELETE' });
+          if (res.ok) {
+            setProductos(prev => prev.map(p => p.id === id ? { ...p, isFavorite: false } : p));
+            mostrarToast('Eliminado de favoritos', 'bg-gray-50 border-gray-200 text-gray-700', '🤍');
+          }
+        } else {
+          const res = await fetch('/api/comprador/favoritos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ productId: id }) });
+          if (res.ok) {
+            setProductos(prev => prev.map(p => p.id === id ? { ...p, isFavorite: true } : p));
+            mostrarToast('Añadido a favoritos', 'bg-rose-50 border-rose-200 text-rose-600', '❤️');
+          }
+        }
+      } catch (e) {
+        console.error('Favorite toggle error', e);
+      }
+    })();
   };
 
   const abrirDetalle = (producto: Producto) => {
@@ -388,7 +422,8 @@ export default function ProductosCatalogo({
       imageUrl: producto.imagen,
       metodosEntrega: producto.metodosEntrega || null // Incluir métodos de entrega
     });
-    setMiniCartOpen(true);
+    // Abrir el sidebar global del carrito para que el usuario lo vea
+    cart.toggleCart();
     mostrarToast('Producto agregado al carrito', 'bg-green-50 border-green-200 text-green-600', '🛒');
   };
 
@@ -528,6 +563,9 @@ export default function ProductosCatalogo({
                     
                   </div>
                   <div className="text-right flex-shrink-0">
+                    {producto.purchaseUnits && producto.purchaseUnits.length > 0 && (
+                      <div className="text-[10px] text-neutral-400 mb-0.5">Desde</div>
+                    )}
                     <div className="text-lg md:text-xl font-bold text-green-400 hover:text-green-500 transition-colors duration-200">
                       {formatearPrecio(producto.precio)}
                     </div>
@@ -540,21 +578,12 @@ export default function ProductosCatalogo({
                   {producto.descripcion}
                 </p>
 
-                {/* Unidad(es) de compra */}
+                {/* Presentaciones disponibles */}
                 {producto.purchaseUnits && producto.purchaseUnits.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    <div className="text-xs text-neutral-400 mr-2 self-center">Unidad de compra:</div>
-                    {producto.purchaseUnits.map((u) => {
-                      const checked = selectedUnits[producto.id] === u;
-                      return (
-                        <button
-                          key={u}
-                          onClick={() => toggleSelectUnit(producto.id, u)}
-                          className={`text-xs px-2 py-1 rounded-full border transition-colors duration-150 ${checked ? 'bg-green-600 text-white border-green-600' : 'bg-neutral-800 text-neutral-300 border-neutral-700 hover:border-green-600'}`}>
-                          {checked ? '✓ ' : ''}{u}
-                        </button>
-                      )
-                    })}
+                  <div className="mt-1">
+                    <span className="inline-flex items-center gap-1 text-xs bg-green-600/15 text-green-300 border border-green-700/40 px-2 py-0.5 rounded-full">
+                      📦 {producto.purchaseUnits.length + 1} presentaciones
+                    </span>
                   </div>
                 )}
 
@@ -635,6 +664,9 @@ export default function ProductosCatalogo({
                           {producto.nombre}
                         </h3>
                         <div className="text-right">
+                          {producto.purchaseUnits && producto.purchaseUnits.length > 0 && (
+                            <div className="text-xs text-neutral-400 mb-0.5">Desde</div>
+                          )}
                           <div className="text-lg md:text-xl font-bold text-green-400">
                             {formatearPrecio(producto.precio)}
                           </div>
@@ -648,21 +680,15 @@ export default function ProductosCatalogo({
                         {producto.descripcion}
                       </p>
 
-                      {/* Unidad(es) de compra en vista lista */}
+                      {/* Presentaciones disponibles en vista lista */}
                       {producto.purchaseUnits && producto.purchaseUnits.length > 0 && (
                         <div className="mt-2 flex flex-wrap gap-2 items-center">
-                          <div className="text-sm text-neutral-400 mr-2">Unidad de compra:</div>
-                          {producto.purchaseUnits.map((u) => {
-                            const checked = selectedUnits[producto.id] === u;
-                            return (
-                              <button
-                                key={u}
-                                onClick={() => toggleSelectUnit(producto.id, u)}
-                                className={`text-sm px-2 py-1 rounded-full border transition-colors duration-150 ${checked ? 'bg-green-600 text-white border-green-600' : 'bg-neutral-800 text-neutral-300 border-neutral-700 hover:border-green-600'}`}>
-                                {checked ? '✓ ' : ''}{u}
-                              </button>
-                            )
-                          })}
+                          <span className="inline-flex items-center gap-1 text-xs bg-green-600/15 text-green-300 border border-green-700/40 px-2.5 py-1 rounded-full">
+                            📦 {producto.purchaseUnits.length + 1} presentaciones disponibles
+                          </span>
+                          <span className="text-xs text-neutral-500">
+                            ({producto.purchaseUnits.map(pu => pu.unit).join(', ')})
+                          </span>
                         </div>
                       )}
 

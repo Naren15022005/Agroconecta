@@ -40,6 +40,7 @@ export default function NavMenu({ children }: { children: React.ReactNode }) {
   // Hook para actualizar el contador de pedidos nuevos cada 10s
   useEffect(() => {
     if (!session?.user?.id) return;
+    if (session?.user?.role !== 'CAMPESINO') return; // solo los agricultores consultan pedidos
     const fetchPedidos = async () => {
       try {
         // Obtener directamente los pedidos del agricultor en estado PENDIENTE
@@ -69,6 +70,7 @@ export default function NavMenu({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!session?.user?.id) return;
+    if (session?.user?.role !== 'CAMPESINO') return; // solo cargar perfil si es agricultor
     let mountedFlag = true;
     const fetchPerfil = async () => {
       try {

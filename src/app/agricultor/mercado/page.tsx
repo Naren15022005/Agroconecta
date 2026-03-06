@@ -3,6 +3,7 @@
 import { Suspense, useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import ProductosCatalogo from '../../../components/ProductosCatalogo';
+import CitySelector from '../../../components/CitySelector';
 import { Search, AlignJustify, Plus, Grid3X3, List, ChevronDown, X } from 'lucide-react';
 
 export default function MercadoPage() {
@@ -52,10 +53,6 @@ export default function MercadoPage() {
     { id: "Lácteos", nombre: "Lácteos" },
     { id: "Cereales", nombre: "Cereales" },
     { id: "Otros", nombre: "Otros" }
-  ];
-
-  const ciudades = [
-    'Todas', 'Bogotá', 'Medellín', 'Cali', 'Barranquilla', 'Cartagena', 'Bucaramanga', 'Pereira', 'Manizales', 'Ibagué', 'Neiva', 'Sincelejo'
   ];
 
   return (
@@ -148,15 +145,11 @@ export default function MercadoPage() {
               <div>
                 <label className="text-sm text-neutral-300 font-medium">Filtrar por ciudad</label>
                 <div className="mt-2">
-                  <select
+                  <CitySelector
                     value={filtroCiudad}
-                    onChange={(e) => setFiltroCiudad(e.target.value)}
-                    className="appearance-none w-full px-3 py-2 border border-neutral-700 rounded-md bg-neutral-800 text-white text-sm"
-                  >
-                    {ciudades.map(ciudad => (
-                      <option key={ciudad} value={ciudad} className="bg-neutral-900 text-white">{ciudad}</option>
-                    ))}
-                  </select>
+                    onChange={setFiltroCiudad}
+                    placeholder="Buscar ciudad o departamento..."
+                  />
                 </div>
               </div>
 
@@ -245,15 +238,11 @@ export default function MercadoPage() {
                 <div>
                   <label className="text-sm text-neutral-300 font-medium">Filtrar por ciudad</label>
                   <div className="mt-2">
-                    <select
+                    <CitySelector
                       value={filtroCiudad}
-                      onChange={(e) => setFiltroCiudad(e.target.value)}
-                      className="appearance-none w-full px-3 py-2 border border-neutral-700 rounded-md bg-neutral-800 text-white text-sm"
-                    >
-                      {ciudades.map(ciudad => (
-                        <option key={ciudad} value={ciudad} className="bg-neutral-900 text-white">{ciudad}</option>
-                      ))}
-                    </select>
+                      onChange={setFiltroCiudad}
+                      placeholder="Buscar ciudad o departamento..."
+                    />
                   </div>
                 </div>
 

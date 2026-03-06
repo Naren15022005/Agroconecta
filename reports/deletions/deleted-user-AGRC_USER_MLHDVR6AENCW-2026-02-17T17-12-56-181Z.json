@@ -1,0 +1,79 @@
+{
+  "user": {
+    "id": "AGRC_USER_MLHDVR6AENCW",
+    "nombre": "juan carlos",
+    "correo": "yomachomi@gmail.com",
+    "contraseña": "$2b$10$PIyzPEWfpgJNvxnt45Az1u7hc6ZYzTfE6gYgaP50cJ43dAoQ9UU8W",
+    "isActive": true,
+    "createdAt": "2026-02-11T02:01:20.724Z",
+    "updatedAt": "2026-02-11T02:01:38.524Z",
+    "roleId": "AGRC_ROL_CLIENTE"
+  },
+  "cliente": [
+    {
+      "id": "AGRC_USER_CLIENTE_MLHDVR6OZ6UH",
+      "user_id": "AGRC_USER_MLHDVR6AENCW",
+      "telefono": null,
+      "direccion": null,
+      "preferencias": null,
+      "createdAt": "2026-02-11T02:01:20.737Z",
+      "updatedAt": "2026-02-11T02:01:20.737Z"
+    }
+  ],
+  "agricultor": [],
+  "empresa": [],
+  "orders": [
+    {
+      "id": "AGRC_ORD_mlhe0zbw67ofag",
+      "total": "10000",
+      "status": "ENTREGADO",
+      "deliveryMethod": "ENTREGA_DIRECTA",
+      "paymentMethod": "NEQUI",
+      "deliveryAddress": null,
+      "deliveryNotes": "mañana en la mañana",
+      "notes": "Teléfono: 3011737645",
+      "createdAt": "2026-02-11T02:05:24.577Z",
+      "updatedAt": "2026-02-11T02:11:35.680Z",
+      "buyerId": "AGRC_USER_MLHDVR6AENCW",
+      "archived": false,
+      "archivedAt": null,
+      "archivedBy": null,
+      "mercadoPagoPreferenceId": null,
+      "pagoVerificado": true
+    }
+  ],
+  "sales_comprador": [
+    {
+      "id": 1,
+      "vendedorId": "AGRC_USER_MLE1AS4HYY88",
+      "compradorId": "AGRC_USER_MLHDVR6AENCW",
+      "productoId": "AGRC_PRD_MLE5FHYROPYO",
+      "cantidad": 2,
+      "precioUnitario": "5000",
+      "total": "10000",
+      "fecha": "2026-02-11T02:11:35.685Z"
+    }
+  ],
+  "sales_vendedor": [],
+  "payment_transactions": [
+    {
+      "id": "cmlhe0zc90001ql1wjwb6xufb",
+      "pedidoId": "AGRC_ORD_mlhe0zbw67ofag",
+      "compradorId": "AGRC_USER_MLHDVR6AENCW",
+      "agricultorId": "AGRC_USER_AGRICULTOR_MLE1AS4P13XF",
+      "monto": "10000",
+      "metodo": "NEQUI",
+      "comprobanteUrl": "/uploads/productos/1770775524318_45b3272f-2745-457e-8c62-83091fe1c88b_mango.jpg",
+      "estado": "VERIFICADO",
+      "createdAt": "2026-02-11T02:05:24.584Z",
+      "updatedAt": "2026-02-11T02:09:14.611Z"
+    }
+  ],
+  "cart_items": [],
+  "pagos": [],
+  "transacciones": [],
+  "accounts": [],
+  "sessions": [],
+  "wallets": [],
+  "wallet_transactions": []
+}

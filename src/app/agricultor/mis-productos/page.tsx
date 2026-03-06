@@ -164,7 +164,7 @@ export default function MisProductosPage() {
     tiempoEntrega: '1',
     pesoAproximado: '',
     certificaciones: [] as string[],
-    metodosEntrega: ['domicilio'] as string[],
+    metodosEntrega: [] as string[],
     horariosDisponibles: '',
     notasEspeciales: ''
   });
@@ -279,7 +279,7 @@ export default function MisProductosPage() {
       tiempoEntrega: producto.tiempoEntrega || '1',
       pesoAproximado: producto.pesoAproximado?.toString() || '',
       certificaciones: producto.certificaciones || [],
-      metodosEntrega: producto.metodosEntrega || ['domicilio'],
+      metodosEntrega: producto.metodosEntrega || [],
       horariosDisponibles: producto.horariosDisponibles || '',
       notasEspeciales: producto.notasEspeciales || ''
     });

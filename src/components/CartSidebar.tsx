@@ -10,6 +10,7 @@ export default function CartSidebar() {
   const { data: session } = useSession();
   const router = useRouter();
   const [modal, setModal] = useState<{ open: boolean; success?: boolean; message?: string }>({ open: false });
+  const [requireAuthModal, setRequireAuthModal] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
 
   const { 
@@ -38,7 +39,8 @@ export default function CartSidebar() {
     // El endpoint /api/carrito/checkout requiere deliveryInfo + paymentInfo.
     // El flujo correcto es ir a /comprador/checkout para recolectar esa info.
     if (!session) {
-      router.push('/auth/signin?callbackUrl=/comprador/checkout');
+      // Show a modal informing the user they must login or register before completing the purchase
+      setRequireAuthModal(true);
       return;
     }
     toggleCart();
@@ -89,6 +91,43 @@ export default function CartSidebar() {
               onClick={() => setModal({ open: false })}
             >
               Cerrar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para solicitar autenticación antes del checkout */}
+      {requireAuthModal && (
+        <div className="fixed inset-0 z-[130] flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-lg rounded-2xl bg-neutral-900 border border-neutral-800 p-6 text-center text-neutral-100 shadow-2xl">
+            <h2 className="text-2xl font-bold mb-2">Necesitas una cuenta para comprar</h2>
+            <p className="text-neutral-300 mb-4">Para completar tu compra debes iniciar sesión o crear una cuenta. Puedes guardar tu carrito y continuar después.</p>
+            <div className="flex gap-3 justify-center mb-4">
+              <button
+                onClick={() => {
+                  setRequireAuthModal(false);
+                  // redirect to signin with callback back to checkout
+                  router.push('/auth/signin?callbackUrl=/comprador/checkout');
+                }}
+                className="px-4 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-100 font-semibold"
+              >
+                Iniciar sesión
+              </button>
+              <button
+                onClick={() => {
+                  setRequireAuthModal(false);
+                  router.push('/auth/registro?callbackUrl=/comprador/checkout');
+                }}
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold"
+              >
+                Registrarme
+              </button>
+            </div>
+            <button
+              onClick={() => setRequireAuthModal(false)}
+              className="text-sm text-neutral-300 underline hover:text-neutral-100 hover:underline-offset-2 transition-colors"
+            >
+              Volver al carrito
             </button>
           </div>
         </div>

@@ -13,7 +13,7 @@ export default function CheckoutPage() {
   const [success, setSuccess] = useState<string | null>(null);
 
   // Estados para los datos del checkout
-  const [deliveryMethod, setDeliveryMethod] = useState('ENTREGA_DIRECTA');
+  const [deliveryMethod, setDeliveryMethod] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('TRANSFERENCIA');
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [contactPhone, setContactPhone] = useState('');
@@ -96,9 +96,8 @@ export default function CheckoutPage() {
           console.log('Error parsing metodosEntrega for item:', item.name, e);
         }
       } else {
-        // Si no tiene métodos de entrega configurados, agregar por defecto "Recoger en finca"
-        console.log('Producto sin métodos de entrega, agregando por defecto:', item.name);
-        allMethods.add('Recoger en finca');
+        // Si no tiene métodos de entrega configurados, agregar por defecto 'finca'
+        allMethods.add('finca');
       }
     });
     
@@ -343,7 +342,7 @@ export default function CheckoutPage() {
                       </label>
                     )}
                     
-                    {(availableDeliveryMethods.includes('Recoger en finca') || availableDeliveryMethods.length === 0) && (
+                    {(availableDeliveryMethods.includes('finca') || availableDeliveryMethods.length === 0) && (
                       <label className="flex items-center p-5 border border-neutral-700 rounded-xl cursor-pointer bg-neutral-900 hover:bg-neutral-800 hover:border-green-500 transition-all duration-200">
                         <input
                           type="radio"
@@ -354,7 +353,7 @@ export default function CheckoutPage() {
                           className="w-5 h-5 text-green-500 mr-4"
                         />
                         <div className="flex-1">
-                          <div className="font-semibold text-neutral-100">🏡 Recoger en Finca (Por defecto)</div>
+                          <div className="font-semibold text-neutral-100">🏡 Recoger en Finca</div>
                           <div className="text-sm text-neutral-300 mt-1">Vas directamente a la finca del agricultor por tu pedido</div>
                         </div>
                       </label>
