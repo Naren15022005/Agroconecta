@@ -5,8 +5,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
-    "prevercel-build": "mkdir -p .next/server/app/\(dashboard\) && printf \"export default {}\\n\" > .next/server/app/\(dashboard\)/page_client-reference-manifest.js",
-    "vercel-build": "npm run prevercel-build && prisma generate && next build",
+    "vercel-build": "prisma generate && next build",
     "postinstall": "prisma generate",
     "start": "next start",
     "lint": "next lint",
