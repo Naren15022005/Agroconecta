@@ -1,5 +1,2 @@
-BEGIN;
-
-ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "purchaseUnits" TEXT;
-
-COMMIT;
+ALTER TABLE `products`
+ADD COLUMN `purchaseUnits` TEXT;
