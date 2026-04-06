@@ -3,8 +3,9 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id: targetId } = await params;
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
@@ -13,9 +14,6 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 
     const body = await request.json();
     const { action, data } = body || {};
-
-    // Ensure params are awaited (Next.js dynamic params may be async)
-    const targetId = await (params as any).id;
 
     if (action === 'toggleActive') {
       const target = await prisma.user.findUnique({ where: { id: targetId } });
@@ -41,15 +39,14 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   }
 }
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id: targetId } = await params;
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
     const user = await prisma.user.findUnique({ where: { id: session.user.id }, include: { role: true } });
     if (!user || user.role.name !== 'ADMINISTRADOR') return NextResponse.json({ error: 'Acceso denegado' }, { status: 403 });
-
-    const targetId = await (params as any).id;
     const target = await prisma.user.findUnique({ where: { id: targetId }, include: { role: true } });
     if (!target) return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
     return NextResponse.json(target);
@@ -59,15 +56,14 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id: targetId } = await params;
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
     const user = await prisma.user.findUnique({ where: { id: session.user.id }, include: { role: true } });
     if (!user || user.role.name !== 'ADMINISTRADOR') return NextResponse.json({ error: 'Acceso denegado' }, { status: 403 });
-
-    const targetId = await (params as any).id;
     if (targetId === session.user.id) return NextResponse.json({ error: 'No puedes eliminar tu propia cuenta' }, { status: 400 });
 
     // Check for dependent records that would block deletion

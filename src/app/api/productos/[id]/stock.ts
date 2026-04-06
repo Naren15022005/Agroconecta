@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
-  const { id } = params;
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   if (!id) return NextResponse.json({ error: 'ID requerido' }, { status: 400 });
   const prod = await prisma.product.findUnique({ where: { id: id } });
   if (!prod) return NextResponse.json({ error: 'Producto no encontrado' }, { status: 404 });

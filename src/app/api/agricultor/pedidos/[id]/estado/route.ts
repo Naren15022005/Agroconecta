@@ -4,13 +4,12 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 // PATCH /api/agricultor/pedidos/[id]/estado
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id: pedidoId } = await params;
   const session = await getServerSession(authOptions);
   if (!session || session.user.role !== 'CAMPESINO') {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
-
-  const pedidoId = params.id;
   const { nuevoEstado } = await req.json();
 
   // Verifica que el agricultor sea dueño de al menos un producto en el pedido

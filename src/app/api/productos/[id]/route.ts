@@ -5,10 +5,10 @@ import { authOptions } from "@/lib/auth";
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const productId = params.id;
+    const { id: productId } = await params;
     const producto = await prisma.product.findUnique({
       where: { id: productId },
       include: {
@@ -33,7 +33,7 @@ export async function GET(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -41,7 +41,7 @@ export async function DELETE(
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    const productId = params.id;
+    const { id: productId } = await params;
 
     // Verificar que el producto existe y pertenece al usuario
     const producto = await prisma.product.findUnique({
@@ -79,7 +79,7 @@ export async function DELETE(
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -87,7 +87,7 @@ export async function PUT(
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    const productId = params.id;
+    const { id: productId } = await params;
     const body = await req.json();
 
     // Verificar que el producto existe y pertenece al usuario
