@@ -76,53 +76,75 @@ export default function MercadoCompradorPage() {
       </section>
 
       <main className="w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-6">
-        {productosLoaded && (
-          <div className="md:hidden mb-4 flex justify-center">
-            <button
-              onClick={() => setMobileFiltersOpen(prev => !prev)}
-              aria-expanded={mobileFiltersOpen}
-              aria-controls="mobile-filters"
-              className="w-full max-w-lg inline-flex items-center justify-center gap-3 px-4 py-3 bg-neutral-800 text-white rounded-xl border border-neutral-700 shadow-md uppercase tracking-wide font-semibold"
-            >
-              <AlignJustify className="w-5 h-5" /> FILTROS
-            </button>
-          </div>
-        )}
+        {/* Botón flotante/superior para abrir Filtros en Móvil */}
+        <div className="md:hidden mb-4">
+          <button
+            onClick={() => setMobileFiltersOpen(true)}
+            aria-expanded={mobileFiltersOpen}
+            aria-controls="mobile-filters"
+            className="w-full inline-flex items-center justify-center gap-2.5 px-4 py-3 bg-neutral-800 hover:bg-neutral-750 text-white rounded-xl border border-neutral-700 shadow-md font-semibold text-sm transition-all active:scale-[0.99]"
+          >
+            <Filter className="w-4 h-4 text-lime-400" />
+            <span>Filtros y Búsqueda</span>
+          </button>
+        </div>
 
-        <div className={`${mobileFiltersOpen ? 'block' : 'hidden'} md:hidden fixed inset-0 z-40`}>
-          <div className="absolute inset-0 bg-black/40" onClick={() => setMobileFiltersOpen(false)} />
-          <aside id="mobile-filters" className={`absolute top-16 left-0 bottom-0 w-80 bg-neutral-800/95 p-4 border-r border-neutral-700 transform transition-transform duration-300 shadow-xl rounded-r-2xl overflow-hidden ${mobileFiltersOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-lg font-semibold text-neutral-100">Filtros</h3>
-              <button onClick={() => setMobileFiltersOpen(false)} className="p-1 rounded-md hover:bg-neutral-700">
-                <X className="w-5 h-5 text-neutral-200" />
+        {/* Modal / Drawer deslizable de Filtros Móvil */}
+        <div className={`fixed inset-0 z-50 md:hidden transition-opacity duration-300 ${mobileFiltersOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+          {/* Fondo oscuro traslúcido */}
+          <div 
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity" 
+            onClick={() => setMobileFiltersOpen(false)} 
+          />
+
+          {/* Panel Lateral Deslizable */}
+          <aside 
+            id="mobile-filters" 
+            className={`fixed top-0 left-0 bottom-0 w-[85vw] max-w-sm bg-neutral-900 border-r border-neutral-800 p-5 shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${mobileFiltersOpen ? 'translate-x-0' : '-translate-x-full'}`}
+          >
+            {/* Header del Panel */}
+            <div className="flex items-center justify-between pb-4 mb-4 border-b border-neutral-800">
+              <div className="flex items-center gap-2">
+                <Filter className="w-5 h-5 text-lime-400" />
+                <h3 className="text-lg font-bold text-white">Filtros de búsqueda</h3>
+              </div>
+              <button 
+                onClick={() => setMobileFiltersOpen(false)} 
+                className="p-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white transition-colors"
+                aria-label="Cerrar filtros"
+              >
+                <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="space-y-4 overflow-y-auto h-[calc(100vh-6rem)]">
+
+            {/* Contenido scrolleable */}
+            <div className="flex-1 overflow-y-auto space-y-5 pr-1">
               <div>
+                <label className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2 block">Buscador</label>
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 w-5 h-5" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 w-4 h-4" />
                   <input
                     type="text"
                     value={busqueda}
                     onChange={(e) => setBusqueda(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
-                    placeholder="Buscar productos..."
-                    className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-neutral-800 text-white placeholder-neutral-500 border border-neutral-700 focus:outline-none focus:ring-2 focus:ring-green-600"
+                    placeholder="Buscar por nombre..."
+                    className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-neutral-800 text-white placeholder-neutral-500 border border-neutral-700 text-sm focus:outline-none focus:ring-2 focus:ring-lime-500/50"
                   />
                 </div>
               </div>
 
               <div>
-                <div className="mt-2 flex flex-col gap-2">
+                <label className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2 block">Categorías</label>
+                <div className="flex flex-col gap-1.5">
                   {categorias.map(categoria => (
                     <button
                       key={categoria.id}
                       onClick={() => setFiltroCategoria(categoria.id)}
-                      className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium border ${
+                      className={`w-full text-left px-3.5 py-2.5 rounded-xl text-sm font-medium border transition-all ${
                         filtroCategoria === categoria.id
-                          ? 'bg-green-600 text-white border-green-600'
-                          : 'bg-neutral-800 text-neutral-200 border-neutral-700 hover:bg-neutral-700'
+                          ? 'bg-lime-600/20 text-lime-400 border-lime-500/60 font-semibold'
+                          : 'bg-neutral-800/60 text-neutral-300 border-neutral-700/60 hover:bg-neutral-800'
                       }`}
                     >
                       {categoria.nombre}
@@ -132,34 +154,32 @@ export default function MercadoCompradorPage() {
               </div>
 
               <div>
-                <label className="text-sm text-neutral-300 font-medium">Filtrar por ciudad</label>
-                <div className="mt-2">
-                  <CitySelector
-                    value={filtroCiudad}
-                    onChange={setFiltroCiudad}
-                    placeholder="Buscar ciudad o departamento..."
-                  />
-                </div>
+                <label className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2 block">Ubicación / Ciudad</label>
+                <CitySelector
+                  value={filtroCiudad}
+                  onChange={setFiltroCiudad}
+                  placeholder="Buscar ciudad o departamento..."
+                />
               </div>
 
               <div>
-                <span className="text-sm text-neutral-300 font-medium">Ordenar por</span>
-                <div className="mt-2 relative" ref={dropdownRef}>
+                <label className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2 block">Ordenar por</label>
+                <div className="relative" ref={dropdownRef}>
                   <button
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className="appearance-none w-full text-left px-3 py-2 pr-8 border border-neutral-700 rounded-md focus:ring-2 focus:ring-green-600 bg-neutral-800 text-sm font-medium text-white flex items-center justify-between"
+                    className="w-full text-left px-3.5 py-2.5 border border-neutral-700 rounded-xl bg-neutral-800 text-sm font-medium text-white flex items-center justify-between"
                   >
                     <span>{opcionesOrden.find(op => op.value === ordenPor)?.label}</span>
-                    <ChevronDown className={`w-4 h-4 text-neutral-400 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`w-4 h-4 text-neutral-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
                   </button>
 
                   {isDropdownOpen && (
-                    <div className="absolute z-30 left-0 right-0 mt-2 bg-neutral-900 border border-neutral-700 rounded-md overflow-hidden">
+                    <div className="absolute z-30 left-0 right-0 mt-2 bg-neutral-900 border border-neutral-700 rounded-xl overflow-hidden shadow-xl">
                       {opcionesOrden.map((opcion) => (
                         <button
                           key={opcion.value}
                           onClick={() => { setOrdenPor(opcion.value); setIsDropdownOpen(false); }}
-                          className="w-full px-3 py-2 text-left text-sm font-medium text-white hover:bg-neutral-800 border-b border-neutral-800 last:border-b-0"
+                          className="w-full px-3.5 py-2.5 text-left text-sm font-medium text-neutral-200 hover:bg-neutral-800 border-b border-neutral-800/60 last:border-b-0"
                         >
                           {opcion.label}
                         </button>
@@ -168,15 +188,22 @@ export default function MercadoCompradorPage() {
                   )}
                 </div>
               </div>
+            </div>
 
-                <div className="flex items-center justify-start">
-                  <button
-                    onClick={() => { setBusqueda(''); setFiltroCategoria('Todos'); setFiltroCiudad('Todas'); setMobileFiltersOpen(false); }}
-                    className="px-2.5 py-1.5 text-sm font-medium text-neutral-200 hover:text-neutral-100 rounded-md"
-                  >
-                    Limpiar
-                  </button>
-                </div>
+            {/* Footer con Acciones */}
+            <div className="pt-4 mt-3 border-t border-neutral-800 flex gap-3">
+              <button
+                onClick={() => { setBusqueda(''); setFiltroCategoria('Todos'); setFiltroCiudad('Todas'); }}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-neutral-700 text-xs font-semibold text-neutral-300 hover:bg-neutral-800 transition-colors text-center"
+              >
+                Limpiar
+              </button>
+              <button
+                onClick={() => setMobileFiltersOpen(false)}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-lime-600 to-lime-500 text-xs font-bold text-white shadow-lg shadow-lime-900/50 transition-all text-center"
+              >
+                Ver productos
+              </button>
             </div>
           </aside>
         </div>
