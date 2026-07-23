@@ -261,21 +261,16 @@ export default function ProductosCatalogo({
             isFavorite: false,
             metodosEntrega: p.metodosEntrega || null // Agregar métodos de entrega
           }));
-          console.log('Productos formateados:', productosFormateados);
-          if (productosFormateados.length > 0) {
-            setProductos(productosFormateados);
-            setApiError(false);
-          } else {
-            setProductos(productosDemo);
-            setApiError(false);
-          }
-        } else {
-          setProductos(productosDemo);
+          console.log('Productos desde base de datos:', productosFormateados);
+          setProductos(productosFormateados);
           setApiError(false);
+        } else {
+          setProductos([]);
+          setApiError(true);
         }
       } catch (error) {
-        setProductos(productosDemo);
-        setApiError(false);
+        setProductos([]);
+        setApiError(true);
       } finally {
         setLoading(false);
         try { if (typeof onLoaded === 'function') onLoaded(); } catch(e) { /* ignore */ }
