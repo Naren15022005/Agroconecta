@@ -139,7 +139,7 @@ export const authOptions: NextAuthOptions = {
     maxAge: 90 * 24 * 60 * 60,
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       // When user logs in, copy basic fields and set token.remember if provided
       if (user) {
         token.role = (user as any).role;
@@ -153,31 +153,32 @@ export const authOptions: NextAuthOptions = {
         const rememberExp = now + 90 * 24 * 60 * 60;
         token.exp = (token.remember ? rememberExp : defaultExp) as unknown as number;
       } else {
-        // On subsequent requests, ensure token.exp remains (no-op)
+        // On subsequent requests, ensure token.exp remains
         if (!token.exp) {
           const now = Math.floor(Date.now() / 1000);
           token.exp = now + 30 * 24 * 60 * 60;
         }
-        // Always try to refresh the role from DB when possible so stale JWTs get corrected
-        try {
-          if (token.sub || token.id) {
-            const userIdRaw = (token.sub || token.id) as string;
-            const oldRole = token.role as string | undefined;
-            let userId = userIdRaw;
-            // normalize legacy id if needed
-            if (userId && userId.startsWith('AGRC_')) {
-              try { userId = AgroConectaIdGenerator.normalizeId(userId); } catch (e) { /* ignore */ }
-            }
-            const dbUser = await prisma.user.findUnique({ where: { id: userId }, include: { role: true } });
-            if (dbUser && dbUser.role && dbUser.role.name) {
-              token.role = dbUser.role.name;
-              if (oldRole !== token.role) {
-                console.info(`[auth] jwt role corrected for user=${userIdRaw} oldRole=${oldRole} -> newRole=${token.role}`);
+        // ONLY query DB if token.role is missing or when explicitly triggered by update.
+        // This avoids blocking every session check for 5+ seconds when DB connection is slow.
+        if (!token.role || trigger === "update") {
+          try {
+            if (token.sub || token.id) {
+              const userIdRaw = (token.sub || token.id) as string;
+              let userId = userIdRaw;
+              if (userId && userId.startsWith('AGRC_')) {
+                try { userId = AgroConectaIdGenerator.normalizeId(userId); } catch (e) { /* ignore */ }
+              }
+              const dbUser = await Promise.race([
+                prisma.user.findUnique({ where: { id: userId }, include: { role: true } }),
+                new Promise<null>((resolve) => setTimeout(() => resolve(null), 1000))
+              ]);
+              if (dbUser && dbUser.role && dbUser.role.name) {
+                token.role = dbUser.role.name;
               }
             }
+          } catch (err) {
+            console.error('Error loading role in jwt callback:', err);
           }
-        } catch (err) {
-          console.error('Error loading role in jwt callback:', err);
         }
       }
       return token;

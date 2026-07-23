@@ -7,7 +7,7 @@ import AgroConectaIdGenerator from "@/lib/id-generator";
 
 export async function GET() {
   try {
-    const productos = await prisma.product.findMany({
+    const productosPromise = prisma.product.findMany({
       include: {
         category: true,
         agricultor: {
@@ -23,11 +23,22 @@ export async function GET() {
         }
       }
     });
-    console.log('[API productos] productos desde Prisma:', productos);
+
+    const timeoutPromise = new Promise<null>((resolve) => 
+      setTimeout(() => resolve(null), 1500)
+    );
+
+    const productos = await Promise.race([productosPromise, timeoutPromise]);
+    
+    if (!productos) {
+      console.warn('[API productos] Timeout alcanzado esperando respuesta de DB (1.5s)');
+      return NextResponse.json([], { status: 200 });
+    }
+
+    console.log('[API productos] productos desde Prisma:', productos.length);
     return NextResponse.json(productos);
   } catch (error) {
     console.warn('[API productos] Base de datos no disponible o desconectada:', error instanceof Error ? error.message : error);
-    // Retornar arreglo vacío en lugar de 500 para permitir que el frontend cargue sin lanzar error 500
     return NextResponse.json([], { status: 200 });
   }
 }
