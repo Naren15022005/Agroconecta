@@ -36,10 +36,11 @@ const categories = [
 export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-900 to-neutral-800 text-white">
-      {/* Header con glassmorphism (oculto en móviles; usamos el nav móvil) */}
-      <header className="hidden md:block sticky top-0 z-50 bg-neutral-900/90 backdrop-blur-md border-b border-neutral-800">
+      {/* Header con glassmorphism principal */}
+      <header className="sticky top-0 z-50 bg-neutral-900/90 backdrop-blur-md border-b border-neutral-800">
         <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
           <div className="flex items-center justify-between h-16">
+            {/* Logo principal */}
             <Link href="/" className="flex items-center gap-3 group">
               <div className="relative">
                 <div className="absolute inset-0 bg-lime-500/20 blur-xl rounded-full group-hover:bg-lime-500/30 transition-all"></div>
@@ -53,6 +54,7 @@ export default function Home() {
               </div>
             </Link>
 
+            {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-8">
               <Link href="/comprador/mercado" className="text-sm text-neutral-200 hover:text-white transition-colors">
                 Mercado
@@ -67,28 +69,14 @@ export default function Home() {
                 Registrarse
               </Link>
             </nav>
-          </div>
-        </div>
-      </header>
 
-      {/* Mobile compact nav (visible on small screens) */}
-      <nav className="md:hidden mobile-nav bg-neutral-900 border-b border-neutral-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between py-3">
-            <div className="flex items-center gap-3 mobile-brand">
-              <Link href="/" className="flex items-center gap-2">
-                <BrandIcon className="w-10 h-10" />
-                <span className="text-base font-semibold text-white leading-none truncate max-w-[9rem]">AgroConecta</span>
-              </Link>
-            </div>
-
-            <div className="flex items-center gap-3 mobile-actions">
-              {/* Mobile menu button con opciones completas */}
+            {/* Mobile Hamburger Button */}
+            <div className="md:hidden">
               <MobileMenu showMarketLink={true} />
             </div>
           </div>
         </div>
-      </nav>
+      </header>
 
       <main>
         {/* Hero Section - Completamente rediseñado */}
