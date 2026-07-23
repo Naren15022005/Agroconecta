@@ -139,7 +139,7 @@ export default function Home() {
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </Link>
                   <Link 
-                    href="/agricultor/productos"
+                    href="/agricultor/mis-productos"
                     className="inline-flex items-center justify-center px-7 py-3 bg-neutral-800 border border-neutral-700 rounded-2xl text-base font-medium text-white hover:bg-neutral-750 transition-all min-w-[14rem]"
                   >
                     Vender Productos
