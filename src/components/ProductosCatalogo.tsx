@@ -512,7 +512,7 @@ export default function ProductosCatalogo({
       {/* Grid/Lista de productos */}
       {/* Grid/Lista de productos */}
       {viewMode === 'grid' ? (
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5 xl:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-5 lg:gap-6">
           {productosFiltrados.map((producto) => {
             // Determinar si el usuario autenticado es agricultor y dueño del producto
             const isOwnerAgricultor = session?.user?.role === 'CAMPESINO' && !!miAgricultorId && !!producto.agricultorId && String(miAgricultorId) === String(producto.agricultorId);

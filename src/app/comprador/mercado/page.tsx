@@ -59,7 +59,7 @@ export default function MercadoCompradorPage() {
         <img
           src="/uploads/productos/mercado-banner-comprador.jpg"
           alt="Mercado de Agricultores"
-          className="w-full h-[220px] md:h-[360px] lg:h-[480px] object-cover"
+          className="w-full h-[160px] sm:h-[220px] md:h-[320px] lg:h-[400px] object-cover"
         />
 
         <div className={`absolute inset-0 transition-opacity duration-700 ${bannerVisible ? 'opacity-100' : 'opacity-0'}`}>
