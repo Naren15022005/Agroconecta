@@ -75,7 +75,7 @@ export default function MercadoCompradorPage() {
         </div>
       </section>
 
-      <main className="max-w-8xl mx-auto px-4 md:px-6 py-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {productosLoaded && (
           <div className="md:hidden mb-4 flex justify-center">
             <button
@@ -295,7 +295,7 @@ export default function MercadoCompradorPage() {
       </main>
 
       <footer className="bg-neutral-900 border-t border-neutral-800 py-8 mt-12">
-        <div className="max-w-8xl mx-auto px-2 md:px-4 text-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-neutral-400 text-sm">© 2026 AgroConecta</p>
         </div>
       </footer>
