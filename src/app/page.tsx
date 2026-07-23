@@ -38,7 +38,7 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-900 to-neutral-800 text-white">
       {/* Header con glassmorphism (oculto en móviles; usamos el nav móvil) */}
       <header className="hidden md:block sticky top-0 z-50 bg-neutral-900/80 backdrop-blur-md border-b border-neutral-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
           <div className="flex items-center justify-between h-16">
             <Link href="/" className="hidden md:flex items-center gap-3 group">
               <div className="relative">

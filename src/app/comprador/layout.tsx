@@ -72,7 +72,7 @@ export default function CompradorLayout({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-neutral-900">
       {/* Top Header Navigation */}
       <header className="fixed top-0 left-0 right-0 z-40 bg-neutral-900/90 backdrop-blur-md border-b border-neutral-800 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
           <div className="flex items-center justify-between h-16">
 
             {/* Left: Logo (estilo idéntico a Home) */}
