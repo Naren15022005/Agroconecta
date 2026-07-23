@@ -262,17 +262,20 @@ export default function ProductosCatalogo({
             metodosEntrega: p.metodosEntrega || null // Agregar métodos de entrega
           }));
           console.log('Productos formateados:', productosFormateados);
-          setProductos(productosFormateados);
-          setApiError(false);
+          if (productosFormateados.length > 0) {
+            setProductos(productosFormateados);
+            setApiError(false);
+          } else {
+            setProductos(productosDemo);
+            setApiError(false);
+          }
         } else {
-          setApiError(true);
-          setProductos([]);
-          console.error('Error al cargar productos desde la API, usando productos demo');
+          setProductos(productosDemo);
+          setApiError(false);
         }
       } catch (error) {
-        setApiError(true);
-        setProductos([]);
-        console.error('Error al cargar productos desde la API:', error);
+        setProductos(productosDemo);
+        setApiError(false);
       } finally {
         setLoading(false);
         try { if (typeof onLoaded === 'function') onLoaded(); } catch(e) { /* ignore */ }

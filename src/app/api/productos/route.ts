@@ -26,11 +26,9 @@ export async function GET() {
     console.log('[API productos] productos desde Prisma:', productos);
     return NextResponse.json(productos);
   } catch (error) {
-    console.error('[API productos] error:', error);
-    return NextResponse.json({ 
-      error: "Error interno del servidor",
-      details: error instanceof Error ? error.message : 'Error desconocido'
-    }, { status: 500 });
+    console.warn('[API productos] Base de datos no disponible o desconectada:', error instanceof Error ? error.message : error);
+    // Retornar arreglo vacío en lugar de 500 para permitir que el frontend cargue sin lanzar error 500
+    return NextResponse.json([], { status: 200 });
   }
 }
 
