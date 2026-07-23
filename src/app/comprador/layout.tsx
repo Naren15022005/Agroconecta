@@ -15,7 +15,9 @@ export default function CompradorLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const isMarket = !!pathname && (
-    pathname.startsWith('/comprador/mercado') || pathname.startsWith('/comprador/pedidos')
+    pathname.startsWith('/comprador/mercado') ||
+    pathname.startsWith('/comprador/pedidos') ||
+    pathname === '/comprador'
   );
   const cart = useCartStore();
   const totalItems = useCartStore(state => state.getTotalItems());

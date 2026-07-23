@@ -1,9 +1,9 @@
 "use client";
 import { Suspense, useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
-import ProductosCatalogo from '../../../components/ProductosCatalogo';
-import CitySelector from '../../../components/CitySelector';
-import { Search, AlignJustify, Plus, Grid3X3, List, ChevronDown, X } from 'lucide-react';
+import ProductosCatalogo from '@/components/ProductosCatalogo';
+import CitySelector from '@/components/CitySelector';
+import { Search, AlignJustify, Plus, Grid3X3, List, ChevronDown, X, Filter } from 'lucide-react';
 
 export default function MercadoCompradorPage() {
   const { data: session } = useSession();
