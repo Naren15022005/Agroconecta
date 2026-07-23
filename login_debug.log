@@ -777,3 +777,43 @@
 [2026-04-06T16:08:08.832Z] AUTH: login attempt for alfonsonavarroch@gmail.com (userId=AGRC_USER_MN3VV4WBAKJA)
 [2026-04-06T16:08:08.994Z] AUTH: isValidPassword true
 [2026-04-06T16:08:08.996Z] AUTH: Login exitoso
+[2026-07-18T01:15:54.264Z] AUTH: credentials {"redirect":"false","email":"alfonsonavarroch@gmail.com","password":"Na1063616908*","remember":"true","csrfToken":"e2c521401023acafd4bd68adbdc61b32c7fc82606644d02d4b18c1701d429776","callbackUrl":"http://localhost:3000/auth/signin","json":"true"}
+[2026-07-18T01:15:54.284Z] AUTH: user encontrado {"id":"AGRC_USER_MRPOCCIDIOH2","nombre":"Naren navarro","correo":"alfonsonavarroch@gmail.com","contraseña":"$2b$10$er3MeU5G4McwitVy8otnMON.fFlcQVXYkLZLa7QzDcbgeJEr1BUM6","isActive":true,"createdAt":"2026-07-18T01:14:34.454Z","updatedAt":"2026-07-18T01:15:29.705Z","roleId":"AGRC_ROL_AGRICULTOR","role":{"id":"AGRC_ROL_AGRICULTOR","name":"CAMPESINO","displayName":"Campesino/Agricultor","description":"Productor agrícola que vende productos","isActive":true,"createdAt":"2026-07-17T23:05:50.180Z","updatedAt":"2026-07-17T23:05:50.180Z"}}
+[2026-07-18T01:15:54.312Z] AUTH: login attempt for alfonsonavarroch@gmail.com (userId=AGRC_USER_MRPOCCIDIOH2)
+[2026-07-18T01:15:54.416Z] AUTH: isValidPassword true
+[2026-07-18T01:15:54.421Z] AUTH: Login exitoso
+[2026-07-18T05:04:49.901Z] AUTH: credentials {"redirect":"false","email":"admin@agroconecta.com","password":"Admin123!","csrfToken":"5a22b5819fc2f1f257e690e29752044a52d98e60f418dbe49867e06c1f4392bb","callbackUrl":"http://localhost:3000/admin/login","json":"true"}
+[2026-07-18T05:04:49.909Z] AUTH: user encontrado {"id":"AGRC_USER_ADMIN_mrpwdsac","nombre":"Administrador","correo":"admin@agroconecta.com","contraseña":"$2b$10$6D4oq.YmYo/sMd2MCXuSCu0yKl3q9p8boV6Cn5p.T8fBL6/EHbT9O","isActive":true,"createdAt":"2026-07-18T04:59:38.485Z","updatedAt":"2026-07-18T04:59:38.485Z","roleId":"AGRC_ROL_ADMIN","role":{"id":"AGRC_ROL_ADMIN","name":"ADMINISTRADOR","displayName":"Administrador","description":"Administrador del sistema con acceso completo","isActive":true,"createdAt":"2026-07-17T23:05:50.164Z","updatedAt":"2026-07-17T23:05:50.164Z"}}
+[2026-07-18T05:04:49.939Z] AUTH: login attempt for admin@agroconecta.com (userId=AGRC_USER_ADMIN_mrpwdsac)
+[2026-07-18T05:04:50.124Z] AUTH: isValidPassword true
+[2026-07-18T05:04:50.129Z] AUTH: Login exitoso
+[2026-07-18T05:38:24.772Z] AUTH: credentials {"csrfToken":"4506c713638d6ebc85d28c109fd7f04aa569fa4576c7b9469378fe4f0e8f391a","email":"admin@agroconecta.com","password":"Admin123!"}
+[2026-07-18T05:38:24.781Z] AUTH: user encontrado {"id":"AGRC_USER_ADMIN_mrpwdsac","nombre":"Administrador","correo":"admin@agroconecta.com","contraseña":"$2b$10$6D4oq.YmYo/sMd2MCXuSCu0yKl3q9p8boV6Cn5p.T8fBL6/EHbT9O","isActive":true,"createdAt":"2026-07-18T04:59:38.485Z","updatedAt":"2026-07-18T04:59:38.485Z","roleId":"AGRC_ROL_ADMIN","role":{"id":"AGRC_ROL_ADMIN","name":"ADMINISTRADOR","displayName":"Administrador","description":"Administrador del sistema con acceso completo","isActive":true,"createdAt":"2026-07-17T23:05:50.164Z","updatedAt":"2026-07-17T23:05:50.164Z"}}
+[2026-07-18T05:38:24.805Z] AUTH: login attempt for admin@agroconecta.com (userId=AGRC_USER_ADMIN_mrpwdsac)
+[2026-07-18T05:38:24.903Z] AUTH: isValidPassword true
+[2026-07-18T05:38:24.914Z] AUTH: Login exitoso
+[2026-07-18T05:44:49.945Z] AUTH: credentials {"csrfToken":"6505935d037dffbeac5d643fa9b82c963f6b93b074653e8c2cbd2ca05df0c0a4","email":"admin@agroconecta.com","password":"Admin123!"}
+[2026-07-18T05:44:49.956Z] AUTH: user encontrado {"id":"AGRC_USER_ADMIN_mrpwdsac","nombre":"Administrador","correo":"admin@agroconecta.com","contraseña":"$2b$10$6D4oq.YmYo/sMd2MCXuSCu0yKl3q9p8boV6Cn5p.T8fBL6/EHbT9O","isActive":true,"createdAt":"2026-07-18T04:59:38.485Z","updatedAt":"2026-07-18T04:59:38.485Z","roleId":"AGRC_ROL_ADMIN","role":{"id":"AGRC_ROL_ADMIN","name":"ADMINISTRADOR","displayName":"Administrador","description":"Administrador del sistema con acceso completo","isActive":true,"createdAt":"2026-07-17T23:05:50.164Z","updatedAt":"2026-07-17T23:05:50.164Z"}}
+[2026-07-18T05:44:49.973Z] AUTH: login attempt for admin@agroconecta.com (userId=AGRC_USER_ADMIN_mrpwdsac)
+[2026-07-18T05:44:50.072Z] AUTH: isValidPassword true
+[2026-07-18T05:44:50.080Z] AUTH: Login exitoso
+[2026-07-18T05:45:33.331Z] AUTH: credentials {"csrfToken":"e1aa560b43abcd119349ce30fe2faa06a41e8b8c412bf520d1be1ee4a0cb573c","email":"admin@agroconecta.com","password":"Admin123!"}
+[2026-07-18T05:45:33.336Z] AUTH: user encontrado {"id":"AGRC_USER_ADMIN_mrpwdsac","nombre":"Administrador","correo":"admin@agroconecta.com","contraseña":"$2b$10$6D4oq.YmYo/sMd2MCXuSCu0yKl3q9p8boV6Cn5p.T8fBL6/EHbT9O","isActive":true,"createdAt":"2026-07-18T04:59:38.485Z","updatedAt":"2026-07-18T04:59:38.485Z","roleId":"AGRC_ROL_ADMIN","role":{"id":"AGRC_ROL_ADMIN","name":"ADMINISTRADOR","displayName":"Administrador","description":"Administrador del sistema con acceso completo","isActive":true,"createdAt":"2026-07-17T23:05:50.164Z","updatedAt":"2026-07-17T23:05:50.164Z"}}
+[2026-07-18T05:45:33.358Z] AUTH: login attempt for admin@agroconecta.com (userId=AGRC_USER_ADMIN_mrpwdsac)
+[2026-07-18T05:45:33.448Z] AUTH: isValidPassword true
+[2026-07-18T05:45:33.451Z] AUTH: Login exitoso
+[2026-07-19T00:27:12.215Z] AUTH: credentials {"csrfToken":"cfdc58087a10e46cb4b118ae007ae77f69938403ad6a1d8140f41e2b39fd8658","email":"admin@agroconecta.com","password":"Admin123!"}
+[2026-07-19T00:27:12.493Z] AUTH: user encontrado {"id":"AGRC_USER_ADMIN_mrpwdsac","nombre":"Administrador","correo":"admin@agroconecta.com","contraseña":"$2b$10$6D4oq.YmYo/sMd2MCXuSCu0yKl3q9p8boV6Cn5p.T8fBL6/EHbT9O","isActive":true,"createdAt":"2026-07-18T04:59:38.485Z","updatedAt":"2026-07-18T04:59:38.485Z","roleId":"AGRC_ROL_ADMIN","role":{"id":"AGRC_ROL_ADMIN","name":"ADMINISTRADOR","displayName":"Administrador","description":"Administrador del sistema con acceso completo","isActive":true,"createdAt":"2026-07-17T23:05:50.164Z","updatedAt":"2026-07-17T23:05:50.164Z"}}
+[2026-07-19T00:27:12.497Z] AUTH: login attempt for admin@agroconecta.com (userId=AGRC_USER_ADMIN_mrpwdsac)
+[2026-07-19T00:27:12.601Z] AUTH: isValidPassword true
+[2026-07-19T00:27:12.606Z] AUTH: Login exitoso
+[2026-07-19T00:41:50.183Z] AUTH: credentials {"redirect":"false","email":"alfonsonavarroch@gmail.com","password":"Na1063616908*","remember":"true","csrfToken":"e2c521401023acafd4bd68adbdc61b32c7fc82606644d02d4b18c1701d429776","callbackUrl":"http://localhost:3000/auth/signin","json":"true"}
+[2026-07-19T00:41:50.222Z] AUTH: user encontrado {"id":"AGRC_USER_MRPOCCIDIOH2","nombre":"Naren navarro","correo":"alfonsonavarroch@gmail.com","contraseña":"$2b$10$er3MeU5G4McwitVy8otnMON.fFlcQVXYkLZLa7QzDcbgeJEr1BUM6","isActive":true,"createdAt":"2026-07-18T01:14:34.454Z","updatedAt":"2026-07-18T01:15:29.705Z","roleId":"AGRC_ROL_AGRICULTOR","role":{"id":"AGRC_ROL_AGRICULTOR","name":"CAMPESINO","displayName":"Campesino/Agricultor","description":"Productor agrícola que vende productos","isActive":true,"createdAt":"2026-07-17T23:05:50.180Z","updatedAt":"2026-07-17T23:05:50.180Z"}}
+[2026-07-19T00:41:50.226Z] AUTH: login attempt for alfonsonavarroch@gmail.com (userId=AGRC_USER_MRPOCCIDIOH2)
+[2026-07-19T00:41:50.334Z] AUTH: isValidPassword true
+[2026-07-19T00:41:50.344Z] AUTH: Login exitoso
+[2026-07-19T01:24:11.175Z] AUTH: credentials {"csrfToken":"654a1bbdccfdc34d5f8bc1dcc95aad0c30cad84cbab28de5f11f87ec2a5d6499","email":"admin@agroconecta.com","password":"Admin123!"}
+[2026-07-19T01:24:11.337Z] AUTH: user encontrado {"id":"AGRC_USER_ADMIN_mrpwdsac","nombre":"Administrador","correo":"admin@agroconecta.com","contraseña":"$2b$10$6D4oq.YmYo/sMd2MCXuSCu0yKl3q9p8boV6Cn5p.T8fBL6/EHbT9O","isActive":true,"createdAt":"2026-07-18T04:59:38.485Z","updatedAt":"2026-07-18T04:59:38.485Z","roleId":"AGRC_ROL_ADMIN","role":{"id":"AGRC_ROL_ADMIN","name":"ADMINISTRADOR","displayName":"Administrador","description":"Administrador del sistema con acceso completo","isActive":true,"createdAt":"2026-07-17T23:05:50.164Z","updatedAt":"2026-07-17T23:05:50.164Z"}}
+[2026-07-19T01:24:11.342Z] AUTH: login attempt for admin@agroconecta.com (userId=AGRC_USER_ADMIN_mrpwdsac)
+[2026-07-19T01:24:11.460Z] AUTH: isValidPassword true
+[2026-07-19T01:24:11.463Z] AUTH: Login exitoso

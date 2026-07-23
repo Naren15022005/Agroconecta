@@ -20,26 +20,182 @@ export default function AdminLoginPage() {
     if (res?.error) {
       setError('Credenciales incorrectas o usuario no autorizado.');
     } else {
-      // Validar rol admin en el backend/middleware
       router.push('/admin');
     }
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-50">
-      <form onSubmit={handleSubmit} className="bg-white p-8 rounded shadow w-full max-w-md">
-        <h1 className="text-2xl font-bold mb-6 text-center text-green-900">Acceso Administrador</h1>
-        <div className="mb-4">
-          <label className="block mb-2 text-sm font-semibold">Correo electrónico</label>
-          <input type="email" value={email} onChange={e => setEmail(e.target.value)} required className="w-full border rounded px-3 py-2" />
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: '#0f1117',
+      padding: '1rem',
+    }}>
+      <div style={{
+        background: '#1a1d24',
+        borderRadius: '24px',
+        padding: '2.5rem 2rem',
+        width: '100%',
+        maxWidth: '420px',
+        border: '1px solid rgba(255,255,255,0.04)',
+        boxShadow: '0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(28,198,228,0.05)',
+      }}>
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <div style={{
+            width: '56px',
+            height: '56px',
+            margin: '0 auto 1rem',
+            background: 'linear-gradient(135deg, #1cc6e4, #0e8ba8)',
+            borderRadius: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '1.5rem',
+            fontWeight: 'bold',
+            color: '#fff',
+            boxShadow: '0 8px 24px rgba(28,198,228,0.2)',
+          }}>
+            A
+          </div>
+          <h1 style={{
+            fontSize: '1.5rem',
+            fontWeight: '700',
+            color: '#f1f5f9',
+            margin: 0,
+          }}>
+            Acceso Administrador
+          </h1>
+          <p style={{
+            fontSize: '0.875rem',
+            color: '#64748b',
+            marginTop: '0.375rem',
+          }}>
+            Panel de gestión AgroConecta
+          </p>
         </div>
-        <div className="mb-6">
-          <label className="block mb-2 text-sm font-semibold">Contraseña</label>
-          <input type="password" value={password} onChange={e => setPassword(e.target.value)} required className="w-full border rounded px-3 py-2" />
+
+        <form onSubmit={handleSubmit}>
+          <div style={{ marginBottom: '1.25rem' }}>
+            <label style={{
+              display: 'block',
+              marginBottom: '0.5rem',
+              fontSize: '0.875rem',
+              fontWeight: '600',
+              color: '#94a3b8',
+            }}>
+              Correo electrónico
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+              placeholder="admin@agroconecta.com"
+              style={{
+                width: '100%',
+                padding: '0.75rem 1rem',
+                background: '#0f1117',
+                border: '1px solid rgba(255,255,255,0.06)',
+                borderRadius: '12px',
+                color: '#f1f5f9',
+                fontSize: '0.9375rem',
+                outline: 'none',
+                boxSizing: 'border-box',
+                transition: 'border-color 0.2s',
+              }}
+              onFocus={e => e.currentTarget.style.borderColor = '#1cc6e4'}
+              onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'}
+            />
+          </div>
+
+          <div style={{ marginBottom: '1.5rem' }}>
+            <label style={{
+              display: 'block',
+              marginBottom: '0.5rem',
+              fontSize: '0.875rem',
+              fontWeight: '600',
+              color: '#94a3b8',
+            }}>
+              Contraseña
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+              placeholder="••••••••"
+              style={{
+                width: '100%',
+                padding: '0.75rem 1rem',
+                background: '#0f1117',
+                border: '1px solid rgba(255,255,255,0.06)',
+                borderRadius: '12px',
+                color: '#f1f5f9',
+                fontSize: '0.9375rem',
+                outline: 'none',
+                boxSizing: 'border-box',
+                transition: 'border-color 0.2s',
+              }}
+              onFocus={e => e.currentTarget.style.borderColor = '#1cc6e4'}
+              onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'}
+            />
+          </div>
+
+          {error && (
+            <div style={{
+              marginBottom: '1.25rem',
+              padding: '0.75rem 1rem',
+              borderRadius: '12px',
+              fontSize: '0.875rem',
+              textAlign: 'center',
+              background: 'rgba(239,68,68,0.1)',
+              color: '#fca5a5',
+              border: '1px solid rgba(239,68,68,0.15)',
+            }}>
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            style={{
+              width: '100%',
+              padding: '0.875rem',
+              borderRadius: '12px',
+              border: 'none',
+              fontWeight: '700',
+              fontSize: '1rem',
+              cursor: 'pointer',
+              background: 'linear-gradient(135deg, #1cc6e4, #0e8ba8)',
+              color: '#fff',
+              boxShadow: '0 4px 16px rgba(28,198,228,0.25)',
+              transition: 'all 0.2s',
+            }}
+            onMouseOver={e => { e.currentTarget.style.opacity = '0.9'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+            onMouseOut={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'translateY(0)'; }}
+          >
+            Ingresar
+          </button>
+        </form>
+
+        <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
+          <a
+            href="/"
+            style={{
+              fontSize: '0.875rem',
+              color: '#475569',
+              textDecoration: 'none',
+              transition: 'color 0.2s',
+            }}
+            onMouseOver={e => e.currentTarget.style.color = '#1cc6e4'}
+            onMouseOut={e => e.currentTarget.style.color = '#475569'}
+          >
+            ← Volver al inicio
+          </a>
         </div>
-        {error && <div className="text-red-600 mb-4 text-center">{error}</div>}
-        <button type="submit" className="w-full bg-green-700 text-white py-2 rounded font-bold hover:bg-green-800 transition">Ingresar</button>
-      </form>
-    </main>
+      </div>
+    </div>
   );
 }

@@ -4,9 +4,16 @@ import Link from 'next/link';
 import { CheckCircle } from 'lucide-react';
 import BrandIcon from '@/components/BrandIcon';
 import { useState, useEffect } from 'react';
-import { signIn } from 'next-auth/react';
+import { signIn, getSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import LoadingDots from '@/components/LoadingDots';
+
+const ROLE_ROUTES: Record<string, string> = {
+  COMPRADOR: '/comprador/mercado',
+  EMPRESA: '/comprador/mercado',
+  CAMPESINO: '/agricultor/mercado',
+  ADMINISTRADOR: '/admin',
+};
 
 export default function SignInClient({ activated }: { activated: boolean }) {
   const [email, setEmail] = useState('');
@@ -63,7 +70,10 @@ export default function SignInClient({ activated }: { activated: boolean }) {
             localStorage.removeItem('agc_remember_email');
           }
         } catch (e) {}
-        router.push('/auth/redirect');
+        const session = await getSession();
+        const role = session?.user?.role;
+        const dest = (role && ROLE_ROUTES[role]) || '/';
+        router.push(dest);
         return;
       }
       const errorMsg = (res as any)?.error || 'No se pudo iniciar sesión. Intenta nuevamente.';

@@ -211,7 +211,6 @@ model Order {
   archived                Boolean        @default(false)
   archivedAt              DateTime?
   archivedBy              String?
-  mercadoPagoPreferenceId String?
   pagoVerificado          Boolean        @default(false)
   items                   OrderItem[]
   buyer                   User           @relation(fields: [buyerId], references: [id], onDelete: Cascade)
@@ -439,7 +438,6 @@ enum PaymentMethod {
   TRANSFERENCIA
   NEQUI
   PASARELA
-  MERCADOPAGO
 }
 
 enum PaymentOrderState {

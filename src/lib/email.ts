@@ -64,10 +64,30 @@ export async function sendEmail({ to, subject, html, text }: SendEmailInput) {
   }
 }
 
+export function getBaseUrl() {
+  if (process.env.NEXT_PUBLIC_BASE_URL) {
+    let url = process.env.NEXT_PUBLIC_BASE_URL.trim();
+    if (!url.startsWith('http')) url = `https://${url}`;
+    return url.replace(/\/$/, '');
+  }
+  if (process.env.NEXTAUTH_URL) {
+    let url = process.env.NEXTAUTH_URL.trim();
+    if (!url.startsWith('http')) url = `https://${url}`;
+    return url.replace(/\/$/, '');
+  }
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL.trim()}`;
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL.trim()}`;
+  }
+  return 'http://localhost:3000';
+}
+
 export async function sendWelcomeEmail(email: string, name: string, token?: string) {
   // Si hay token, se envía enlace de activación, si no, solo bienvenida
   const activationLink = token
-    ? `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/auth/activar/${token}`
+    ? `${getBaseUrl()}/auth/activar/${token}`
     : null;
 
   const html = `
@@ -87,7 +107,7 @@ export async function sendWelcomeEmail(email: string, name: string, token?: stri
 }
 
 function baseUrl() {
-  return process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000';
+  return getBaseUrl();
 }
 
 export function buildPedidoStatusEmail(params: {

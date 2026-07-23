@@ -16,16 +16,22 @@ const sidebarLinks = [
   { href: '/admin/billetera', label: 'Billetera', icon: Wallet },
 ];
 
+const AUTH_ROUTES = ['/admin/login', '/admin/register'];
+
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const isAuthRoute = AUTH_ROUTES.includes(pathname);
+
+  if (isAuthRoute) {
+    return <>{children}</>;
+  }
+
   return (
     <div className="min-h-screen w-full flex relative" style={{ background: 'var(--bg)', color: '#f3f6f4', margin: 0, padding: 0 }}>
-      {/* Sidebar fijo */}
       <aside
         className="flex flex-col justify-between h-screen fixed left-0 top-0 z-20 w-56 bg-[#1a1d23] border-r border-[#232a34]"
       >
         <div>
-          {/* Header con fondo sutil y borde inferior */}
           <div className="flex items-center gap-3 px-6 py-6" style={{ background: 'var(--bg)' }}>
             <BrandIcon className="w-10 h-10" />
             <span className="text-2xl font-extrabold tracking-wide ml-2" style={{ color: 'var(--accent)', letterSpacing: '0.01em' }}>AgroConecta</span>
@@ -77,7 +83,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           </div>
         </div>
       </aside>
-      {/* Contenido principal */}
       <main className="p-6 min-h-screen ml-56 w-full" style={{ marginLeft: '14rem', background: 'var(--bg)', color: '#f3f6f4' }}>
         {children}
         <div style={{ margin: '2rem 0' }}></div>

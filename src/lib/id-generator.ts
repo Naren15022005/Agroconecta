@@ -133,7 +133,9 @@ class AgroConectaIdGenerator {
   static normalizeId(id: string): string {
     const type = this.extractEntityType(id);
     if (!type) return id;
-    // preserve suffix (the part after the second underscore)
+    const prefix = `AGRC_${type}_`;
+    if (id.startsWith(prefix)) return id;
+    // Legacy format: reconstruct id with canonical type
     const parts = id.split('_');
     if (parts.length < 3) return id;
     const suffix = parts.slice(2).join('_');

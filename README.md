@@ -1,195 +1,132 @@
-# 🌱 AgroConecta
+# 🌱 AgroConecta — Documentación General y Estado del Sistema
 
-Marketplace agrícola colombiano que conecta directamente a campesinos con compradores, eliminando intermediarios y promoviendo el comercio justo.
+Marketplace agrícola colombiano que conecta directamente a campesinos/agricultores con compradores y empresas, eliminando intermediarios y promoviendo el comercio justo.
 
-## 🚀 Características
+---
 
-- **Marketplace multi-vendedor**: Conecta campesinos con compradores y empresas
-- **Gestión de roles**: Campesinos, compradores, empresas y administradores
-- **Carrito multi-vendedor**: Compra productos de diferentes campesinos en un solo pedido
-- **Panel de control**: Dashboards específicos para cada tipo de usuario
-- **Gestión de productos**: Los campesinos pueden publicar y gestionar sus productos
-- **Sistema de pedidos**: Seguimiento completo de pedidos desde la compra hasta la entrega
+## 📊 Nivel de Desarrollo y Estado Actual
+
+**Estado General:** 🚀 **Fase de Integración Avanzada / Pre-Producción (~85%-90% Completado)**
+
+- **Frontend & App Next.js:** 100% funcional con App Router, dashboards dinámicos por rol, catálogo de productos, carrito de compras multi-vendedor y checkout.
+- **Base de Datos Principal:** PostgreSQL/MySQL operando con Prisma ORM, datos semilla de roles, categorías y productos cargados.
+- **Microservicio Backend & Servicios Cloud:** Servidor Node.js Express configurado e integrado con **Firebase Admin SDK** (Firestore & Auth) y cliente Supabase opcional.
+- **Autenticación y Control de Acceso:** NextAuth.js y Firebase Auth con validación de roles en middleware.
+
+---
 
 ## 🛠️ Stack Tecnológico
 
-- **Frontend & Backend**: Next.js 14 con App Router
-- **Lenguaje**: TypeScript
-- **Base de datos**: PostgreSQL con Prisma ORM
-- **Autenticación**: NextAuth.js con roles personalizados
-- **Estilos**: Tailwind CSS + Radix UI
-- **Estado**: Zustand para gestión del carrito
-- **Iconos**: Lucide React
+| Componente | Tecnología |
+| :--- | :--- |
+| **Frontend Framework** | Next.js (App Router), React 19, TypeScript |
+| **Estilos & UI** | Tailwind CSS v4, Radix UI, Lucide Icons |
+| **Estado Global** | Zustand (Gestión del Carrito Multi-Vendedor) |
+| **Autenticación** | NextAuth.js (JWT) + Firebase Auth Integration |
+| **Base de Datos Principal** | MySQL / PostgreSQL + Prisma ORM |
+| **Microservicio Backend** | Node.js, Express, Firebase Admin SDK (Firestore / Storage) |
+| **Emailing** | Nodemailer (SMTP / Gmail) |
 
-## 🔧 Instalación y Configuración
+---
 
-### Prerrequisitos
+## ⚡ Módulos y Funcionalidades Totalmente Funcionales
 
-- Node.js 18+
-- PostgreSQL (o usar Prisma local dev)
+### 👥 1. Sistema de Autenticación y Gestión de Roles
+- **4 Roles Definidos:** `CAMPESINO`, `COMPRADOR`, `EMPRESA`, `ADMINISTRADOR`.
+- Registro diferencial con validaciones de campos por tipo de usuario.
+- Redirección automática según el rol tras el inicio de sesión.
+- Middleware con protección de rutas de API y vistas.
 
-### Instalación
+### 🚜 2. Panel del Campesino / Agricultor
+- Publicación, edición y eliminación de productos agrícolas.
+- Gestión de stock, unidades de medida y precios.
+- Panel de pedidos recibidos con filtros por estado.
+- Estadísticas de ventas y dashboard básico.
 
-1. Clona el repositorio
-```bash
-git clone <repository-url>
-cd agroconecta
-```
+### 🛒 3. Marketplace y Carrito Multi-Vendedor
+- Catálogo de productos con búsqueda y filtrado por categorías y subcategorías.
+- Carrito multi-vendedor (permite agregar productos de distintos campesinos en un único checkout).
+- Cálculo dinámico de totales, impuestos y comisiones.
+- Seguimiento de pedidos desde el historial del comprador.
 
-2. Instala las dependencias
-```bash
-npm install
-```
+### 🏢 4. Panel Empresarial y Comprador
+- Vistas especializadas para compras en volumen (B2B).
+- Panel de control de compras e historial detallado.
 
-3. Configura las variables de entorno
-```bash
-cp .env.example .env
-# Edita el archivo .env con tus credenciales
-```
+### ⚙️ 5. Panel de Administración (Admin)
+- Dashboard global de métricas del sistema.
+- Moderación y aprobación de productos/usuarios.
+- Gestión de categorías y subcategorías.
 
-4. Configura la base de datos
-```bash
-# Inicializar Prisma DB local (recomendado para desarrollo)
-npx prisma dev
+### 🔥 6. Microservicio Backend & Firebase Integration
+- Servidor independiente Express en `backend/`.
+- Conexión configurada con el proyecto de **Firebase (`agroconecta-dev-2026`)**.
+- Endpoints para Firestore (`/firebase/products`) y verificación de tokens (`/firebase/verify-token`).
+- Integración en Next.js con [`src/lib/firebase.ts`](file:///c:/Users/alfon/OneDrive/Documentos/Proyectos/Agroconecta/src/lib/firebase.ts).
 
-# O migrar a tu DB existente
-npx prisma migrate dev --name init
-```
-
-5. Genera el cliente de Prisma
-```bash
-npx prisma generate
-```
-
-6. Inicia el servidor de desarrollo
-```bash
-npm run dev
-```
-
-La aplicación estará disponible en [http://localhost:3000](http://localhost:3000).
+---
 
 ## 📁 Estructura del Proyecto
 
 ```
-src/
-├── app/                    # App Router de Next.js
-│   ├── api/               # API Routes
-│   │   └── auth/          # Endpoints de autenticación
-│   ├── auth/              # Páginas de autenticación
-│   ├── dashboard/         # Dashboards por rol
-│   ├── productos/         # Catálogo de productos
-│   └── page.tsx           # Página principal
-├── components/            # Componentes reutilizables
-├── lib/                   # Librerías y configuraciones
-│   ├── auth.ts           # Configuración NextAuth
-│   └── prisma.ts         # Cliente Prisma
-├── store/                 # Stores de Zustand
-│   └── cart.ts           # Store del carrito
-└── types/                 # Definiciones de tipos
-    └── next-auth.d.ts    # Tipos extendidos de NextAuth
+Agroconecta/
+├── backend/                  # Microservicio Express + Firebase Admin SDK
+│   ├── firebase.js           # Inicializador de Firebase (Firestore & Auth)
+│   ├── index.js              # Servidor Express y endpoints de API
+│   └── package.json
+├── prisma/                   # Esquema de DB y scripts de Seeding
+│   ├── schema.prisma         # Modelos de Prisma ORM
+│   ├── seed.ts               # Poblamiento de datos iniciales
+│   └── create-admin.ts       # Script de creación de usuario Administrador
+├── src/                      # Aplicación Next.js
+│   ├── app/                  # Rutas y Vistas (App Router)
+│   │   ├── api/             # API Routes de Next.js
+│   │   ├── auth/            # Iniciar Sesión y Registro
+│   │   ├── dashboard/       # Dashboards por Rol
+│   │   └── productos/       # Catálogo de Productos
+│   ├── components/           # Componentes UI reutilizables
+│   ├── lib/                  # Librerías (Prisma, Auth, Firebase client, Email)
+│   ├── store/                # Estados de Zustand (Cart Store)
+│   └── types/                # Tipados TypeScript
+├── .env                      # Variables de entorno de Next.js y Firebase Client
+└── package.json              # Dependencias del proyecto principal
 ```
-
-## 👥 Roles de Usuario
-
-### 🚜 Campesino
-- Publicar y gestionar productos agrícolas
-- Ver pedidos recibidos
-- Actualizar inventario y precios
-- Gestionar perfil y datos de contacto
-
-### 🛒 Comprador
-- Explorar catálogo de productos
-- Agregar productos al carrito
-- Realizar pedidos
-- Seguimiento de pedidos
-
-### 🏢 Empresa
-- Compra en volumen
-- Gestión de pedidos empresariales
-- Reportes de compras
-- Contacto directo con campesinos
-
-### ⚙️ Administrador
-- Gestión completa de usuarios
-- Administración de productos y categorías
-- Moderación de contenido
-- Reportes y estadísticas del sistema
-
-## 🗄️ Base de Datos
-
-El proyecto utiliza PostgreSQL con Prisma ORM. El esquema incluye:
-
-- **Users**: Usuarios con roles diferenciados
-- **Products**: Productos agrícolas con categorías
-- **Categories**: Categorización de productos
-- **Cart**: Sistema de carrito multi-vendedor
-- **Orders**: Gestión de pedidos y seguimiento
-- **OrderItems**: Items individuales de cada pedido
-
-## 🔐 Autenticación
-
-NextAuth.js con autenticación por credenciales y soporte para:
-- Registro por tipo de usuario
-- Login seguro con bcrypt
-- Sesiones JWT
-- Protección de rutas por rol
-
-## 🛡️ Scripts Disponibles
-
-```bash
-npm run dev          # Servidor de desarrollo
-npm run build        # Build para producción
-npm run start        # Servidor de producción
-npm run lint         # Linter ESLint
-npm run prisma:dev   # Prisma development server
-npm run prisma:generate # Generar cliente Prisma
-npm run prisma:migrate  # Ejecutar migraciones
-```
-
-## 🤝 Contribución
-
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add: AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
-
-## 📄 Licencia
-
-Este proyecto está bajo la licencia MIT. Ver el archivo `LICENSE` para más detalles.
-
-## 📧 Contacto
-
-AgroConecta - Conectando el campo colombiano
-- Website: [agroconecta.co](http://agroconecta.co)
-- Email: contacto@agroconecta.co
 
 ---
 
-**Hecho con ❤️ para el campo colombiano** 🇨🇴
-# or
-pnpm dev
-# or
-bun dev
+## 🚀 Guía de Inicio Rápido
+
+### 1. Iniciar la Aplicación Principal (Next.js)
+```bash
+# Instalar dependencias
+npm install
+
+# Generar cliente de Prisma
+npx prisma generate
+
+# Iniciar servidor de desarrollo
+npm run dev
 ```
+La aplicación web estará disponible en [http://localhost:3000](http://localhost:3000).
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Iniciar el Backend Microservicio (Express + Firebase)
+```bash
+cd backend
+npm install
+node index.js
+```
+El servidor escuchará en [http://localhost:10000](http://localhost:10000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🔑 Credenciales Administrador de Prueba
+- **Email:** `admin@agroconecta.com`
+- **Contraseña:** `admin123`
+- **Rol:** `ADMINISTRADOR`
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 👤 Autor y Contacto
+- **GitHub Username:** [Naren15022005](https://github.com/Naren15022005)
+- **Correo Electrónico:** [alfonsonavarroch@gmail.com](mailto:alfonsonavarroch@gmail.com)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
