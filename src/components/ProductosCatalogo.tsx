@@ -1,9 +1,8 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { Heart, MapPin, User, X } from 'lucide-react';
+import { Heart, MapPin, User, X, ShoppingCart, Package, Sprout, Sparkles, PackageSearch, CheckCircle2 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useCartStore } from '@/store/cart';
-import { ShoppingCart } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface PurchaseUnit {
@@ -27,7 +26,7 @@ interface Producto {
   stock: number;
   rating: number;
   isFavorite: boolean;
-  metodosEntrega?: string; // JSON string con métodos de entrega
+  metodosEntrega?: string;
 }
 
 const productosDemo: Producto[] = [
@@ -42,7 +41,7 @@ const productosDemo: Producto[] = [
     agricultor: "Carlos Mejía",
     ubicacion: "Medellín, Antioquia",
     fecha: "Hace 2 horas",
-    imagen: "🍌",
+    imagen: "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=500&auto=format&fit=crop&q=80",
     stock: 99,
     rating: 4.8,
     isFavorite: false
@@ -58,7 +57,7 @@ const productosDemo: Producto[] = [
     agricultor: "María Rodríguez",
     ubicacion: "Cali, Valle del Cauca",
     fecha: "Hace 5 horas",
-    imagen: "🥔",
+    imagen: "https://images.unsplash.com/photo-1590165482129-1b8b27698780?w=500&auto=format&fit=crop&q=80",
     stock: 99,
     rating: 4.6,
     isFavorite: true
@@ -74,7 +73,7 @@ const productosDemo: Producto[] = [
     agricultor: "José Herrera",
     ubicacion: "Manizales, Caldas",
     fecha: "Hace 1 día",
-    imagen: "☕",
+    imagen: "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=500&auto=format&fit=crop&q=80",
     stock: 99,
     rating: 4.9,
     isFavorite: false
@@ -90,7 +89,7 @@ const productosDemo: Producto[] = [
     agricultor: "Ana López",
     ubicacion: "Bogotá, Cundinamarca",
     fecha: "Hace 3 horas",
-    imagen: "🥑",
+    imagen: "https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=500&auto=format&fit=crop&q=80",
     stock: 99,
     rating: 4.7,
     isFavorite: true
@@ -106,7 +105,7 @@ const productosDemo: Producto[] = [
     agricultor: "Pedro Sánchez",
     ubicacion: "Bucaramanga, Santander",
     fecha: "Hace 6 horas",
-    imagen: "🌿",
+    imagen: "https://images.unsplash.com/photo-1588879460618-924d55b0a880?w=500&auto=format&fit=crop&q=80",
     stock: 99,
     rating: 4.5,
     isFavorite: false
@@ -119,114 +118,114 @@ const productosDemo: Producto[] = [
     unidad: "unidad",
     purchaseUnits: [{ unit: "Docena", equivalencia: 12 }],
     categoria: "Cereales",
-    agricultor: "Luis García",
-    ubicacion: "Barranquilla, Atlántico",
+    agricultor: "Luis Gómez",
+    ubicacion: "Ibagué, Tolima",
     fecha: "Hace 4 horas",
-    imagen: "🌽",
+    imagen: "https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=500&auto=format&fit=crop&q=80",
     stock: 99,
-    rating: 4.4,
+    rating: 4.6,
     isFavorite: false
   },
   {
     id: "7",
-    nombre: "Queso Campesino Fresco",
-    descripcion: "Queso artesanal elaborado con leche fresca de vacas criollas. Sabor auténtico y textura cremosa.",
-    precio: 8500,
+    nombre: "Tomate Chonto Rojo",
+    descripcion: "Tomates rojos y jugosos, seleccionados a mano. Excelente para guisos y ensaladas.",
+    precio: 2200,
     unidad: "kg",
-    purchaseUnits: [],
-    categoria: "Lácteos",
-    agricultor: "Esperanza Morales",
-    ubicacion: "Boyacá, Cundinamarca",
+    purchaseUnits: [{ unit: "Caja", equivalencia: 15 }],
+    categoria: "Verduras",
+    agricultor: "Carmen Ortiz",
+    ubicacion: "Tunja, Boyacá",
     fecha: "Hace 1 hora",
-    imagen: "🧀",
+    imagen: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=500&auto=format&fit=crop&q=80",
     stock: 99,
     rating: 4.8,
     isFavorite: false
   },
   {
     id: "8",
-    nombre: "Leche Fresca de Vaca",
-    descripcion: "Leche entera recién ordeñada, sin procesar. Rica en nutrientes y con el sabor tradicional del campo.",
-    precio: 3500,
-    unidad: "litro",
-    purchaseUnits: [{ unit: "Galón", equivalencia: 4 }],
+    nombre: "Queso Campesino Artesanal",
+    descripcion: "Queso fresco elaborado con leche pura de vaca. Sabor tradicional y textura suave.",
+    precio: 8500,
+    unidad: "500g",
+    purchaseUnits: [{ unit: "Bloque 1kg", equivalencia: 2 }],
     categoria: "Lácteos",
-    agricultor: "Roberto Jiménez",
-    ubicacion: "Ubaté, Cundinamarca",
-    fecha: "Hace 30 minutos",
-    imagen: "🥛",
+    agricultor: "Fernando Ruiz",
+    ubicacion: "Pastos, Nariño",
+    fecha: "Hace 8 horas",
+    imagen: "https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=500&auto=format&fit=crop&q=80",
     stock: 99,
     rating: 4.9,
     isFavorite: true
   }
 ];
 
-export default function ProductosCatalogo({ 
-  viewMode = 'grid', 
-  filtroCategoria = "Todos",
-  ordenPor = "recientes",
-  busqueda = "",
-  filtroCiudad = "Todas",
-  onLoaded
-}: { 
+interface ProductosCatalogoProps {
   viewMode?: 'grid' | 'list';
   filtroCategoria?: string;
   ordenPor?: string;
   busqueda?: string;
   filtroCiudad?: string;
   onLoaded?: () => void;
-}) {
+}
+
+export default function ProductosCatalogo({
+  viewMode = 'grid',
+  filtroCategoria = 'Todos',
+  ordenPor = 'recientes',
+  busqueda = '',
+  filtroCiudad = 'Todas',
+  onLoaded
+}: ProductosCatalogoProps) {
   const { data: session } = useSession();
-  const router = useRouter();
-  const [miAgricultorId, setMiAgricultorId] = useState<string | null | undefined>(undefined);
   const [productos, setProductos] = useState<Producto[]>([]);
-  const [selectedUnits, setSelectedUnits] = useState<Record<string, string | null>>({});
   const [loading, setLoading] = useState(true);
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState("");
-  const [toastColor, setToastColor] = useState("");
-  const [toastIcon, setToastIcon] = useState("");
-  const cart = useCartStore();
-  const [miniCartOpen, setMiniCartOpen] = useState(false);
   const [apiError, setApiError] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Producto | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Obtener el perfil agricultor del usuario autenticado (si aplica)
+  const [toastMessage, setToastMessage] = useState<string>('');
+  const [showToast, setShowToast] = useState<boolean>(false);
+  const [toastColor, setToastColor] = useState<string>('');
+
+  const [prevFiltroCategoria, setPrevFiltroCategoria] = useState(filtroCategoria);
+  const [prevBusqueda, setPrevBusqueda] = useState(busqueda);
+  const [miAgricultorId, setMiAgricultorId] = useState<string | undefined>(undefined);
+
+  const cart = useCartStore();
+  const router = useRouter();
+
   useEffect(() => {
-    const fetchPerfilAgric = async () => {
-      try {
-        if (session?.user?.role === 'CAMPESINO' && session?.user?.id) {
-          const r = await fetch(`/api/agricultor/por-user?userId=${session.user.id}`);
-          if (r.ok) {
-            const data = await r.json();
-            if (data?.id) setMiAgricultorId(String(data.id));
+    const fetchMiAgricultor = async () => {
+      if (session?.user?.role === 'CAMPESINO') {
+        try {
+          const res = await fetch('/api/agricultor/billetera');
+          if (res.ok) {
+            const data = await res.json();
+            if (data.agricultor?.id) setMiAgricultorId(data.agricultor.id);
           }
-        } else {
-          setMiAgricultorId(null);
+        } catch (e) {
+          // ignore
         }
-      } catch (_) {
-        // noop
-      }
-      finally {
-        // Ensure we mark loaded even on error (null means no perfil)
-        setMiAgricultorId(prev => (prev === undefined ? null : prev));
       }
     };
-    fetchPerfilAgric();
-  }, [session?.user?.id, session?.user?.role]);
+    fetchMiAgricultor();
+  }, [session]);
 
-  // Cargar productos desde la API
+  const loadFavorites = async () => {
+    try {
+      const res = await fetch('/api/comprador/favoritos');
+      if (res.ok) {
+        const favs = await res.json();
+        const favIds = new Set(favs.map((f: any) => f.productId));
+        setProductos(prev => prev.map(p => ({ ...p, isFavorite: favIds.has(p.id) })));
+      }
+    } catch (_) {
+      // ignore
+    }
+  };
+
   useEffect(() => {
-    // load user favorites to mark products
-    const loadFavorites = async () => {
-      try {
-        if (!session?.user?.id) return;
-        const r = await fetch('/api/comprador/favoritos');
-        if (!r.ok) return;
-        const favs = await r.json();
-        const favProductIds = new Set(favs.map((f: any) => f.product?.id || f.productId || f.product_id));
-        setProductos(prev => prev.map(p => ({ ...p, isFavorite: favProductIds.has(p.id) })));
-      } catch (e) { /* ignore */ }
-    };
     loadFavorites();
 
     const cargarProductos = async () => {
@@ -234,7 +233,6 @@ export default function ProductosCatalogo({
         const res = await fetch('/api/productos');
         if (res.ok) {
           const productosAPI = await res.json();
-          console.log('API productos:', productosAPI);
           const productosFormateados = productosAPI.map((p: any) => ({
             id: p.id,
             nombre: p.name,
@@ -255,13 +253,12 @@ export default function ProductosCatalogo({
             agricultorId: p.agricultorId || p.agricultor?.id || '',
             ubicacion: 'Colombia',
             fecha: 'Hace unas horas',
-            imagen: p.imageUrl || '🌿',
+            imagen: p.imageUrl || '',
             stock: p.stock ?? 0,
             rating: 4.5,
             isFavorite: false,
-            metodosEntrega: p.metodosEntrega || null // Agregar métodos de entrega
+            metodosEntrega: p.metodosEntrega || null
           }));
-          console.log('Productos desde base de datos:', productosFormateados);
           setProductos(productosFormateados);
           setApiError(false);
         } else {
@@ -278,68 +275,43 @@ export default function ProductosCatalogo({
     };
     cargarProductos();
   }, []);
-  const [prevOrdenPor, setPrevOrdenPor] = useState(ordenPor);
-  const [prevFiltroCategoria, setPrevFiltroCategoria] = useState(filtroCategoria);
-  const [prevBusqueda, setPrevBusqueda] = useState(busqueda);
 
-  // Colores suaves y discretos para el mensaje
-  const coloresPasteles = [
-    "bg-gray-50 border-gray-200 text-gray-600",
-  "bg-gray-50 border-gray-200 text-gray-700", 
-    "bg-green-50 border-green-200 text-green-600",
-    "bg-purple-50 border-purple-200 text-purple-600",
-    "bg-amber-50 border-amber-200 text-amber-600",
-  "bg-gray-100 border-gray-300 text-gray-700",
-    "bg-rose-50 border-rose-200 text-rose-600",
-    "bg-cyan-50 border-cyan-200 text-cyan-600",
-    "bg-orange-50 border-orange-200 text-orange-600",
-    "bg-lime-50 border-lime-200 text-lime-600",
-    "bg-red-50 border-red-200 text-red-600",
-    "bg-teal-50 border-teal-200 text-teal-600",
-    "bg-violet-50 border-violet-200 text-violet-600",
-  "bg-gray-100 border-gray-200 text-gray-600",
-    "bg-emerald-50 border-emerald-200 text-emerald-600"
-  ];
+  const formatearPrecio = (precio: number) => {
+    return new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      minimumFractionDigits: 0
+    }).format(precio);
+  };
 
-  // Detectar cambios en ordenPor (sin toast automático)
-  useEffect(() => {
-    if (prevOrdenPor !== ordenPor) {
-      setPrevOrdenPor(ordenPor);
+  const productosFiltrados = productos.filter(producto => {
+    const cumpleCategoria = filtroCategoria === "Todos" || producto.categoria.toLowerCase() === filtroCategoria.toLowerCase();
+    const cumpleBusqueda = busqueda === "" || 
+      producto.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
+      producto.descripcion.toLowerCase().includes(busqueda.toLowerCase()) ||
+      producto.agricultor.toLowerCase().includes(busqueda.toLowerCase());
+
+    const cumpleCiudad = filtroCiudad === "Todas" || 
+      producto.ubicacion.toLowerCase().includes(filtroCiudad.toLowerCase());
+
+    return cumpleCategoria && cumpleBusqueda && cumpleCiudad;
+  }).sort((a, b) => {
+    switch (ordenPor) {
+      case "precio-asc": return a.precio - b.precio;
+      case "precio-desc": return b.precio - a.precio;
+      case "rating": return b.rating - a.rating;
+      case "recientes": default: return 0;
     }
-  }, [ordenPor, prevOrdenPor]);
+  });
 
-  // Detectar cambios en filtro de categoría (sin toast automático)
-  useEffect(() => {
-    if (prevFiltroCategoria !== filtroCategoria) {
-      setPrevFiltroCategoria(filtroCategoria);
-    }
-  }, [filtroCategoria, prevFiltroCategoria]);
-
-  // Detectar cambios en búsqueda (solo mostrar toast al limpiar)
-  useEffect(() => {
-    if (prevBusqueda !== busqueda && busqueda !== "") {
-      setPrevBusqueda(busqueda);
-    } else if (prevBusqueda !== "" && busqueda === "") {
-      const colorAleatorio = coloresPasteles[Math.floor(Math.random() * coloresPasteles.length)];
-      mostrarToast("Búsqueda limpiada", colorAleatorio, "✨");
-      setPrevBusqueda(busqueda);
-    }
-  }, [busqueda, prevBusqueda]);
-
-  // Función para mostrar toast
-  const mostrarToast = (mensaje: string, color: string, icono: string) => {
+  const mostrarToast = (mensaje: string, color: string) => {
     const resultadosCount = productosFiltrados.length;
     const mensajeCompleto = `${mensaje} • ${resultadosCount} resultado${resultadosCount !== 1 ? 's' : ''}`;
     
     setToastMessage(mensajeCompleto);
     setToastColor(color);
-    setToastIcon(icono);
     setShowToast(true);
-
-    // Auto-ocultar después de 3 segundos
-    setTimeout(() => {
-      setShowToast(false);
-    }, 3000);
+    setTimeout(() => setShowToast(false), 3000);
   };
 
   const toggleFavorite = (id: string) => {
@@ -351,403 +323,294 @@ export default function ProductosCatalogo({
           const res = await fetch(`/api/comprador/favoritos?productId=${encodeURIComponent(id)}`, { method: 'DELETE' });
           if (res.ok) {
             setProductos(prev => prev.map(p => p.id === id ? { ...p, isFavorite: false } : p));
-            mostrarToast('Eliminado de favoritos', 'bg-gray-50 border-gray-200 text-gray-700', '🤍');
+            mostrarToast('Eliminado de favoritos', 'bg-neutral-800 border-neutral-700 text-neutral-200');
           }
         } else {
-          const res = await fetch('/api/comprador/favoritos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ productId: id }) });
+          const res = await fetch('/api/comprador/favoritos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ productId: id })
+          });
           if (res.ok) {
             setProductos(prev => prev.map(p => p.id === id ? { ...p, isFavorite: true } : p));
-            mostrarToast('Añadido a favoritos', 'bg-rose-50 border-rose-200 text-rose-600', '❤️');
+            mostrarToast('Añadido a favoritos', 'bg-neutral-800 border-neutral-700 text-lime-400');
           }
         }
-      } catch (e) {
-        console.error('Favorite toggle error', e);
+      } catch (err) {
+        console.error('Error toggling favorite:', err);
       }
     })();
   };
 
   const abrirDetalle = (producto: Producto) => {
-    // Navegar a la vista de detalle completa en lugar de modal
-    router.push(`/mercado/producto/${encodeURIComponent(producto.id)}`);
+    setSelectedProduct(producto);
+    setIsModalOpen(true);
   };
 
-  const toggleSelectUnit = (productId: string, unit: string) => {
-    setSelectedUnits(prev => {
-      const cur = prev[productId];
-      return { ...prev, [productId]: cur === unit ? null : unit };
-    });
-  };
-
-  // La lógica de confirmación detallada ahora se maneja en la vista de detalle completa
-
-  // Función para agregar producto al carrito
-  const handleAddToCart = (producto: any) => {
-    if (apiError) {
-      mostrarToast('No se puede agregar productos demo al carrito. Intenta recargar la página cuando la conexión se restablezca.', 'bg-red-50 border-red-200 text-red-600', '⚠️');
-      return;
-    }
-    // Si el usuario es agricultor y aún no sabemos su perfil, evitar acción hasta resolver
-    if (session?.user?.role === 'CAMPESINO' && miAgricultorId === undefined) {
-      mostrarToast('Verificando perfil de agricultor...', 'bg-amber-50 border-amber-200 text-amber-700', '⚠️');
-      return;
-    }
-    // Evitar que un agricultor agregue su propio producto
-    if (miAgricultorId && producto.agricultorId && String(miAgricultorId) === String(producto.agricultorId)) {
-      mostrarToast('No puedes comprar tu propio producto', 'bg-amber-50 border-amber-200 text-amber-700', '⚠️');
-      return;
-    }
-    // Evitar que un agricultor agregue su propio producto
-    if (miAgricultorId && producto.agricultorId && String(miAgricultorId) === String(producto.agricultorId)) {
-      mostrarToast('No puedes comprar tu propio producto', 'bg-amber-50 border-amber-200 text-amber-700', '⚠️');
-      return;
-    }
-    // Validar stock real
-    const existing = cart.items.find(item => item.id === producto.id);
-    if (existing && existing.quantity >= producto.stock) {
-      mostrarToast(`Solo quedan ${producto.stock} unidades disponibles de este producto`, 'bg-red-50 border-red-200 text-red-600', '⚠️');
-      return;
-    }
-    const chosenUnit = selectedUnits[producto.id] ?? producto.unidad
+  const handleAddToCart = (producto: Producto) => {
     cart.addItem({
       id: producto.id,
-      name: producto.nombre,
-      price: producto.precio,
-      stock: producto.stock, // Stock real
-      unit: producto.unidad,
-      purchaseUnit: chosenUnit,
-      campesinoId: producto.agricultorId || 'desconocido',
-      campesinoName: producto.agricultor || 'desconocido',
-      imageUrl: producto.imagen,
-      metodosEntrega: producto.metodosEntrega || null // Incluir métodos de entrega
+      nombre: producto.nombre,
+      precio: producto.precio,
+      unidad: producto.unidad,
+      imagen: producto.imagen,
+      agricultor: producto.agricultor
     });
-    // Abrir el sidebar global del carrito para que el usuario lo vea
-    cart.toggleCart();
-    mostrarToast('Producto agregado al carrito', 'bg-green-50 border-green-200 text-green-600', '🛒');
-  };
-
-  const productosFiltrados = productos
-    .filter(producto => {
-      // Filtro por categoría
-      const coincideCategoria = filtroCategoria === "Todos" || producto.categoria === filtroCategoria;
-
-      // Filtro por búsqueda
-      const coincideBusqueda = busqueda === "" || 
-        producto.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-        producto.descripcion.toLowerCase().includes(busqueda.toLowerCase()) ||
-        producto.agricultor.toLowerCase().includes(busqueda.toLowerCase()) ||
-        producto.ubicacion.toLowerCase().includes(busqueda.toLowerCase());
-
-      // Filtro por ciudad
-      const coincideCiudad = !filtroCiudad || filtroCiudad === 'Todas' || producto.ubicacion.toLowerCase().includes(filtroCiudad.toLowerCase());
-
-      return coincideCategoria && coincideBusqueda && coincideCiudad;
-    })
-    .sort((a, b) => {
-      switch (ordenPor) {
-        case "precio-asc":
-          return a.precio - b.precio;
-        case "precio-desc":
-          return b.precio - a.precio;
-        case "rating":
-          return b.rating - a.rating;
-        default:
-          return 0;
-      }
-    });
-
-  const formatearPrecio = (precio: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0
-    }).format(precio);
-  };
-
-  const renderStars = (rating: number) => {
-    return Array.from({ length: 5 }, (_, i) => (
-      null
-    ));
+    
+    mostrarToast(`Agregado al carrito: ${producto.nombre}`, 'bg-lime-950/80 border-lime-600/50 text-lime-400');
   };
 
   return (
-    <div className="space-y-4 relative">
-      {/* Estado de carga */}
-      {loading && (
-        <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Cargando productos...</p>
-        </div>
-      )}
-
-      {/* Contenido principal (solo se muestra cuando no está cargando) */}
-      {!loading && (
-        <>
-      {/* Mensaje de estado sutil */}
-      {showToast && (
-        <div className={`${toastColor} border rounded-lg transition-all duration-300 ease-out ${showToast ? 'opacity-100' : 'opacity-0'}`}>
-          <div className="px-4 py-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <span className="text-lg">{toastIcon}</span>
-                <div>
-                  <span className="text-sm font-medium">
-                    {toastMessage.split(' • ')[0]}
-                  </span>
-                  <span className="text-xs text-current opacity-70 ml-2">
-                    {toastMessage.split(' • ')[1]}
-                  </span>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowToast(false)}
-                className="ml-3 p-1 rounded hover:bg-current hover:bg-opacity-10 transition-colors duration-200"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+    <div className="w-full">
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <div className="text-center">
+            <div className="w-10 h-10 border-3 border-neutral-700 border-t-lime-500 rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-neutral-400 text-sm font-medium">Cargando catálogo agrícola…</p>
           </div>
-        </div>
-      )}
-
-      {/* Grid/Lista de productos */}
-      {/* Grid/Lista de productos */}
-      {viewMode === 'grid' ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-5 lg:gap-6">
-          {productosFiltrados.map((producto) => {
-            // Determinar si el usuario autenticado es agricultor y dueño del producto
-            const isOwnerAgricultor = session?.user?.role === 'CAMPESINO' && !!miAgricultorId && !!producto.agricultorId && String(miAgricultorId) === String(producto.agricultorId);
-            return (
-            <div
-              key={producto.id}
-              className="bg-neutral-800 rounded-xl border border-neutral-700 hover:border-green-600 transition-colors duration-200 overflow-hidden group w-full"
-              style={{ minWidth: '0', maxWidth: '100%' }}
-            >
-              {/* Imagen del producto */}
-              <div className="relative bg-neutral-800 pt-0 pb-0 px-0 text-center">
-                {producto.imagen && (producto.imagen.startsWith('http') || producto.imagen.startsWith('/')) ? (
-                    <img
-                    src={producto.imagen.startsWith('http') ? producto.imagen : `${typeof window !== 'undefined' ? window.location.origin : ''}${producto.imagen}`}
-                    alt={producto.nombre}
-                    className="w-full h-28 md:h-36 object-cover rounded-t-xl transition-opacity duration-200 hover:opacity-95 cursor-pointer border-b border-neutral-700 bg-neutral-800 mx-auto"
-                    style={{ objectPosition: 'center' }}
-                    onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                    onClick={() => abrirDetalle(producto)}
-                  />
-                ) : (
-                  <div className="text-5xl flex items-center justify-center w-full h-28 md:h-36 bg-neutral-800 rounded-t-2xl text-neutral-300 cursor-pointer" onClick={() => abrirDetalle(producto)}>
-                    {producto.imagen}
-                  </div>
-                )}
-                <button
-                  onClick={() => toggleFavorite(producto.id)}
-                  className={`absolute top-3 right-3 p-2 rounded-full transition-colors duration-200 ${
-                    producto.isFavorite
-                      ? 'bg-red-600 text-white hover:bg-red-700'
-                      : 'bg-neutral-800 text-neutral-300 hover:text-red-500 hover:bg-neutral-700'
-                  }`}
-                >
-                  <Heart className={`w-5 h-5 ${producto.isFavorite ? 'fill-current' : ''}`} />
-                </button>
-              </div>
-
-              {/* Contenido del producto */}
-              <div className="p-2 md:p-3 space-y-3">
-                {/* Header con nombre y precio */}
-                <div className="flex justify-between items-start gap-2">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-sm md:text-lg font-semibold text-neutral-100 mb-1 hover:text-green-400 transition-colors duration-200 cursor-pointer truncate" onClick={() => abrirDetalle(producto)}>
-                      {producto.nombre}
-                    </h3>
-                    
-                  </div>
-                  <div className="text-right flex-shrink-0">
-                    {producto.purchaseUnits && producto.purchaseUnits.length > 0 && (
-                      <div className="text-[10px] text-neutral-400 mb-0.5">Desde</div>
-                    )}
-                    <div className="text-lg md:text-xl font-bold text-green-400 hover:text-green-500 transition-colors duration-200">
-                      {formatearPrecio(producto.precio)}
-                    </div>
-                    <div className="text-xs text-neutral-500">por {producto.unidad}</div>
-                  </div>
-                </div>
-
-                {/* Descripción */}
-                <p className="text-neutral-300 text-xs md:text-sm leading-relaxed line-clamp-2 mb-1">
-                  {producto.descripcion}
-                </p>
-
-                {/* Presentaciones disponibles */}
-                {producto.purchaseUnits && producto.purchaseUnits.length > 0 && (
-                  <div className="mt-1">
-                    <span className="inline-flex items-center gap-1 text-xs bg-green-600/15 text-green-300 border border-green-700/40 px-2 py-0.5 rounded-full">
-                      📦 {producto.purchaseUnits.length + 1} presentaciones
-                    </span>
-                  </div>
-                )}
-
-                {/* Agricultor y ubicación del producto (agricultor arriba) */}
-                <div className="pt-2 border-t border-neutral-800">
-                  <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-2 text-sm text-neutral-200 min-w-0">
-                      <User className="w-4 h-4 text-green-500 flex-shrink-0" />
-                      <span className="font-medium truncate">{producto.agricultor}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-neutral-400 min-w-0">
-                      <MapPin className="w-4 h-4 text-orange-500 flex-shrink-0" />
-                      <span className="truncate">{producto.ubicacion}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Botón de acción */}
-                <div className="pt-2">
-                  {!(session?.user?.role === 'CAMPESINO' && miAgricultorId === undefined) && !isOwnerAgricultor && (
-                    <button
-                      className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-1.5 md:py-2 px-3 rounded-xl transition-colors duration-200 text-sm flex items-center justify-center gap-2"
-                      onClick={() => handleAddToCart(producto)}
-                    >
-                      <ShoppingCart className="w-4 h-4 mr-1" /> Comprar Ahora
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          );
-          })}
         </div>
       ) : (
-        <div className="space-y-4">
-          {productosFiltrados.map((producto) => {
-            const isOwnerAgricultor = session?.user?.role === 'CAMPESINO' && !!miAgricultorId && !!producto.agricultorId && String(miAgricultorId) === String(producto.agricultorId);
-            return (
-            <div
-              key={producto.id}
-              className="bg-neutral-800 hover:bg-neutral-700 rounded-lg border border-neutral-700 transition-colors duration-200 overflow-hidden"
-            >
-              <div className="flex flex-col md:flex-row">
-                {/* Imagen en vista lista */}
-                <div className="relative bg-neutral-800 pt-0 pb-0 px-0 md:w-44 min-w-[90px] md:min-w-[140px] max-w-[180px] flex items-stretch justify-center">
-                  {producto.imagen && (producto.imagen.startsWith('http') || producto.imagen.startsWith('/')) ? (
-                    <img
-                      src={producto.imagen.startsWith('http') ? producto.imagen : `${typeof window !== 'undefined' ? window.location.origin : ''}${producto.imagen}`}
-                      alt={producto.nombre}
-                      className="w-full h-full min-h-[90px] md:min-h-[120px] min-w-[90px] md:min-w-[120px] object-cover rounded-l-xl rounded-tr-none rounded-br-none transition-opacity duration-200 hover:opacity-95 cursor-pointer border border-neutral-800 bg-neutral-800"
-                      style={{ objectPosition: 'center', aspectRatio: '1/1' }}
-                      onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                    />
-                  ) : (
-                    <div className="text-4xl flex items-center justify-center w-full h-full min-h-[120px] min-w-[120px] bg-neutral-800 text-neutral-300 rounded-l-2xl rounded-tr-none rounded-br-none">
-                      {producto.imagen}
-                    </div>
-                  )}
-                  <button
-                    onClick={() => toggleFavorite(producto.id)}
-                    className={`absolute top-3 right-3 p-2 rounded-full transition-colors duration-200 ${
-                      producto.isFavorite
-                        ? 'bg-red-600 text-white hover:bg-red-700'
-                        : 'bg-neutral-800 text-neutral-300 hover:text-red-500 hover:bg-neutral-700'
-                    }`}
-                  >
-                    <Heart className={`w-4 h-4 ${producto.isFavorite ? 'fill-current' : ''}`} />
+        <>
+          {showToast && (
+            <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-4 duration-300">
+              <div className={`px-4 py-3 rounded-xl border shadow-2xl backdrop-blur-md ${toastColor}`}>
+                <div className="flex items-center gap-3">
+                  <Sparkles className="w-4 h-4 text-lime-400 flex-shrink-0" />
+                  <span className="text-sm font-medium">{toastMessage}</span>
+                  <button onClick={() => setShowToast(false)} className="ml-2 text-neutral-400 hover:text-white">
+                    <X className="w-4 h-4" />
                   </button>
-                </div>
-
-                {/* Contenido en vista lista */}
-                <div className="flex-1 p-3 md:p-4">
-                  <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
-                    {/* Información principal */}
-                    <div className="flex-1">
-                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-3">
-                        <h3 className="text-lg md:text-xl font-bold text-neutral-100 hover:text-green-400 transition-colors duration-200 cursor-pointer">
-                          {producto.nombre}
-                        </h3>
-                        <div className="text-right">
-                          {producto.purchaseUnits && producto.purchaseUnits.length > 0 && (
-                            <div className="text-xs text-neutral-400 mb-0.5">Desde</div>
-                          )}
-                          <div className="text-lg md:text-xl font-bold text-green-400">
-                            {formatearPrecio(producto.precio)}
-                          </div>
-                          <div className="text-sm text-neutral-500">por {producto.unidad}</div>
-                        </div>
-                      </div>
-                      
-                      
-
-                        <p className="text-neutral-300 text-sm md:text-base leading-relaxed mb-4 line-clamp-2">
-                        {producto.descripcion}
-                      </p>
-
-                      {/* Presentaciones disponibles en vista lista */}
-                      {producto.purchaseUnits && producto.purchaseUnits.length > 0 && (
-                        <div className="mt-2 flex flex-wrap gap-2 items-center">
-                          <span className="inline-flex items-center gap-1 text-xs bg-green-600/15 text-green-300 border border-green-700/40 px-2.5 py-1 rounded-full">
-                            📦 {producto.purchaseUnits.length + 1} presentaciones disponibles
-                          </span>
-                          <span className="text-xs text-neutral-500">
-                            ({producto.purchaseUnits.map(pu => pu.unit).join(', ')})
-                          </span>
-                        </div>
-                      )}
-
-                      {/* Agricultor y ubicación en vista lista (agricultor arriba) */}
-                      <div className="flex flex-col gap-1 mb-2">
-                        <div className="flex items-center gap-2 text-sm text-neutral-200">
-                          <User className="w-4 h-4 text-green-500 flex-shrink-0" />
-                          <span className="font-medium truncate">{producto.agricultor}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-neutral-400">
-                          <MapPin className="w-4 h-4 text-orange-500 flex-shrink-0" />
-                          <span className="truncate">{producto.ubicacion}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Botón de acción */}
-                        <div className="lg:ml-6">
-                          {!(session?.user?.role === 'CAMPESINO' && miAgricultorId === undefined) && !isOwnerAgricultor && (
-                            <button
-                                  className="w-full lg:w-auto bg-green-600 hover:bg-green-700 text-white font-semibold py-2 md:py-3 px-4 md:px-6 rounded-xl transition-colors duration-200 whitespace-nowrap flex items-center justify-center gap-2"
-                              onClick={() => handleAddToCart(producto)}
-                            >
-                              <ShoppingCart className="w-4 h-4 mr-1" /> Comprar Ahora
-                            </button>
-                          )}
-                        </div>
-                  </div>
                 </div>
               </div>
             </div>
-          );
-          })}
-        </div>
-      )}
+          )}
 
-      {/* Mensaje cuando no hay productos */}
-      {productosFiltrados.length === 0 && (
-        <div className="text-center py-16 bg-neutral-900 rounded-xl border border-neutral-700">
-          <div className="text-6xl mb-4">🔍</div>
-          <h3 className="text-xl font-semibold text-neutral-100 mb-2">No se encontraron productos</h3>
-          <p className="text-neutral-400 mb-6">
-            {busqueda ? `No hay productos que coincidan con "${busqueda}"` : 
-             filtroCategoria !== "Todos" ? `No hay productos en la categoría "${filtroCategoria}"` :
-             "No hay productos disponibles en este momento"}
-          </p>
-          <div className="space-y-2 text-sm text-neutral-500">
-            <p>• Intenta con otros términos de búsqueda</p>
-            <p>• Cambia los filtros aplicados</p>
-            <p>• Explora otras categorías</p>
-          </div>
-        </div>
-      )}
+          {viewMode === 'grid' ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-5 lg:gap-6">
+              {productosFiltrados.map((producto) => {
+                const isOwnerAgricultor = session?.user?.role === 'CAMPESINO' && !!miAgricultorId && !!producto.agricultorId && String(miAgricultorId) === String(producto.agricultorId);
+                const hasValidImage = producto.imagen && (producto.imagen.startsWith('http') || producto.imagen.startsWith('/'));
 
-      {/* Mostrar mensaje si la API falla */}
-      {apiError && (
-        <div className="bg-neutral-900 border border-red-500 text-red-400 rounded-lg p-4 mb-6 text-center">
-          Error al cargar productos desde el servidor. No es posible comprar productos demo. Intenta recargar la página.<br />
-          <span className="font-bold">No podrás agregar productos al carrito hasta que la conexión se restablezca.</span>
-        </div>
-      )}
+                return (
+                  <div
+                    key={producto.id}
+                    className="bg-neutral-800/90 rounded-2xl border border-neutral-700/80 hover:border-lime-500/60 transition-all duration-300 overflow-hidden group flex flex-col justify-between shadow-lg"
+                  >
+                    <div>
+                      {/* Imagen con fallback limpio vectorizado */}
+                      <div className="relative bg-neutral-850 overflow-hidden">
+                        {hasValidImage ? (
+                          <img
+                            src={producto.imagen.startsWith('http') ? producto.imagen : `${typeof window !== 'undefined' ? window.location.origin : ''}${producto.imagen}`}
+                            alt={producto.nombre}
+                            className="w-full h-36 sm:h-40 md:h-44 object-cover transition-transform duration-500 group-hover:scale-105 cursor-pointer border-b border-neutral-700/80"
+                            onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                            onClick={() => abrirDetalle(producto)}
+                          />
+                        ) : (
+                          <div 
+                            className="w-full h-36 sm:h-40 md:h-44 bg-gradient-to-br from-neutral-800 to-neutral-750 flex flex-col items-center justify-center border-b border-neutral-700/80 cursor-pointer group-hover:from-neutral-750 group-hover:to-neutral-700 transition-colors"
+                            onClick={() => abrirDetalle(producto)}
+                          >
+                            <div className="p-3 rounded-xl bg-lime-500/10 border border-lime-500/20 text-lime-400 mb-1.5">
+                              <Sprout className="w-7 h-7" />
+                            </div>
+                            <span className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider">Producto Agrícola</span>
+                          </div>
+                        )}
+
+                        <button
+                          onClick={() => toggleFavorite(producto.id)}
+                          className={`absolute top-3 right-3 p-2.5 rounded-xl transition-all shadow-md ${
+                            producto.isFavorite
+                              ? 'bg-red-600 text-white hover:bg-red-700'
+                              : 'bg-neutral-900/80 backdrop-blur-md text-neutral-300 hover:text-red-400 border border-neutral-700/60'
+                          }`}
+                        >
+                          <Heart className={`w-4 h-4 ${producto.isFavorite ? 'fill-current' : ''}`} />
+                        </button>
+                      </div>
+
+                      {/* Contenido del Producto */}
+                      <div className="p-4 space-y-3">
+                        <div className="flex justify-between items-start gap-2">
+                          <div className="flex-1 min-w-0">
+                            <h3 
+                              className="text-base font-bold text-neutral-100 hover:text-lime-400 transition-colors cursor-pointer truncate"
+                              onClick={() => abrirDetalle(producto)}
+                            >
+                              {producto.nombre}
+                            </h3>
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <div className="text-lg font-extrabold text-lime-400">
+                              {formatearPrecio(producto.precio)}
+                            </div>
+                            <div className="text-[11px] text-neutral-400 font-medium">por {producto.unidad}</div>
+                          </div>
+                        </div>
+
+                        <p className="text-neutral-300 text-xs leading-relaxed line-clamp-2">
+                          {producto.descripcion}
+                        </p>
+
+                        {/* Presentaciones */}
+                        {producto.purchaseUnits && producto.purchaseUnits.length > 0 && (
+                          <div className="pt-1">
+                            <span className="inline-flex items-center gap-1.5 text-xs bg-lime-500/10 text-lime-400 border border-lime-500/20 px-2.5 py-1 rounded-full font-medium">
+                              <Package className="w-3.5 h-3.5" />
+                              <span>{producto.purchaseUnits.length + 1} presentaciones</span>
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Datos de Origen y Agricultor */}
+                        <div className="pt-3 border-t border-neutral-800 space-y-1.5">
+                          <div className="flex items-center gap-2 text-xs text-neutral-200">
+                            <User className="w-3.5 h-3.5 text-lime-500 flex-shrink-0" />
+                            <span className="font-semibold truncate">{producto.agricultor}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-neutral-400">
+                            <MapPin className="w-3.5 h-3.5 text-orange-400 flex-shrink-0" />
+                            <span className="truncate">{producto.ubicacion}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Acciones */}
+                    <div className="p-4 pt-0">
+                      {!(session?.user?.role === 'CAMPESINO' && miAgricultorId === undefined) && !isOwnerAgricultor && (
+                        <button
+                          className="w-full bg-gradient-to-r from-lime-600 to-lime-500 hover:from-lime-500 hover:to-lime-600 text-white font-bold py-2.5 px-4 rounded-xl transition-all shadow-lg shadow-lime-900/30 flex items-center justify-center gap-2 text-sm"
+                          onClick={() => handleAddToCart(producto)}
+                        >
+                          <ShoppingCart className="w-4 h-4" />
+                          <span>Comprar Ahora</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            /* Vista Lista */
+            <div className="space-y-4">
+              {productosFiltrados.map((producto) => {
+                const isOwnerAgricultor = session?.user?.role === 'CAMPESINO' && !!miAgricultorId && !!producto.agricultorId && String(miAgricultorId) === String(producto.agricultorId);
+                const hasValidImage = producto.imagen && (producto.imagen.startsWith('http') || producto.imagen.startsWith('/'));
+
+                return (
+                  <div
+                    key={producto.id}
+                    className="bg-neutral-800/90 hover:bg-neutral-800 rounded-2xl border border-neutral-700/80 transition-colors overflow-hidden p-4 flex flex-col md:flex-row gap-4"
+                  >
+                    <div className="relative w-full md:w-48 h-40 flex-shrink-0 rounded-xl overflow-hidden bg-neutral-850">
+                      {hasValidImage ? (
+                        <img
+                          src={producto.imagen.startsWith('http') ? producto.imagen : `${typeof window !== 'undefined' ? window.location.origin : ''}${producto.imagen}`}
+                          alt={producto.nombre}
+                          className="w-full h-full object-cover cursor-pointer"
+                          onClick={() => abrirDetalle(producto)}
+                        />
+                      ) : (
+                        <div 
+                          className="w-full h-full bg-gradient-to-br from-neutral-800 to-neutral-750 flex flex-col items-center justify-center cursor-pointer"
+                          onClick={() => abrirDetalle(producto)}
+                        >
+                          <Sprout className="w-8 h-8 text-lime-400 mb-1" />
+                          <span className="text-[11px] font-semibold text-neutral-400">Producto Agrícola</span>
+                        </div>
+                      )}
+                      <button
+                        onClick={() => toggleFavorite(producto.id)}
+                        className={`absolute top-2 right-2 p-2 rounded-lg transition-all ${
+                          producto.isFavorite ? 'bg-red-600 text-white' : 'bg-neutral-900/80 text-neutral-300'
+                        }`}
+                      >
+                        <Heart className={`w-4 h-4 ${producto.isFavorite ? 'fill-current' : ''}`} />
+                      </button>
+                    </div>
+
+                    <div className="flex-1 flex flex-col justify-between">
+                      <div>
+                        <div className="flex justify-between items-start gap-4 mb-2">
+                          <h3 className="text-lg font-bold text-white hover:text-lime-400 transition-colors cursor-pointer" onClick={() => abrirDetalle(producto)}>
+                            {producto.nombre}
+                          </h3>
+                          <div className="text-right">
+                            <div className="text-xl font-extrabold text-lime-400">{formatearPrecio(producto.precio)}</div>
+                            <div className="text-xs text-neutral-400">por {producto.unidad}</div>
+                          </div>
+                        </div>
+                        <p className="text-neutral-300 text-sm leading-relaxed mb-3 line-clamp-2">{producto.descripcion}</p>
+
+                        <div className="flex flex-wrap gap-4 text-xs text-neutral-400">
+                          <div className="flex items-center gap-1.5">
+                            <User className="w-3.5 h-3.5 text-lime-500" />
+                            <span className="text-neutral-200 font-medium">{producto.agricultor}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <MapPin className="w-3.5 h-3.5 text-orange-400" />
+                            <span>{producto.ubicacion}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="pt-4 flex items-center justify-between">
+                        {producto.purchaseUnits && producto.purchaseUnits.length > 0 ? (
+                          <span className="inline-flex items-center gap-1.5 text-xs bg-lime-500/10 text-lime-400 border border-lime-500/20 px-2.5 py-1 rounded-full font-medium">
+                            <Package className="w-3.5 h-3.5" />
+                            <span>{producto.purchaseUnits.length + 1} presentaciones disponibles</span>
+                          </span>
+                        ) : <div />}
+
+                        {!(session?.user?.role === 'CAMPESINO' && miAgricultorId === undefined) && !isOwnerAgricultor && (
+                          <button
+                            className="bg-gradient-to-r from-lime-600 to-lime-500 hover:from-lime-500 hover:to-lime-600 text-white font-bold py-2 px-5 rounded-xl transition-all shadow-md flex items-center gap-2 text-sm"
+                            onClick={() => handleAddToCart(producto)}
+                          >
+                            <ShoppingCart className="w-4 h-4" />
+                            <span>Comprar Ahora</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Estado Vacío Limpio Vectorizado */}
+          {productosFiltrados.length === 0 && (
+            <div className="text-center py-16 bg-neutral-900/90 rounded-2xl border border-neutral-800 shadow-xl max-w-2xl mx-auto my-8 p-8">
+              <div className="inline-flex items-center justify-center p-4 bg-neutral-800/80 border border-neutral-700 rounded-2xl text-lime-400 mb-4 shadow-inner">
+                <PackageSearch className="w-10 h-10" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">No se encontraron productos</h3>
+              <p className="text-neutral-400 text-sm max-w-md mx-auto mb-6">
+                {busqueda ? `No hay productos que coincidan con "${busqueda}"` : 
+                 filtroCategoria !== "Todos" ? `No hay productos en la categoría "${filtroCategoria}"` :
+                 "No hay productos disponibles en este momento en la base de datos."}
+              </p>
+              <div className="inline-flex flex-col sm:flex-row gap-3 text-xs text-neutral-400 bg-neutral-850 p-3 rounded-xl border border-neutral-800">
+                <span>• Intenta con otros términos</span>
+                <span className="hidden sm:inline">•</span>
+                <span>• Cambia los filtros de categoría</span>
+                <span className="hidden sm:inline">•</span>
+                <span>• Explora otras ciudades</span>
+              </div>
+            </div>
+          )}
+
+          {apiError && (
+            <div className="bg-neutral-900 border border-red-500/60 text-red-400 rounded-xl p-4 my-6 text-center text-sm shadow-xl">
+              No fue posible conectar con el servidor de productos.<br />
+              <span className="font-semibold text-xs opacity-80">Por favor verifica tu conexión e intenta recargar la página.</span>
+            </div>
+          )}
         </>
       )}
     </div>
