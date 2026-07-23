@@ -36,11 +36,11 @@ const categories = [
 export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-900 to-neutral-800 text-white">
-      {/* Header con glassmorphism (oculto en móviles; usamos el nav móvil) */}
-      <header className="hidden md:block sticky top-0 z-50 bg-neutral-900/80 backdrop-blur-md border-b border-neutral-800">
+      {/* Header con glassmorphism */}
+      <header className="sticky top-0 z-50 bg-neutral-900/90 backdrop-blur-md border-b border-neutral-800">
         <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
           <div className="flex items-center justify-between h-16">
-            <Link href="/" className="hidden md:flex items-center gap-3 group">
+            <Link href="/" className="flex items-center gap-3 group">
               <div className="relative">
                 <div className="absolute inset-0 bg-lime-500/20 blur-xl rounded-full group-hover:bg-lime-500/30 transition-all"></div>
                 <BrandIcon className="relative h-9 w-9" />
@@ -53,7 +53,7 @@ export default function Home() {
               </div>
             </Link>
 
-              <nav className="hidden md:flex items-center gap-8">
+            <nav className="hidden md:flex items-center gap-8">
               <Link href="/comprador/mercado" className="text-sm text-neutral-200 hover:text-white transition-colors">
                 Mercado
               </Link>
@@ -62,11 +62,15 @@ export default function Home() {
               </Link>
               <Link 
                 href="/auth/registro" 
-                className="px-4 py-2 bg-gradient-to-r from-lime-600 to-lime-500 rounded-lg text-sm font-medium hover:from-lime-500 hover:to-lime-600 transition-all shadow-lg shadow-lime-900/50"
+                className="px-4 py-2 bg-gradient-to-r from-lime-600 to-lime-500 rounded-lg text-sm font-semibold text-white hover:from-lime-500 hover:to-lime-600 transition-all shadow-lg shadow-lime-900/50"
               >
                 Registrarse
               </Link>
             </nav>
+
+            <div className="md:hidden">
+              <MobileMenu showMarketLink={true} />
+            </div>
           </div>
         </div>
       </header>

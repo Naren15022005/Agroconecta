@@ -6,6 +6,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import CartSidebar from '@/components/CartSidebar';
 import BrandIcon from '@/components/BrandIcon';
+import MobileMenu from '@/components/MobileMenu';
 import { ShoppingBag, Package, User, LogOut, ShoppingCart, Heart } from 'lucide-react';
 import { useCartStore } from '@/store/cart';
 
@@ -90,9 +91,9 @@ export default function CompradorLayout({ children }: { children: ReactNode }) {
             </Link>
 
             {/* Right Navigation & Actions */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3 sm:space-x-4">
               {isAuthenticated ? (
-                /* Header para Usuario Autenticado */
+                /* Header para Usuario Autenticado en Desktop */
                 <div className="hidden md:flex items-center space-x-6">
                   <Link
                     href="/comprador/mercado"
@@ -117,14 +118,14 @@ export default function CompradorLayout({ children }: { children: ReactNode }) {
                   </Link>
                 </div>
               ) : (
-                /* Header idéntico a Home SIN el enlace a Mercado si NO hay sesión */
+                /* Header Desktop para visitantes sin sesión */
                 <nav className="hidden md:flex items-center gap-6">
-                  <Link href="/auth/signin" className="text-sm text-neutral-200 hover:text-white transition-colors">
+                  <Link href="/auth/signin" className="text-sm font-medium text-neutral-200 hover:text-white transition-colors">
                     Iniciar sesión
                   </Link>
                   <Link 
                     href="/auth/registro" 
-                    className="px-4 py-2 bg-gradient-to-r from-lime-600 to-lime-500 rounded-lg text-sm font-medium text-white hover:from-lime-500 hover:to-lime-600 transition-all shadow-lg shadow-lime-900/50"
+                    className="px-4 py-2 bg-gradient-to-r from-lime-600 to-lime-500 rounded-lg text-sm font-semibold text-white hover:from-lime-500 hover:to-lime-600 transition-all shadow-lg shadow-lime-900/50"
                   >
                     Registrarse
                   </Link>
@@ -162,41 +163,37 @@ export default function CompradorLayout({ children }: { children: ReactNode }) {
                   </span>
                 )}
               </button>
+
+              {/* Menú Hamburguesa Móvil en el Header */}
+              {!isAuthenticated && (
+                <div className="md:hidden">
+                  <MobileMenu showMarketLink={false} />
+                </div>
+              )}
             </div>
           </div>
         </div>
       </header>
 
-      {/* Mobile Header / Navigation */}
-      <div className="md:hidden fixed top-16 left-0 right-0 z-30 bg-neutral-900/95 backdrop-blur-md border-b border-neutral-800 px-4 py-2">
-        <div className="flex justify-around items-center">
-          {isAuthenticated ? (
-            <>
-              <Link href="/comprador/mercado" className="flex flex-col items-center text-neutral-200">
-                <ShoppingBag size={18} />
-                <span className="text-[11px] mt-0.5">Mercado</span>
-              </Link>
-              <Link href="/comprador/pedidos" className="flex flex-col items-center text-neutral-200">
-                <Package size={18} />
-                <span className="text-[11px] mt-0.5">Pedidos</span>
-              </Link>
-              <Link href="/comprador/favoritos" className="flex flex-col items-center text-neutral-200 hover:text-red-400">
-                <Heart size={18} className="text-red-400" />
-                <span className="text-[11px] mt-0.5">Favoritos</span>
-              </Link>
-            </>
-          ) : (
-            <div className="flex items-center justify-center space-x-4 w-full py-1">
-              <Link href="/auth/signin" className="text-xs font-medium text-neutral-200 hover:text-white px-3 py-1.5 rounded bg-neutral-800">
-                Iniciar sesión
-              </Link>
-              <Link href="/auth/registro" className="text-xs font-semibold text-white px-4 py-1.5 rounded bg-gradient-to-r from-lime-600 to-lime-500 shadow">
-                Registrarse
-              </Link>
-            </div>
-          )}
+      {/* Mobile Sub-Header for Authenticated Users */}
+      {isAuthenticated && (
+        <div className="md:hidden fixed top-16 left-0 right-0 z-30 bg-neutral-900/95 backdrop-blur-md border-b border-neutral-800 px-4 py-2">
+          <div className="flex justify-around items-center">
+            <Link href="/comprador/mercado" className="flex flex-col items-center text-neutral-200">
+              <ShoppingBag size={18} />
+              <span className="text-[11px] mt-0.5">Mercado</span>
+            </Link>
+            <Link href="/comprador/pedidos" className="flex flex-col items-center text-neutral-200">
+              <Package size={18} />
+              <span className="text-[11px] mt-0.5">Pedidos</span>
+            </Link>
+            <Link href="/comprador/favoritos" className="flex flex-col items-center text-neutral-200 hover:text-red-400">
+              <Heart size={18} className="text-red-400" />
+              <span className="text-[11px] mt-0.5">Favoritos</span>
+            </Link>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Main Content */}
       <main className="pt-16">{children}</main>
