@@ -36,8 +36,8 @@ const categories = [
 export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-900 to-neutral-800 text-white">
-      {/* Header con glassmorphism */}
-      <header className="sticky top-0 z-50 bg-neutral-900/90 backdrop-blur-md border-b border-neutral-800">
+      {/* Header con glassmorphism (oculto en móviles; usamos el nav móvil) */}
+      <header className="hidden md:block sticky top-0 z-50 bg-neutral-900/90 backdrop-blur-md border-b border-neutral-800">
         <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
           <div className="flex items-center justify-between h-16">
             <Link href="/" className="flex items-center gap-3 group">
@@ -67,10 +67,6 @@ export default function Home() {
                 Registrarse
               </Link>
             </nav>
-
-            <div className="md:hidden">
-              <MobileMenu showMarketLink={true} />
-            </div>
           </div>
         </div>
       </header>
@@ -87,17 +83,8 @@ export default function Home() {
             </div>
 
             <div className="flex items-center gap-3 mobile-actions">
-              {/* Registrarse moved to mobile menu to avoid duplication */}
-              {/* Mobile menu button */}
-              <div className="sm:hidden">
-                {/* MobileMenu is a client component */}
-                <MobileMenu />
-              </div>
-              {/* For slightly larger mobiles show quick links */}
-              <div className="hidden sm:flex items-center gap-3">
-                <Link href="/comprador/mercado" className="text-sm text-neutral-200 hover:text-white">Mercado</Link>
-                <Link href="/auth/signin" className="text-sm text-neutral-200 hover:text-white">Iniciar</Link>
-              </div>
+              {/* Mobile menu button con opciones completas */}
+              <MobileMenu showMarketLink={true} />
             </div>
           </div>
         </div>
