@@ -1,14 +1,13 @@
 "use client";
 
 import { ReactNode, useEffect } from 'react';
-import { signOut } from 'next-auth/react';
-import { useSession } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import CartSidebar from '@/components/CartSidebar';
-import { ShoppingBag, Package, User, LogOut, Home, ShoppingCart, Heart } from 'lucide-react';
+import BrandIcon from '@/components/BrandIcon';
+import { ShoppingBag, Package, User, LogOut, ShoppingCart, Heart } from 'lucide-react';
 import { useCartStore } from '@/store/cart';
-
 
 export default function CompradorLayout({ children }: { children: ReactNode }) {
   const { data: session, status } = useSession();
@@ -20,12 +19,11 @@ export default function CompradorLayout({ children }: { children: ReactNode }) {
   const cart = useCartStore();
   const totalItems = useCartStore(state => state.getTotalItems());
 
-  // Redirects must run inside effects to avoid updating other components during render
   useEffect(() => {
     if (status === 'unauthenticated' && !isMarket) {
       router.push('/auth/signin?callbackUrl=/comprador');
     }
-  }, [status, router]);
+  }, [status, router, isMarket]);
 
   useEffect(() => {
     if (status === 'authenticated' && session?.user?.role && !isMarket) {
@@ -40,25 +38,23 @@ export default function CompradorLayout({ children }: { children: ReactNode }) {
         }
       }
     }
-  }, [status, session, router]);
+  }, [status, session, router, isMarket]);
 
-  // Verificar autenticación
   if (status === 'loading') {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-neutral-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Cargando...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-lime-500 mx-auto"></div>
+          <p className="mt-4 text-neutral-300">Cargando...</p>
         </div>
       </div>
     );
   }
+
   if (status === 'unauthenticated' && !isMarket) {
-    // Effect will redirect; avoid rendering while redirecting
     return null;
   }
 
-  // If the user is authenticated but has an unexpected role, block render only when not viewing the public market
   if (session?.user?.role && status === 'authenticated') {
     const role = session.user.role;
     if (role !== 'COMPRADOR' && role !== 'EMPRESA' && !isMarket) {
@@ -67,139 +63,142 @@ export default function CompradorLayout({ children }: { children: ReactNode }) {
   }
 
   const handleLogout = () => {
-    // Use NextAuth signOut helper to clear session and redirect to home
     signOut({ callbackUrl: '/' });
   };
 
+  const isAuthenticated = status === 'authenticated';
+
   return (
-    <div className={`min-h-screen bg-neutral-900`}>
-      {/* Top Navigation Bar (copiado de NavMenu - header fijo del mercado) */}
-      <header className={`fixed top-0 left-0 right-0 z-40 bg-neutral-900 border-b border-neutral-800 shadow-sm`}>
-        <div className="flex items-center justify-between h-16 px-4">
-          {/* Left: Logo */}
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center flex-shrink-0">
-              <Link href="/comprador" className="flex items-center">
-                <span className={`text-xl font-bold text-green-300`}>AgroConecta</span>
-              </Link>
-            </div>
-          </div>
+    <div className="min-h-screen bg-neutral-900">
+      {/* Top Header Navigation */}
+      <header className="fixed top-0 left-0 right-0 z-40 bg-neutral-900/90 backdrop-blur-md border-b border-neutral-800 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
 
-          {/* Spacer to keep header layout */}
-          <div className="flex-1" />
-
-          {/* Right: Navigation + Actions (user, logout, cart) */}
-          <div className="flex items-center space-x-4 flex-shrink-0">
-            {status === 'authenticated' ? (
-              <div className="hidden md:flex items-center space-x-6">
-                <Link
-                  href="/comprador/mercado"
-                  className="flex items-center space-x-2 text-neutral-200 transition-colors"
-                >
-                  <ShoppingBag size={18} className="text-neutral-200" />
-                  <span className="font-medium text-neutral-200">Mercado</span>
-                </Link>
-                <Link
-                  href="/comprador/pedidos"
-                  className="flex items-center space-x-2 text-neutral-200 transition-colors"
-                >
-                  <Package size={18} className="text-neutral-200" />
-                  <span className="font-medium text-neutral-200">Mis Pedidos</span>
-                </Link>
-                <Link
-                  href="/comprador/favoritos"
-                  className="flex items-center space-x-2 text-neutral-200 transition-colors hover:text-red-400"
-                >
-                  <Heart size={18} className="text-red-400" />
-                  <span className="font-medium text-neutral-200">Favoritos</span>
-                </Link>
+            {/* Left: Logo (estilo idéntico a Home) */}
+            <Link href="/" className="flex items-center gap-3 group">
+              <div className="relative">
+                <div className="absolute inset-0 bg-lime-500/20 blur-xl rounded-full group-hover:bg-lime-500/30 transition-all"></div>
+                <BrandIcon className="relative h-9 w-9" />
               </div>
-            ) : null}
-
-            {status === 'authenticated' && session?.user ? (
-              <>
-                <div className="hidden md:flex items-center space-x-3 text-sm">
-                  <div className={`flex items-center space-x-2 px-3 py-1 rounded-md bg-neutral-800/40`}>
-                    <User size={16} className={`text-neutral-200`} />
-                    <span className={`text-neutral-200 font-medium truncate max-w-[12ch]`}>{session.user.name || session.user.email}</span>
-                  </div>
+              <div>
+                <div className="text-lg font-bold bg-gradient-to-r from-lime-500 to-lime-600 bg-clip-text text-transparent">
+                  AgroConecta
                 </div>
+                <div className="text-xs text-neutral-400">Marketplace Agrícola</div>
+              </div>
+            </Link>
 
-                <button
-                  onClick={handleLogout}
-                  className={`hidden md:flex items-center space-x-1 text-neutral-200 hover:text-red-400 transition-colors px-3 py-1 rounded-md`}
-                >
-                  <LogOut size={18} />
-                  <span className="hidden md:inline">Salir</span>
-                </button>
-              </>
-            ) : null}
-
-            {/* Carrito al final (más visible) */}
-            <button
-              id="cart-sidebar-btn"
-              onClick={() => cart.toggleCart()}
-              className={`relative p-2 rounded-full transition-colors hover:bg-neutral-800/50 ${totalItems > 0 ? 'animate-cart' : ''}`}
-              aria-label="Abrir carrito"
-            >
-              <ShoppingCart size={24} className={`text-white`} />
-              {totalItems > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 font-bold">
-                  {totalItems}
-                </span>
+            {/* Right Navigation & Actions */}
+            <div className="flex items-center space-x-4">
+              {isAuthenticated ? (
+                /* Header para Usuario Autenticado */
+                <div className="hidden md:flex items-center space-x-6">
+                  <Link
+                    href="/comprador/mercado"
+                    className="flex items-center space-x-2 text-neutral-200 hover:text-white transition-colors"
+                  >
+                    <ShoppingBag size={18} className="text-neutral-200" />
+                    <span className="font-medium">Mercado</span>
+                  </Link>
+                  <Link
+                    href="/comprador/pedidos"
+                    className="flex items-center space-x-2 text-neutral-200 hover:text-white transition-colors"
+                  >
+                    <Package size={18} className="text-neutral-200" />
+                    <span className="font-medium">Mis Pedidos</span>
+                  </Link>
+                  <Link
+                    href="/comprador/favoritos"
+                    className="flex items-center space-x-2 text-neutral-200 hover:text-red-400 transition-colors"
+                  >
+                    <Heart size={18} className="text-red-400" />
+                    <span className="font-medium">Favoritos</span>
+                  </Link>
+                </div>
+              ) : (
+                /* Header idéntico a Home SIN el enlace a Mercado si NO hay sesión */
+                <nav className="hidden md:flex items-center gap-6">
+                  <Link href="/auth/signin" className="text-sm text-neutral-200 hover:text-white transition-colors">
+                    Iniciar sesión
+                  </Link>
+                  <Link 
+                    href="/auth/registro" 
+                    className="px-4 py-2 bg-gradient-to-r from-lime-600 to-lime-500 rounded-lg text-sm font-medium text-white hover:from-lime-500 hover:to-lime-600 transition-all shadow-lg shadow-lime-900/50"
+                  >
+                    Registrarse
+                  </Link>
+                </nav>
               )}
-            </button>
+
+              {/* Usuario logueado & Salir */}
+              {isAuthenticated && session?.user && (
+                <div className="hidden md:flex items-center space-x-3 text-sm">
+                  <div className="flex items-center space-x-2 px-3 py-1.5 rounded-md bg-neutral-800/60 border border-neutral-700">
+                    <User size={16} className="text-neutral-300" />
+                    <span className="text-neutral-200 font-medium truncate max-w-[14ch]">{session.user.name || session.user.email}</span>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center space-x-1 text-neutral-300 hover:text-red-400 transition-colors px-3 py-1.5 rounded-md border border-neutral-700/60 hover:border-red-900/50"
+                  >
+                    <LogOut size={16} />
+                    <span>Salir</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Botón Carrito de Compras */}
+              <button
+                id="cart-sidebar-btn"
+                onClick={() => cart.toggleCart()}
+                className={`relative p-2 rounded-full transition-colors hover:bg-neutral-800/80 ${totalItems > 0 ? 'animate-cart' : ''}`}
+                aria-label="Abrir carrito"
+              >
+                <ShoppingCart size={22} className="text-white" />
+                {totalItems > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 font-bold">
+                    {totalItems}
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Mobile Navigation */}
-      <div className={`md:hidden bg-neutral-900 border-b border-neutral-800`}>
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex justify-around py-2">
-            {status === 'authenticated' ? (
-              <>
-                <Link
-                  href="/comprador/mercado"
-                  className="flex flex-col items-center py-2 text-neutral-200"
-                >
-                  <ShoppingBag size={20} className="text-neutral-200" />
-                  <span className="text-xs mt-1 text-neutral-200">Mercado</span>
-                </Link>
-                <Link
-                  href="/comprador/pedidos"
-                  className="flex flex-col items-center py-2 text-neutral-200"
-                >
-                  <Package size={20} className="text-neutral-200" />
-                  <span className="text-xs mt-1 text-neutral-200">Pedidos</span>
-                </Link>
-                  <Link
-                    href="/comprador/favoritos"
-                    className="flex flex-col items-center py-2 text-neutral-200 hover:text-red-400"
-                  >
-                    <Heart size={20} className="text-red-400" />
-                    <span className="text-xs mt-1 text-neutral-200">Favoritos</span>
-                  </Link>
-              </>
-            ) : null}
-            <button
-              onClick={() => cart.toggleCart()}
-              className={`flex flex-col items-center py-2 relative text-neutral-200 hover:text-green-300 ${totalItems > 0 ? 'animate-cart' : ''}`}
-              aria-label="Abrir carrito"
-            >
-              <ShoppingCart size={20} className={`text-neutral-200`} />
-              {totalItems > 0 && (
-                <span className="absolute -top-1 -right-2 bg-red-500 text-white text-[10px] rounded-full px-1 py-0.5 font-bold">
-                  {totalItems}
-                </span>
-              )}
-              <span className="text-xs mt-1 text-neutral-200">Carrito</span>
-            </button>
-          </div>
+      {/* Mobile Header / Navigation */}
+      <div className="md:hidden fixed top-16 left-0 right-0 z-30 bg-neutral-900/95 backdrop-blur-md border-b border-neutral-800 px-4 py-2">
+        <div className="flex justify-around items-center">
+          {isAuthenticated ? (
+            <>
+              <Link href="/comprador/mercado" className="flex flex-col items-center text-neutral-200">
+                <ShoppingBag size={18} />
+                <span className="text-[11px] mt-0.5">Mercado</span>
+              </Link>
+              <Link href="/comprador/pedidos" className="flex flex-col items-center text-neutral-200">
+                <Package size={18} />
+                <span className="text-[11px] mt-0.5">Pedidos</span>
+              </Link>
+              <Link href="/comprador/favoritos" className="flex flex-col items-center text-neutral-200 hover:text-red-400">
+                <Heart size={18} className="text-red-400" />
+                <span className="text-[11px] mt-0.5">Favoritos</span>
+              </Link>
+            </>
+          ) : (
+            <div className="flex items-center justify-center space-x-4 w-full py-1">
+              <Link href="/auth/signin" className="text-xs font-medium text-neutral-200 hover:text-white px-3 py-1.5 rounded bg-neutral-800">
+                Iniciar sesión
+              </Link>
+              <Link href="/auth/registro" className="text-xs font-semibold text-white px-4 py-1.5 rounded bg-gradient-to-r from-lime-600 to-lime-500 shadow">
+                Registrarse
+              </Link>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Main Content (empujado por header fijo) */}
+      {/* Main Content */}
       <main className="pt-16">{children}</main>
       
       {/* Cart Sidebar */}
