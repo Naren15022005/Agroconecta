@@ -17,6 +17,16 @@ async function seedFirebase() {
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
+  // Helper para guardar con reintento y capturar errores individuales
+  async function safeSetDoc(colName, docId, data) {
+    try {
+      await setDoc(doc(db, colName, docId), data);
+      console.log(`  ✅ [${colName}] Migrado: ${data.displayName || data.nombre || data.name || docId}`);
+    } catch (err) {
+      console.error(`  ❌ [${colName}] Error en ID ${docId}:`, err?.message || err);
+    }
+  }
+
   // 1. Roles
   console.log("👥 Sembrando colección 'roles'...");
   const roles = [
@@ -27,8 +37,7 @@ async function seedFirebase() {
   ];
 
   for (const role of roles) {
-    await setDoc(doc(db, 'roles', role.id), role);
-    console.log(`  ✅ Rol migrado: ${role.displayName}`);
+    await safeSetDoc('roles', role.id, role);
   }
 
   // 2. Usuarios Iniciales
@@ -70,8 +79,7 @@ async function seedFirebase() {
   ];
 
   for (const user of users) {
-    await setDoc(doc(db, 'users', user.id), user);
-    console.log(`  ✅ Usuario migrado: ${user.nombre} (${user.correo} | Rol: ${user.role})`);
+    await safeSetDoc('users', user.id, user);
   }
 
   // 3. Categorías
@@ -87,8 +95,7 @@ async function seedFirebase() {
   ];
 
   for (const cat of categories) {
-    await setDoc(doc(db, 'categories', cat.id), cat);
-    console.log(`  ✅ Categoría migrada: ${cat.name}`);
+    await safeSetDoc('categories', cat.id, cat);
   }
 
   // 4. Productos del Mercado
@@ -217,14 +224,12 @@ async function seedFirebase() {
   ];
 
   for (const prod of products) {
-    await setDoc(doc(db, 'products', prod.id), prod);
-    console.log(`  ✅ Producto migrado: ${prod.name} (${prod.category} | ${prod.price} COP)`);
+    await safeSetDoc('products', prod.id, prod);
   }
 
-  console.log("\n🎉 ¡MIGRACIÓN Y SEMBRADO A FIREBASE CLOUD FIRESTORE COMPLETADOS CON ÉXITO!");
+  console.log("\n🎉 Proceso de sembrado finalizado.");
 }
 
 seedFirebase().catch(err => {
-  console.error("❌ Error migrando datos a Firebase:", err);
-  process.exit(1);
+  console.error("❌ Error en sembrado:", err);
 });
