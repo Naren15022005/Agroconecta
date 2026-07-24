@@ -14,7 +14,7 @@ import {
   Wallet,
   ShoppingCart
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { signOut, useSession } from 'next-auth/react';
 import BrandIcon from './BrandIcon';
 import { useCartStore } from '@/store/cart';
@@ -38,6 +38,15 @@ export default function NavMenu({ children }: { children: React.ReactNode }) {
 
   const cart = useCartStore();
   const totalItems = useCartStore(state => state.getTotalItems());
+
+  // Cerrar sidebar al presionar la tecla ESC
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   useEffect(() => {
     const fetchPedidosNuevos = async () => {
@@ -65,7 +74,7 @@ export default function NavMenu({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="relative">
+    <div className="relative min-h-screen bg-neutral-950 text-white">
       {/* Topbar fijo */}
       <header className={`fixed top-0 left-0 right-0 z-40 bg-neutral-900 border-b border-neutral-800 shadow-sm transform transition-transform duration-300 ${isOpen ? 'md:translate-x-64 lg:translate-x-72' : ''}`}>
         <div className="flex items-center justify-between h-16 px-4">
@@ -73,12 +82,13 @@ export default function NavMenu({ children }: { children: React.ReactNode }) {
           <div className="flex items-center space-x-4">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="p-2 hover:bg-neutral-800 rounded-lg transition-colors cursor-pointer"
+              className="p-2 hover:bg-neutral-800 rounded-lg transition-colors cursor-pointer text-white"
+              aria-label="Abrir menú"
             >
-              <Menu className="w-6 h-6 text-neutral-100" />
+              <Menu className="w-6 h-6 text-white" />
             </button>
             
-            <Link href="/" className="flex items-center gap-3 group">
+            <Link href="/" className="flex items-center gap-3 group text-white hover:text-white no-underline">
               <div className="relative">
                 <div className="absolute inset-0 bg-lime-500/20 blur-xl rounded-full group-hover:bg-lime-500/30 transition-all"></div>
                 <BrandIcon className="relative h-9 w-9" />
@@ -117,29 +127,37 @@ export default function NavMenu({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      {/* Sidebar */}
+      {/* Overlay/Backdrop oscuro para cerrar el sidebar al hacer click o tap fuera */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 z-45 bg-black/60 backdrop-blur-xs transition-opacity"
+          onClick={() => setIsOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Sidebar de Navegación del Agricultor */}
       <nav className={`
         fixed top-0 left-0 z-50
-        w-64 md:w-72 bg-neutral-800 border-r border-neutral-700 shadow-2xl
+        w-64 md:w-72 bg-neutral-900 border-r border-neutral-800 shadow-2xl
         transform transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         flex flex-col
         h-screen
       `}>
         {/* Header del sidebar */}
-        <div className="p-4 border-b border-neutral-700">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-neutral-100">Navegación</h2>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="p-1 hover:bg-neutral-700 rounded-lg transition-colors cursor-pointer"
-            >
-              <X className="w-5 h-5 text-neutral-100" />
-            </button>
-          </div>
+        <div className="p-4 border-b border-neutral-800 flex items-center justify-between">
+          <h2 className="text-lg font-bold text-white">Navegación</h2>
+          <button
+            onClick={() => setIsOpen(false)}
+            className="p-1 hover:bg-neutral-800 rounded-lg transition-colors cursor-pointer text-white"
+            aria-label="Cerrar menú"
+          >
+            <X className="w-5 h-5 text-white" />
+          </button>
         </div>
 
-        {/* Links del sidebar */}
+        {/* Links del sidebar con tipografía blanca garantizada */}
         <div className="flex-1 p-4 space-y-2 overflow-y-auto">
           {menu.map((item) => {
             const Icon = item.icon;
@@ -152,18 +170,18 @@ export default function NavMenu({ children }: { children: React.ReactNode }) {
                 href={item.href}
                 onClick={() => setIsOpen(false)}
                 className={`
-                  flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 group
+                  flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 group no-underline
                   ${isActive 
-                    ? 'bg-neutral-700 text-white font-medium shadow-lg shadow-black/20' 
-                    : 'text-neutral-300 hover:bg-neutral-750 hover:text-white'
+                    ? 'bg-neutral-800 text-white font-semibold shadow-lg shadow-black/30 border border-neutral-700' 
+                    : 'text-white hover:bg-neutral-800/80 hover:text-white'
                   }
                 `}
               >
                 <div className="flex items-center space-x-3">
                   <Icon className={`w-5 h-5 transition-colors ${
-                    isActive ? 'text-lime-400' : 'text-neutral-400 group-hover:text-neutral-200'
+                    isActive ? 'text-lime-400' : 'text-neutral-300 group-hover:text-white'
                   }`} />
-                  <span>{item.label}</span>
+                  <span className="text-white font-medium text-sm group-hover:text-white">{item.label}</span>
                 </div>
 
                 {esPedidos && pedidosNuevos > 0 && (
@@ -177,13 +195,13 @@ export default function NavMenu({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Footer del sidebar con botón de logout */}
-        <div className="p-4 border-t border-neutral-700 bg-neutral-800/80">
+        <div className="p-4 border-t border-neutral-800 bg-neutral-900/90">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center space-x-3 px-4 py-3 text-red-400 hover:bg-red-700/10 hover:text-red-300 rounded-xl transition-all duration-200 group cursor-pointer"
+            className="w-full flex items-center space-x-3 px-4 py-3 text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-xl transition-all duration-200 group cursor-pointer"
           >
             <LogOut className="w-5 h-5 text-red-400" />
-            <span className="font-medium">Cerrar Sesión</span>
+            <span className="font-medium text-sm text-red-400 group-hover:text-red-300">Cerrar Sesión</span>
           </button>
         </div>
       </nav>
