@@ -14,6 +14,7 @@ import {
   Wallet
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { signOut, useSession } from 'next-auth/react';
 import BrandIcon from './BrandIcon';
 
 const menu = [
