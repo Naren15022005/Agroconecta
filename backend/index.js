@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
+const nodemailer = require('nodemailer');
 const { createClient } = require('@supabase/supabase-js');
 const { firebaseApp, db: firebaseDb, auth: firebaseAuth } = require('./firebase');
 
@@ -9,6 +10,82 @@ const PORT = process.env.PORT || 10000;
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Configuración SMTP para envío de correos
+function getTransporter() {
+  const user = process.env.SMTP_USER ? process.env.SMTP_USER.replace(/\s+/g, '') : 'agroconecta50@gmail.com';
+  const pass = process.env.SMTP_PASS ? process.env.SMTP_PASS.replace(/\s+/g, '') : undefined;
+  if (!pass) return null;
+  return nodemailer.createTransport({
+    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
+    auth: { user, pass },
+    tls: { rejectUnauthorized: false }
+  });
+}
+
+async function sendWelcomeEmailBackend(email, name) {
+  const transporter = getTransporter();
+  if (!transporter) {
+    console.warn('⚠️ [Backend Express] SMTP_PASS no configurado; omitiendo envío de correo a', email);
+    return;
+  }
+
+  const loginUrl = (process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000') + '/auth/signin?activated=true';
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="utf-8"></head>
+    <body style="margin: 0; padding: 0; background-color: #121212; font-family: sans-serif; color: #e5e5e5;">
+      <table width="100%" style="table-layout: fixed; padding: 40px 10px;">
+        <tr>
+          <td align="center">
+            <table width="100%" style="max-width: 600px; background-color: #1e1e1e; border: 1px solid #333; border-radius: 16px; overflow: hidden;">
+              <tr>
+                <td align="center" style="background: linear-gradient(135deg, #4d7c0f 0%, #65a30d 100%); padding: 30px 20px;">
+                  <h1 style="color: #fff; margin: 0; font-size: 28px;">🌾 AgroConecta</h1>
+                  <p style="color: #ecfccb; margin: 6px 0 0 0;">Conectando el campo directamente con la ciudad</p>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 35px 30px;">
+                  <h2 style="color: #fff; margin-top: 0;">¡Hola ${name}!</h2>
+                  <p style="color: #a3a3a3; font-size: 15px; line-height: 1.6;">
+                    ¡Buenas noticias! Tu cuenta ha sido creada y <strong style="color: #84cc16;">activada exitosamente</strong>.
+                  </p>
+                  <table width="100%">
+                    <tr>
+                      <td align="center" style="padding: 20px 0;">
+                        <a href="${loginUrl}" target="_blank" style="background: linear-gradient(90deg, #65a30d 0%, #84cc16 100%); color: #fff; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-weight: bold; font-size: 16px; display: inline-block;">
+                          Ingresar a Mi Cuenta →
+                        </a>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+
+  try {
+    const info = await transporter.sendMail({
+      from: 'AgroConecta <agroconecta50@gmail.com>',
+      to: email,
+      subject: '🌾 ¡Cuenta Activada con Éxito en AgroConecta!',
+      html
+    });
+    console.log('✅ [Backend Express] Correo enviado exitosamente:', info.messageId);
+  } catch (err) {
+    console.error('❌ [Backend Express] Error enviando correo:', err.message);
+  }
+}
 
 // In-memory store for dev fallback if Firestore credentials are not set
 if (!global.inMemoryUsers) {
@@ -64,6 +141,9 @@ app.post('/firebase/register', async (req, res) => {
       global.inMemoryUsers.set(cleanEmail, userData);
       console.log('✅ [Backend Express] Usuario guardado en In-Memory Fallback:', userId);
     }
+
+    // Enviar correo de bienvenida desde backend
+    sendWelcomeEmailBackend(cleanEmail, name).catch(e => console.error(e));
 
     return res.json({
       success: true,
