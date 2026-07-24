@@ -96,13 +96,14 @@ export const authOptions: NextAuthOptions = {
         }
 
         // Intento 2: Backend Express Server (/firebase/login)
-        if (!user) {
+        const backendUrl = process.env.BACKEND_URL || (!process.env.VERCEL ? 'http://localhost:10000' : '');
+        if (!user && backendUrl) {
           try {
-            const expressRes = await fetch('http://localhost:10000/firebase/login', {
+            const expressRes = await fetch(`${backendUrl}/firebase/login`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ email: credentials.email, password: credentials.password }),
-              signal: AbortSignal.timeout(2000)
+              signal: AbortSignal.timeout(1200)
             });
             if (expressRes.ok) {
               const expressJson = await expressRes.json();

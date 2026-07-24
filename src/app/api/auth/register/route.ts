@@ -77,14 +77,16 @@ export async function POST(req: NextRequest) {
       console.warn('[Register] Prisma no disponible, conectando al Backend Express/Firebase:', String(prismaErr));
     }
 
-    // Intento 2: Registro en el Backend Express / Firebase (Servidor en Puerto 10000)
-    try {
-      const backendRes = await fetch('http://localhost:10000/firebase/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password, role }),
-        signal: AbortSignal.timeout(3000)
-      });
+    // Intento 2: Backend Express Server (si está configurado o en entorno local)
+    const backendUrl = process.env.BACKEND_URL || (!process.env.VERCEL ? 'http://localhost:10000' : '');
+    if (backendUrl) {
+      try {
+        const backendRes = await fetch(`${backendUrl}/firebase/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password, role }),
+          signal: AbortSignal.timeout(1200)
+        });
 
       if (backendRes.ok) {
         const backendJson = await backendRes.json();
