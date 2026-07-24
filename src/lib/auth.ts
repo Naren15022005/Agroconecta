@@ -10,8 +10,13 @@ import path from 'path'
 import AgroConectaIdGenerator from './id-generator'
 
 function logToFile(msg: string) {
-  const logPath = path.join(process.cwd(), 'login_debug.log');
-  fs.appendFileSync(logPath, `[${new Date().toISOString()}] ${msg}\n`);
+  console.log(`[AUTH] ${msg}`);
+  if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+    try {
+      const logPath = path.join(process.cwd(), 'login_debug.log');
+      fs.appendFileSync(logPath, `[${new Date().toISOString()}] ${msg}\n`);
+    } catch (_) {}
+  }
 }
 
 export const authOptions: NextAuthOptions = {
