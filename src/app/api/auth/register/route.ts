@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { validatePassword } from '@/lib/password';
+import { sendWelcomeEmail } from '@/lib/email';
 import AgroConectaIdGenerator from '@/lib/id-generator';
 
 export async function POST(req: NextRequest) {
@@ -35,12 +36,11 @@ export async function POST(req: NextRequest) {
     let user: any = null;
     let roleName = role;
 
-    // Detectar si la BD local (MySQL) debe ser omitida para prevenir 504 Timeouts en Vercel
     const isVercel = Boolean(process.env.VERCEL);
     const dbUrl = process.env.DATABASE_URL || '';
     const isLocalDb = dbUrl.includes('localhost') || dbUrl.includes('127.0.0.1');
 
-    // Intento 1: Registro en Prisma (SOLO si NO estamos en Vercel con un DATABASE_URL local)
+    // Intento 1: Registro en Prisma (solo si no es Vercel con URL local)
     if (!isVercel || !isLocalDb) {
       try {
         const connectPromise = (async () => {
@@ -70,9 +70,12 @@ export async function POST(req: NextRequest) {
           });
           roleName = roleRecord.displayName || roleRecord.name;
           
+          // Enviar correo de bienvenida
+          sendWelcomeEmail(user.correo, user.nombre).catch(e => console.error('[email] Error enviando correo de bienvenida:', String(e)));
+
           return NextResponse.json({
             success: true,
-            message: '¡Registro exitoso en AgroConecta!',
+            message: '¡Registro exitoso en AgroConecta! Se ha enviado un correo de bienvenida.',
             user: { id: user.id, nombre: user.nombre, correo: user.correo, rol: roleName }
           });
         }
@@ -94,9 +97,10 @@ export async function POST(req: NextRequest) {
         if (backendRes.ok) {
           const backendJson = await backendRes.json();
           if (backendJson.success) {
+            sendWelcomeEmail(email, name).catch(e => console.error('[email] Error enviando correo de bienvenida:', String(e)));
             return NextResponse.json({
               success: true,
-              message: '¡Registro exitoso en el servidor backend!',
+              message: '¡Registro exitoso en el servidor backend! Se ha enviado un correo de bienvenida.',
               user: backendJson.user
             });
           }
@@ -106,7 +110,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Intento 3: Firebase Cloud Firestore Directo (Sin Timeouts en Vercel)
+    // Intento 3: Firebase Cloud Firestore Directo
     try {
       const { db } = await import('@/lib/firebase');
       const { collection, getDocs, query, where, setDoc, doc } = await import('firebase/firestore');
@@ -133,9 +137,12 @@ export async function POST(req: NextRequest) {
 
       await setDoc(doc(db, 'users', userId), user);
       
+      // Enviar correo de bienvenida tras guardar en Firebase
+      sendWelcomeEmail(email, name).catch(e => console.error('[email] Error enviando correo de bienvenida:', String(e)));
+
       return NextResponse.json({
         success: true,
-        message: '¡Registro exitoso en AgroConecta (Firebase Cloud)!',
+        message: '¡Registro exitoso en AgroConecta (Firebase Cloud)! Revisa tu correo de bienvenida.',
         user: { id: userId, nombre: name, correo: email, rol: role }
       });
     } catch (fbErr: any) {
