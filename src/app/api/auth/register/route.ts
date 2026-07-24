@@ -71,7 +71,11 @@ export async function POST(req: NextRequest) {
           roleName = roleRecord.displayName || roleRecord.name;
           
           // Enviar correo de bienvenida
-          sendWelcomeEmail(user.correo, user.nombre).catch(e => console.error('[email] Error enviando correo de bienvenida:', String(e)));
+          try {
+            await sendWelcomeEmail(user.correo, user.nombre);
+          } catch (e) {
+            console.error('[email] Error enviando correo de bienvenida:', String(e));
+          }
 
           return NextResponse.json({
             success: true,
@@ -97,7 +101,7 @@ export async function POST(req: NextRequest) {
         if (backendRes.ok) {
           const backendJson = await backendRes.json();
           if (backendJson.success) {
-            sendWelcomeEmail(email, name).catch(e => console.error('[email] Error enviando correo de bienvenida:', String(e)));
+            try { await sendWelcomeEmail(email, name); } catch (e) {}
             return NextResponse.json({
               success: true,
               message: '¡Registro exitoso en el servidor backend! Se ha enviado un correo de bienvenida.',
@@ -138,7 +142,11 @@ export async function POST(req: NextRequest) {
       await setDoc(doc(db, 'users', userId), user);
       
       // Enviar correo de bienvenida tras guardar en Firebase
-      sendWelcomeEmail(email, name).catch(e => console.error('[email] Error enviando correo de bienvenida:', String(e)));
+      try {
+        await sendWelcomeEmail(email, name);
+      } catch (e) {
+        console.error('[email] Error enviando correo de bienvenida en Vercel:', String(e));
+      }
 
       return NextResponse.json({
         success: true,

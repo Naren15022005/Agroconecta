@@ -3,19 +3,22 @@ import { prisma } from '@/lib/prisma';
 
 export async function POST(req: NextRequest) {
   try {
-    const { email } = await req.json();
-    
+    let email = '';
+    try {
+      const body = await req.json();
+      email = body?.email || '';
+    } catch (_) {}
+
     if (!email) {
-      return NextResponse.json({ error: 'Email requerido' }, { status: 400 });
+      return NextResponse.json({ isActive: true });
     }
 
     const cleanEmail = email.toLowerCase().trim();
-    const isVercel = Boolean(process.env.VERCEL);
+    const isVercel = Boolean(process.env.VERCEL) || Boolean(process.env.VERCEL_ENV);
     const dbUrl = process.env.DATABASE_URL || '';
     const isLocalDb = dbUrl.includes('localhost') || dbUrl.includes('127.0.0.1');
 
-    // Intento 1: Prisma MySQL (solo si no es Vercel con URL local)
-    if (!isVercel || !isLocalDb) {
+    if (!isVercel && !isLocalDb) {
       try {
         const dbPromise = prisma.user.findUnique({
           where: { correo: cleanEmail },
@@ -28,11 +31,10 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ isActive: user.isActive });
         }
       } catch (dbErr) {
-        // Fallback a Firebase
+        // ignore
       }
     }
 
-    // Intento 2: Firebase Cloud Firestore
     try {
       const { db } = await import('@/lib/firebase');
       const { collection, getDocs, query, where } = await import('firebase/firestore');
@@ -46,10 +48,9 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ isActive: docData.isActive !== false });
       }
     } catch (fbErr) {
-      // Ignore
+      // ignore
     }
 
-    // Por defecto, las cuentas registradas en Firebase nacen activas
     return NextResponse.json({ isActive: true });
   } catch (error) {
     return NextResponse.json({ isActive: true });

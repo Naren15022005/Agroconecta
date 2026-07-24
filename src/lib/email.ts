@@ -14,30 +14,28 @@ function sanitizeEnvString(v?: string) {
 }
 
 function isEmailConfigured() {
-  return Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
+  return true;
 }
 
 function getFromAddress() {
-  const smtpUser = sanitizeEnvString(process.env.SMTP_USER);
+  const smtpUser = sanitizeEnvString(process.env.SMTP_USER) || 'agroconecta50@gmail.com';
   const from = process.env.SMTP_FROM;
   if (from) return from;
   if (smtpUser) return `AgroConecta <${smtpUser}>`;
-  return 'AgroConecta <no-reply@agroconecta.com>';
+  return 'AgroConecta <agroconecta50@gmail.com>';
 }
 
-const smtpHost = process.env.SMTP_HOST;
+const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
 const smtpPort = Number(process.env.SMTP_PORT) || 587;
 const smtpSecure = smtpPort === 465;
-const smtpUserSan = sanitizeEnvString(process.env.SMTP_USER);
-const smtpPassSan = sanitizeEnvString(process.env.SMTP_PASS);
+const smtpUserSan = sanitizeEnvString(process.env.SMTP_USER) || 'agroconecta50@gmail.com';
+const smtpPassSan = sanitizeEnvString(process.env.SMTP_PASS) || 'trzdtgegjepgbubt';
 
 const transporter = nodemailer.createTransport({
   host: smtpHost,
   port: smtpPort,
   secure: smtpSecure,
-  auth: smtpUserSan
-    ? { user: smtpUserSan, pass: smtpPassSan }
-    : undefined,
+  auth: { user: smtpUserSan, pass: smtpPassSan }
 });
 
 export async function sendEmail({ to, subject, html, text }: SendEmailInput) {
