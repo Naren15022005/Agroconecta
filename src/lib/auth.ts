@@ -132,10 +132,11 @@ export const authOptions: NextAuthOptions = {
         // Intento 3: Firestore directo cliente
         if (!user) {
           try {
+            const cleanEmail = credentials.email.toLowerCase().trim();
             const { db } = await import('@/lib/firebase');
             const { collection, getDocs, query, where } = await import('firebase/firestore');
             const usersRef = collection(db, 'users');
-            const q = query(usersRef, where('correo', '==', credentials.email));
+            const q = query(usersRef, where('correo', '==', cleanEmail));
             const querySnapshot = await getDocs(q);
 
             if (!querySnapshot.empty) {
