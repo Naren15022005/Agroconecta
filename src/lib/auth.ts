@@ -80,16 +80,19 @@ export const authOptions: NextAuthOptions = {
         let roleName: string = 'COMPRADOR';
 
         try {
-          const dbUser = await prisma.user.findUnique({
+          const dbPromise = prisma.user.findUnique({
             where: { correo: credentials.email },
             include: { role: true }
           });
+          const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 1000));
+          const dbUser = await Promise.race([dbPromise, timeoutPromise]);
+
           if (dbUser) {
             user = dbUser;
             roleName = dbUser.role.name;
           }
         } catch (dbErr) {
-          logToFile('[AUTH] Prisma DB error, trying Firebase Cloud Firestore: ' + String(dbErr));
+          logToFile('[AUTH] Prisma DB timeout o error, usando Firebase Cloud Firestore: ' + String(dbErr));
         }
 
         // Firebase Cloud Firestore fallback if user not found in Prisma or DB unavailable

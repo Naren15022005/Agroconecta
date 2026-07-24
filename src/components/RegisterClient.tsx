@@ -29,16 +29,7 @@ export default function RegisterClient({ initialRole }: { initialRole?: string }
   const router = useRouter();
 
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch('/api/debug/auth');
-        if (!res.ok) return setGoogleEnabled(false);
-        const json = await res.json();
-        setGoogleEnabled(Boolean(json?.env?.GOOGLE_CLIENT_ID_set));
-      } catch (err) {
-        setGoogleEnabled(false);
-      }
-    })();
+    setGoogleEnabled(false);
   }, []);
 
   useEffect(() => {

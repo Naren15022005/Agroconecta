@@ -42,10 +42,19 @@ export async function POST(req: NextRequest) {
     let roleName = role;
 
     try {
-      await prisma.$connect();
-      const roleRecord = await prisma.role.findUnique({ where: { name: role } });
+      const connectPromise = (async () => {
+        await prisma.$connect();
+        const roleRecord = await prisma.role.findUnique({ where: { name: role } });
+        return roleRecord;
+      })();
+
+      const timeoutPromise = new Promise<null>((resolve) =>
+        setTimeout(() => resolve(null), 1000)
+      );
+
+      const roleRecord = await Promise.race([connectPromise, timeoutPromise]);
       if (!roleRecord) {
-        return NextResponse.json({ success: false, error: 'El rol seleccionado no es válido.' }, { status: 400 });
+        throw new Error('Base de datos local no disponible o timeout alcanzado (1s)');
       }
 
       const existingUser = await prisma.user.findUnique({ where: { correo: email } });
@@ -66,7 +75,7 @@ export async function POST(req: NextRequest) {
       });
       roleName = roleRecord.displayName || roleRecord.name;
     } catch (dbErr: any) {
-      console.warn('[Register] Prisma MySQL deshabilitado o inaccesible, usando Firebase Cloud Firestore fallback:', String(dbErr));
+      console.warn('[Register] Prisma MySQL no respondió rápidamente, ejecutando registro en Firebase Cloud Firestore:', String(dbErr));
       try {
         const { db } = await import('@/lib/firebase');
         const { collection, getDocs, query, where, setDoc, doc } = await import('firebase/firestore');
