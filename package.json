@@ -13,6 +13,7 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:generate": "prisma generate",
     "prisma:seed": "tsx prisma/seed.ts",
+    "firebase:seed": "node scripts/migrate-to-firebase.mjs",
     "db:setup": "npm run prisma:migrate && npm run prisma:generate && npm run prisma:seed",
     "test": "vitest",
     "test:unit": "vitest run --coverage tests/example.spec.ts",
