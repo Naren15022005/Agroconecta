@@ -290,7 +290,7 @@ export default function MercadoPage() {
                           </button>
                         ))}
                       </div>
-                    ))}
+                    )}
                   </div>
                 </div>
 
