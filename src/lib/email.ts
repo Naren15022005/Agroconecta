@@ -1,4 +1,3 @@
-
 import nodemailer from 'nodemailer';
 
 type SendEmailInput = {
@@ -39,7 +38,7 @@ const transporter = nodemailer.createTransport({
 
 export async function sendEmail({ to, subject, html, text }: SendEmailInput) {
   if (!isEmailConfigured()) {
-    console.warn('[email] SMTP not configured; skipping email to', to, 'subject:', subject);
+    console.warn('[email] SMTP no configurado; omitiendo envío a', to);
     return { ok: false as const, skipped: true as const };
   }
 
@@ -51,12 +50,10 @@ export async function sendEmail({ to, subject, html, text }: SendEmailInput) {
       html,
       text,
     });
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('[email] sent:', { to, subject, messageId: info.messageId });
-    }
+    console.log('[email] Correo enviado exitosamente:', { to, subject, messageId: info.messageId });
     return { ok: true as const, messageId: info.messageId };
   } catch (err) {
-    console.error('[email] Failed to send email:', err);
+    console.error('[email] Error enviando correo:', err);
     return { ok: false as const, skipped: false as const };
   }
 }
@@ -81,24 +78,78 @@ export function getBaseUrl() {
   return 'http://localhost:3000';
 }
 
-export async function sendWelcomeEmail(email: string, name: string, token?: string) {
-  // Si hay token, se envía enlace de activación, si no, solo bienvenida
-  const activationLink = token
-    ? `${getBaseUrl()}/auth/activar/${token}`
-    : null;
+export async function sendWelcomeEmail(email: string, name: string) {
+  const loginUrl = `${getBaseUrl()}/auth/signin?activated=true`;
 
   const html = `
-    <h2>¡Bienvenido a AgroConecta, ${name}!</h2>
-    <p>Gracias por registrarte en nuestra plataforma.</p>
-    ${activationLink ? `<p>Por favor, activa tu cuenta haciendo clic en el siguiente enlace:</p>
-    <a href="${activationLink}">${activationLink}</a>` : '<p>¡Ya puedes comenzar a usar AgroConecta!</p>'}
-    <br/>
-    <p>Si no creaste esta cuenta, ignora este correo.</p>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>¡Cuenta Activada en AgroConecta!</title>
+    </head>
+    <body style="margin: 0; padding: 0; background-color: #121212; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #e5e5e5;">
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" style="table-layout: fixed;">
+        <tr>
+          <td align="center" style="padding: 40px 10px;">
+            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #1e1e1e; border: 1px solid #333333; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+              <!-- Banner Verde AgroConecta -->
+              <tr>
+                <td align="center" style="background: linear-gradient(135deg, #4d7c0f 0%, #65a30d 100%); padding: 30px 20px;">
+                  <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 800; tracking: -0.5px;">🌾 AgroConecta</h1>
+                  <p style="color: #ecfccb; margin: 6px 0 0 0; font-size: 14px; font-weight: 500;">Conectando el campo directamente con la ciudad</p>
+                </td>
+              </tr>
+
+              <!-- Contenido -->
+              <tr>
+                <td style="padding: 35px 30px;">
+                  <h2 style="color: #ffffff; margin-top: 0; font-size: 22px; font-weight: 700;">¡Hola ${name}!</h2>
+                  <p style="color: #a3a3a3; font-size: 15px; line-height: 1.6; margin-bottom: 20px;">
+                    ¡Buenas noticias! Tu cuenta ha sido creada y <strong style="color: #84cc16;">activada exitosamente</strong>. Ya formas parte de la red agrícola directa de Colombia.
+                  </p>
+
+                  <div style="background-color: #262626; border-left: 4px solid #84cc16; padding: 16px; border-radius: 8px; margin-bottom: 25px;">
+                    <p style="color: #d4d4d4; font-size: 14px; margin: 0;">
+                      ✨ <strong>Tu cuenta está lista para usarse:</strong> Puedes explorar el mercado agrícola, realizar compras directas a campesinos o publicar tus cosechas.
+                    </p>
+                  </div>
+
+                  <!-- Botón Ingresar -->
+                  <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                    <tr>
+                      <td align="center" style="padding: 10px 0 25px 0;">
+                        <a href="${loginUrl}" target="_blank" style="background: linear-gradient(90deg, #65a30d 0%, #84cc16 100%); color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-weight: 700; font-size: 16px; display: inline-block; box-shadow: 0 4px 15px rgba(101, 163, 13, 0.4);">
+                          Ingresar a Mi Cuenta →
+                        </a>
+                      </td>
+                    </tr>
+                  </table>
+
+                  <p style="color: #737373; font-size: 13px; text-align: center; margin: 0;">
+                    Si el botón no funciona, copia y pega el siguiente enlace en tu navegador:<br/>
+                    <a href="${loginUrl}" style="color: #84cc16; text-decoration: underline; word-break: break-all;">${loginUrl}</a>
+                  </p>
+                </td>
+              </tr>
+
+              <!-- Footer -->
+              <tr>
+                <td style="background-color: #171717; padding: 20px 30px; border-top: 1px solid #262626; text-align: center;">
+                  <p style="color: #525252; font-size: 12px; margin: 0;">© ${new Date().getFullYear()} AgroConecta Colombia. Todos los derechos reservados.</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
   `;
 
   await sendEmail({
     to: email,
-    subject: 'Bienvenido a AgroConecta',
+    subject: '🌾 ¡Cuenta Activada con Éxito en AgroConecta!',
     html,
   });
 }
