@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
       await prisma.$connect();
     } catch (dbErr: any) {
       console.error('DB connection failed:', String(dbErr));
-      return NextResponse.json({ success: false, error: 'Base de datos inaccesible. Asegúrate de que Postgres esté iniciado.' }, { status: 503 });
+      return NextResponse.json({ success: false, error: 'Base de datos inaccesible. Por favor asegúrate de que el servicio MySQL (XAMPP / Docker / Servidor) esté iniciado en el puerto 3306.' }, { status: 503 });
     }
 
     let roleRecord: any = null;

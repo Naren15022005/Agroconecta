@@ -213,6 +213,7 @@ export default function ProductosCatalogo({
   }, [session]);
 
   const loadFavorites = async () => {
+    if (!session?.user) return;
     try {
       const res = await fetch('/api/comprador/favoritos');
       if (res.ok) {
