@@ -103,22 +103,22 @@ export default function NavMenu({ children }: { children: React.ReactNode }) {
           </div>
 
           {/* Información del usuario + Carrito de compras en esquina derecha */}
-          <div className="flex items-center space-x-3">
-            <div className="flex items-center space-x-2 text-neutral-100 bg-neutral-800/80 px-3 py-1.5 rounded-xl border border-neutral-750">
+          <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 text-neutral-100 bg-neutral-800/60 hover:bg-neutral-800 px-3.5 py-1.5 rounded-full transition-all">
               <User className="w-4 h-4 text-lime-400" />
               <span className="hidden sm:block font-medium text-xs text-white">{session?.user?.name || 'Usuario'}</span>
             </div>
 
-            {/* Botón Carrito de Compras en Esquina Derecha */}
+            {/* Botón Carrito de Compras en Esquina Derecha sin borde */}
             <button
               id="cart-sidebar-btn"
               onClick={() => cart.toggleCart()}
-              className="relative p-2 rounded-xl transition-all bg-neutral-800/80 hover:bg-neutral-750 border border-neutral-750 cursor-pointer"
+              className="relative p-2 rounded-full transition-all bg-neutral-800/60 hover:bg-neutral-800 cursor-pointer text-white"
               aria-label="Abrir carrito"
             >
               <ShoppingCart size={20} className="text-white" />
               {totalItems > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 bg-lime-500 text-neutral-950 text-[11px] rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-md shadow-lime-950/40">
+                <span className="absolute -top-1 -right-1 bg-lime-500 text-neutral-950 text-[11px] rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-md shadow-lime-950/40">
                   {totalItems}
                 </span>
               )}
