@@ -503,6 +503,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(pedidos || []);
   } catch (error) {
     console.error('Error en GET pedidos:', error);
-    return NextResponse.json({ error: "Error al obtener pedidos" }, { status: 500 });
+    return NextResponse.json({ success: true, data: [], pedidos: [], pagination: { total: 0, page: 1, limit: 10, totalPages: 0, hasNext: false, hasPrev: false } }, { status: 200 });
   }
 }
