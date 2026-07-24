@@ -25,17 +25,16 @@ function getFromAddress() {
   return 'AgroConecta <agroconecta50@gmail.com>';
 }
 
-const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
-const smtpPort = Number(process.env.SMTP_PORT) || 587;
-const smtpSecure = smtpPort === 465;
 const smtpUserSan = sanitizeEnvString(process.env.SMTP_USER) || 'agroconecta50@gmail.com';
 const smtpPassSan = sanitizeEnvString(process.env.SMTP_PASS) || 'trzdtgegjepgbubt';
 
 const transporter = nodemailer.createTransport({
-  host: smtpHost,
-  port: smtpPort,
-  secure: smtpSecure,
-  auth: { user: smtpUserSan, pass: smtpPassSan }
+  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true,
+  auth: { user: smtpUserSan, pass: smtpPassSan },
+  tls: { rejectUnauthorized: false }
 });
 
 export async function sendEmail({ to, subject, html, text }: SendEmailInput) {

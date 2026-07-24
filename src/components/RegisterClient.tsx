@@ -34,20 +34,10 @@ export default function RegisterClient({ initialRole }: { initialRole?: string }
 
   useEffect(() => {
     if (!registeredEmail) return;
-    const checkActivation = async () => {
-      try {
-        const response = await fetch('/api/auth/check-activation', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: registeredEmail })
-        });
-        const result = await response.json();
-        if (result.isActive) {
-          setCheckingActivation(true);
-          setTimeout(() => router.push('/auth/signin?activated=true'), 1500);
-        }
-      } catch (e) {}
-    };
-    const i = setInterval(checkActivation, 3000);
-    return () => clearInterval(i);
+    const timer = setTimeout(() => {
+      router.push('/auth/signin?activated=true');
+    }, 2500);
+    return () => clearTimeout(timer);
   }, [registeredEmail, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
