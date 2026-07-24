@@ -11,11 +11,14 @@ import {
   Menu,
   X,
   LogOut,
-  Wallet
+  Wallet,
+  ShoppingCart
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { signOut, useSession } from 'next-auth/react';
 import BrandIcon from './BrandIcon';
+import { useCartStore } from '@/store/cart';
+import CartSidebar from './CartSidebar';
 
 const menu = [
   { href: '/agricultor/mercado', label: 'Mercado', icon: Store },
@@ -28,65 +31,34 @@ const menu = [
 ];
 
 export default function NavMenu({ children }: { children: React.ReactNode }) {
-
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const { data: session } = useSession();
   const [pedidosNuevos, setPedidosNuevos] = useState(0);
-  const [mounted, setMounted] = useState(false);
-  const [perfil, setPerfil] = useState<any | null>(null);
 
-  useEffect(() => { setMounted(true); }, []);
+  const cart = useCartStore();
+  const totalItems = useCartStore(state => state.getTotalItems());
 
-  // Hook para actualizar el contador de pedidos nuevos cada 10s
   useEffect(() => {
-    if (!session?.user?.id) return;
-    if (session?.user?.role !== 'CAMPESINO') return; // solo los agricultores consultan pedidos
-    const fetchPedidos = async () => {
+    const fetchPedidosNuevos = async () => {
       try {
-        // Obtener directamente los pedidos del agricultor en estado PENDIENTE
-        const res = await fetch(`/api/agricultor/pedidos`);
-        if (!res.ok) {
-          setPedidosNuevos(0);
-          return;
+        const res = await fetch('/api/agricultor/pedidos');
+        if (res.ok) {
+          const data = await res.json();
+          const pendientes = (data.pedidos || []).filter(
+            (p: any) => p.status === 'PENDIENTE' || p.status === 'POR_ACEPTAR'
+          );
+          setPedidosNuevos(pendientes.length);
         }
-        const pedidos = await res.json();
-        
-        // Filtrar solo pedidos en estado PENDIENTE (que necesitan ser aceptados)
-        const pedidosPendientes = pedidos.filter((pedido: any) => 
-          pedido.estado && pedido.estado.toLowerCase() === 'pendiente'
-        );
-        
-        setPedidosNuevos(pedidosPendientes.length);
-      } catch (error) {
-        console.log('Error al obtener pedidos:', error);
-        setPedidosNuevos(0);
+      } catch (err) {
+        console.error('Error obteniendo pedidos nuevos:', err);
       }
     };
-    
-    fetchPedidos();
-    const interval = setInterval(fetchPedidos, 10000);
-    return () => clearInterval(interval);
-  }, [session?.user?.id]);
 
-  useEffect(() => {
-    if (!session?.user?.id) return;
-    if (session?.user?.role !== 'CAMPESINO') return; // solo cargar perfil si es agricultor
-    let mountedFlag = true;
-    const fetchPerfil = async () => {
-      try {
-        const res = await fetch('/api/agricultor/perfil');
-        if (!res.ok) return;
-        const json = await res.json();
-        if (!mountedFlag) return;
-        setPerfil(json?.agricultor ?? null);
-      } catch (error) {
-        console.log('Error al cargar perfil:', error);
-      }
-    };
-    fetchPerfil();
-    return () => { mountedFlag = false; };
-  }, [session?.user?.id]);
+    fetchPedidosNuevos();
+    const interval = setInterval(fetchPedidosNuevos, 15000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleLogout = () => {
     signOut({ callbackUrl: '/auth/signin' });
@@ -101,7 +73,7 @@ export default function NavMenu({ children }: { children: React.ReactNode }) {
           <div className="flex items-center space-x-4">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="p-2 hover:bg-neutral-800 rounded-lg transition-colors"
+              className="p-2 hover:bg-neutral-800 rounded-lg transition-colors cursor-pointer"
             >
               <Menu className="w-6 h-6 text-neutral-100" />
             </button>
@@ -120,12 +92,27 @@ export default function NavMenu({ children }: { children: React.ReactNode }) {
             </Link>
           </div>
 
-          {/* Información del usuario en topbar */}
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2 text-neutral-100">
-              <User className="w-5 h-5 text-neutral-100" />
-              <span className="hidden sm:block font-medium text-white">{session?.user?.name || 'Usuario'}</span>
+          {/* Información del usuario + Carrito de compras en esquina derecha */}
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2 text-neutral-100 bg-neutral-800/80 px-3 py-1.5 rounded-xl border border-neutral-750">
+              <User className="w-4 h-4 text-lime-400" />
+              <span className="hidden sm:block font-medium text-xs text-white">{session?.user?.name || 'Usuario'}</span>
             </div>
+
+            {/* Botón Carrito de Compras en Esquina Derecha */}
+            <button
+              id="cart-sidebar-btn"
+              onClick={() => cart.toggleCart()}
+              className="relative p-2 rounded-xl transition-all bg-neutral-800/80 hover:bg-neutral-750 border border-neutral-750 cursor-pointer"
+              aria-label="Abrir carrito"
+            >
+              <ShoppingCart size={20} className="text-white" />
+              {totalItems > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 bg-lime-500 text-neutral-950 text-[11px] rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-md shadow-lime-950/40">
+                  {totalItems}
+                </span>
+              )}
+            </button>
           </div>
         </div>
       </header>
@@ -145,85 +132,60 @@ export default function NavMenu({ children }: { children: React.ReactNode }) {
             <h2 className="text-lg font-bold text-neutral-100">Navegación</h2>
             <button
               onClick={() => setIsOpen(false)}
-              className="p-1 hover:bg-neutral-700 rounded-lg transition-colors"
+              className="p-1 hover:bg-neutral-700 rounded-lg transition-colors cursor-pointer"
             >
-              <X className="w-5 h-5 text-neutral-200" />
+              <X className="w-5 h-5 text-neutral-100" />
             </button>
           </div>
         </div>
 
-        {/* Información del usuario */}
-        <div className="px-4 py-3 bg-neutral-900/5 border-b border-neutral-700">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-full overflow-hidden bg-neutral-900/10 border border-neutral-700 flex items-center justify-center">
-              <div className="w-full h-full relative">
-                <img
-                  src={perfil?.foto ?? 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=='}
-                  alt="Avatar"
-                  className="w-full h-full object-cover"
-                />
-                <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200 ${perfil?.foto ? 'opacity-0' : 'opacity-100'}`}>
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-r from-green-600 to-green-700">
-                    <User className="w-5 h-5 text-white" />
-                  </div>
+        {/* Links del sidebar */}
+        <div className="flex-1 p-4 space-y-2 overflow-y-auto">
+          {menu.map((item) => {
+            const Icon = item.icon;
+            const isActive = pathname === item.href;
+            const esPedidos = item.href === '/agricultor/pedidos';
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setIsOpen(false)}
+                className={`
+                  flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 group
+                  ${isActive 
+                    ? 'bg-neutral-700 text-white font-medium shadow-lg shadow-black/20' 
+                    : 'text-neutral-300 hover:bg-neutral-750 hover:text-white'
+                  }
+                `}
+              >
+                <div className="flex items-center space-x-3">
+                  <Icon className={`w-5 h-5 transition-colors ${
+                    isActive ? 'text-lime-400' : 'text-neutral-400 group-hover:text-neutral-200'
+                  }`} />
+                  <span>{item.label}</span>
                 </div>
-              </div>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-neutral-100 truncate">
-                {perfil?.user?.nombre || session?.user?.name || 'Usuario'}
-              </p>
-              <p className="text-xs text-neutral-400 truncate">
-                {perfil?.user?.correo || session?.user?.email || 'email@ejemplo.com'}
-              </p>
-            </div>
-          </div>
+
+                {esPedidos && pedidosNuevos > 0 && (
+                  <span className="bg-lime-500 text-neutral-950 font-bold text-xs px-2 py-0.5 rounded-full animate-pulse">
+                    {pedidosNuevos}
+                  </span>
+                )}
+              </Link>
+            );
+          })}
         </div>
 
-        {/* Menú de navegación */}
-        <div className="flex-1 py-4 overflow-y-auto">
-          <ul className="space-y-2 px-4">
-            {menu.map(({ href, label, icon: Icon }) => {
-              const isActive = pathname === href;
-              const isPedidos = href === '/agricultor/pedidos';
-              return (
-                <li key={href}>
-                  <Link
-                    href={href}
-                    onClick={() => setIsOpen(false)}
-                    className={`
-                        flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200
-                        ${isActive 
-                          ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg' 
-                          : 'text-neutral-200 hover:bg-neutral-700 hover:text-green-400'
-                        }
-                        group relative
-                      `}
-                  >
-                      <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-neutral-300 group-hover:text-green-400'}`} />
-                      <span className={`font-medium ${isActive ? 'text-white' : 'text-neutral-200'}`}>{label}</span>
-                    {isPedidos && pedidosNuevos > 0 && mounted && (
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg border border-white animate-bounce">
-                        {pedidosNuevos}
-                      </span>
-                    )}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+        {/* Footer del sidebar con botón de logout */}
+        <div className="p-4 border-t border-neutral-700 bg-neutral-800/80">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center space-x-3 px-4 py-3 text-red-400 hover:bg-red-700/10 hover:text-red-300 rounded-xl transition-all duration-200 group cursor-pointer"
+          >
+            <LogOut className="w-5 h-5 text-red-400" />
+            <span className="font-medium">Cerrar Sesión</span>
+          </button>
         </div>
-
-          {/* Footer del sidebar con botón de logout */}
-          <div className="p-4 border-t border-neutral-700 bg-neutral-800/80">
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center space-x-3 px-4 py-3 text-red-400 hover:bg-red-700/10 hover:text-red-300 rounded-xl transition-all duration-200 group"
-            >
-              <LogOut className="w-5 h-5 text-red-400" />
-              <span className="font-medium">Cerrar Sesión</span>
-            </button>
-          </div>
       </nav>
 
       {/* Contenido principal que se desplaza */}
@@ -233,6 +195,9 @@ export default function NavMenu({ children }: { children: React.ReactNode }) {
       `}>
         {children}
       </div>
+
+      {/* Drawer lateral de Carrito de Compras */}
+      <CartSidebar />
     </div>
   );
 }
