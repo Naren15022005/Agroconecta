@@ -3,7 +3,7 @@ import { useCartStore } from '@/store/cart';
 import { useCleanInvalidCartItems } from '@/store/useCleanInvalidCartItems';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { ShoppingBag, Plus, Minus, Trash2, ShoppingCart, ArrowLeft, Store } from 'lucide-react';
+import { ShoppingBag, Plus, Minus, Trash2, ShoppingCart, ArrowLeft, Store, Sprout, ArrowRight, ShieldAlert } from 'lucide-react';
 
 export default function CarritoPage() {
   const cart = useCartStore();
@@ -11,226 +11,189 @@ export default function CarritoPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  // Limpia productos inválidos automáticamente
   useCleanInvalidCartItems();
 
   const hasInvalidItems = cart.items.some(item => !item.id.startsWith('AGRC_PRD_'));
   const itemsByVendor = cart.getItemsByVendor();
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-neutral-900 text-white">
       {/* Header profesional */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div className="bg-neutral-900/90 backdrop-blur-md border-b border-neutral-800 sticky top-16 z-30">
+        <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-4">
           <div className="flex items-center justify-between">
             <button
               onClick={() => router.push('/comprador/mercado')}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors font-medium"
+              className="flex items-center gap-2 text-neutral-300 hover:text-white transition-colors font-medium text-sm"
             >
-              <ArrowLeft size={20} />
-              Continuar comprando
+              <ArrowLeft size={18} />
+              <span>Seguir comprando</span>
             </button>
             <div className="flex items-center gap-3">
-              <ShoppingBag size={24} className="text-gray-700" />
+              <div className="p-2 rounded-xl bg-lime-500/10 border border-lime-500/20 text-lime-400">
+                <ShoppingBag size={20} />
+              </div>
               <div>
-                <h1 className="text-xl font-semibold text-gray-900">Carrito de compras</h1>
-                <p className="text-sm text-gray-500">{cart.getTotalItems()} productos</p>
+                <h1 className="text-lg font-bold text-white">Carrito de compras</h1>
+                <p className="text-xs text-neutral-400">{cart.getTotalItems()} producto(s)</p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-8">
         {cart.items.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-sm p-16 text-center">
-            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <ShoppingCart size={40} className="text-gray-400" />
+          <div className="bg-neutral-850 rounded-2xl border border-neutral-800 p-12 text-center max-w-lg mx-auto shadow-xl">
+            <div className="w-16 h-16 bg-neutral-800 rounded-2xl border border-neutral-700 flex items-center justify-center mx-auto mb-4 text-lime-400">
+              <ShoppingCart size={32} />
             </div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Tu carrito está vacío</h2>
-            <p className="text-gray-500 mb-8">
-              Explora nuestro mercado y encuentra productos frescos de agricultores locales
+            <h2 className="text-xl font-bold text-white mb-2">Tu carrito está vacío</h2>
+            <p className="text-neutral-400 text-sm mb-6 leading-relaxed">
+              Explora el mercado directo y apoya a los campesinos colombianos comprando cosechas frescas.
             </p>
             <button
               onClick={() => router.push('/comprador/mercado')}
-              className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-3 rounded-lg font-medium transition-colors inline-flex items-center gap-2"
+              className="bg-gradient-to-r from-lime-600 to-lime-500 hover:from-lime-500 hover:to-lime-600 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-lg shadow-lime-900/40 inline-flex items-center gap-2 text-sm"
             >
               <Store size={18} />
-              Explorar mercado
+              <span>Explorar Mercado</span>
             </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Lista de productos - 3 columnas */}
-            <div className="lg:col-span-3">
-              <div className="space-y-4">
-                {Object.entries(itemsByVendor).map(([agricultorId, vendor]) => (
-                  <div key={agricultorId} className="bg-white rounded-lg shadow-sm border border-gray-200">
-                    {/* Header del vendedor - más simple */}
-                    <div className="px-6 py-4 border-b border-gray-100 bg-gray-50">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                          <Store size={16} className="text-green-600" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-gray-900">{vendor.campesinoName}</h3>
-                          <p className="text-sm text-gray-500">
-                            {vendor.items.length} producto{vendor.items.length !== 1 ? 's' : ''}
-                          </p>
-                        </div>
+            {/* Lista de productos por Vendedor */}
+            <div className="lg:col-span-3 space-y-5">
+              {Object.entries(itemsByVendor).map(([agricultorId, vendor]) => (
+                <div key={agricultorId} className="bg-neutral-850 rounded-2xl border border-neutral-800 shadow-lg overflow-hidden">
+                  {/* Header Vendedor */}
+                  <div className="px-6 py-4 border-b border-neutral-800 bg-neutral-800/50 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 bg-lime-500/10 border border-lime-500/20 rounded-xl flex items-center justify-center text-lime-400">
+                        <Store size={18} />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-white text-base">{vendor.campesinoName}</h3>
+                        <p className="text-xs text-neutral-400">
+                          {vendor.items.length} producto{vendor.items.length !== 1 ? 's' : ''}
+                        </p>
                       </div>
                     </div>
-                    
-                    {/* Productos - diseño limpio */}
-                    <div className="divide-y divide-gray-100">
-                      {vendor.items.map((item) => (
-                        <div key={item.id} className="p-6">
-                          <div className="flex items-center gap-4">
-                            {/* Imagen más pequeña y elegante */}
-                            <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                              {item.imageUrl ? (
-                                item.imageUrl.startsWith('/uploads/') ? (
-                                  <img
-                                    src={item.imageUrl}
-                                    alt={item.name}
-                                    className="w-full h-full object-cover"
-                                  />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center text-xl">
-                                    {item.imageUrl}
-                                  </div>
-                                )
+                    <div className="text-right">
+                      <p className="text-sm font-extrabold text-lime-400">
+                        ${vendor.items.reduce((sum, item) => sum + item.price * item.quantity, 0).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Lista de Items */}
+                  <div className="divide-y divide-neutral-800/80">
+                    {vendor.items.map((item) => {
+                      const hasImage = item.imageUrl && (item.imageUrl.startsWith('http') || item.imageUrl.startsWith('/'));
+                      return (
+                        <div key={item.id} className="p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                          <div className="flex items-center gap-4 min-w-0 flex-1">
+                            <div className="w-16 h-16 rounded-xl bg-neutral-800 border border-neutral-700/80 overflow-hidden flex-shrink-0 flex items-center justify-center">
+                              {hasImage ? (
+                                <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
                               ) : (
-                                <div className="w-full h-full flex items-center justify-center text-xl text-gray-400">
-                                  🥬
-                                </div>
+                                <Sprout className="w-7 h-7 text-lime-400" />
                               )}
                             </div>
-                            
-                            {/* Información del producto */}
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-medium text-gray-900 capitalize">{item.name}</h4>
-                              <p className="text-sm text-gray-500">{item.unit}</p>
-                              <p className="text-lg font-semibold text-gray-900 mt-1">
+
+                            <div className="min-w-0 flex-1">
+                              <h4 className="font-bold text-white text-base capitalize truncate">{item.name}</h4>
+                              <p className="text-xs text-neutral-400 mb-1">Unidad: {item.unit}</p>
+                              <p className="text-base font-extrabold text-lime-400">
                                 ${item.price.toLocaleString()}
                               </p>
                             </div>
-                            
-                            {/* Controles de cantidad - más discretos */}
-                            <div className="flex items-center gap-3">
-                              <div className="flex items-center border border-gray-300 rounded-lg">
-                                <button
-                                  onClick={() => cart.updateQuantity(item.id, item.quantity - 1)}
-                                  disabled={item.quantity <= 1}
-                                  className="p-2 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                  <Minus size={16} className="text-gray-600" />
-                                </button>
-                                <span className="px-4 py-2 font-medium text-gray-900 min-w-[3rem] text-center">
-                                  {item.quantity}
-                                </span>
-                                <button
-                                  onClick={() => cart.updateQuantity(item.id, item.quantity + 1)}
-                                  disabled={item.quantity >= item.stock}
-                                  className="p-2 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                  <Plus size={16} className="text-gray-600" />
-                                </button>
-                              </div>
-                              
-                              {/* Subtotal */}
-                              <div className="text-right min-w-[80px]">
-                                <p className="font-semibold text-gray-900">
-                                  ${(item.price * item.quantity).toLocaleString()}
-                                </p>
-                              </div>
-                              
-                              {/* Botón eliminar más discreto */}
+                          </div>
+
+                          <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-6 pt-2 sm:pt-0 border-t sm:border-t-0 border-neutral-800">
+                            {/* Controles de cantidad */}
+                            <div className="flex items-center bg-neutral-900 border border-neutral-700 rounded-xl">
                               <button
-                                onClick={() => cart.removeItem(item.id)}
-                                className="p-2 hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
+                                onClick={() => cart.updateQuantity(item.id, item.quantity - 1)}
+                                disabled={item.quantity <= 1}
+                                className="p-2 hover:bg-neutral-800 text-neutral-300 hover:text-white rounded-l-xl transition-colors disabled:opacity-40"
                               >
-                                <Trash2 size={16} />
+                                <Minus size={16} />
+                              </button>
+                              <span className="px-4 py-1.5 font-bold text-sm text-white min-w-[2.5rem] text-center">
+                                {item.quantity}
+                              </span>
+                              <button
+                                onClick={() => cart.updateQuantity(item.id, item.quantity + 1)}
+                                disabled={item.quantity >= item.stock}
+                                className="p-2 hover:bg-neutral-800 text-neutral-300 hover:text-white rounded-r-xl transition-colors disabled:opacity-40"
+                              >
+                                <Plus size={16} />
                               </button>
                             </div>
-                          </div>
-                          
-                          {/* Información de stock */}
-                          <div className="mt-3 flex items-center justify-between text-sm text-gray-500">
-                            <span>Stock disponible: {item.stock}</span>
-                            {item.quantity >= item.stock && (
-                              <span className="text-amber-600 font-medium">Stock máximo alcanzado</span>
-                            )}
+
+                            <div className="text-right min-w-[100px]">
+                              <p className="font-extrabold text-white text-base">
+                                ${(item.price * item.quantity).toLocaleString()}
+                              </p>
+                            </div>
+
+                            <button
+                              onClick={() => cart.removeItem(item.id)}
+                              className="p-2.5 rounded-xl hover:bg-red-500/10 text-neutral-400 hover:text-red-400 transition-colors"
+                              aria-label="Eliminar"
+                            >
+                              <Trash2 size={18} />
+                            </button>
                           </div>
                         </div>
-                      ))}
-                    </div>
+                      );
+                    })}
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
 
-            {/* Resumen - 1 columna, más compacto */}
+            {/* Resumen del pedido */}
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sticky top-8">
-                <h3 className="font-semibold text-gray-900 mb-6">Resumen del pedido</h3>
+              <div className="bg-neutral-850 rounded-2xl border border-neutral-800 p-6 sticky top-28 shadow-xl space-y-5">
+                <h3 className="font-bold text-white text-lg border-b border-neutral-800 pb-3">Resumen del pedido</h3>
                 
-                {/* Detalles del pedido */}
-                <div className="space-y-3 mb-6">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Productos ({cart.getTotalItems()})</span>
-                    <span className="font-medium">${cart.getTotalPrice().toLocaleString()}</span>
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between text-neutral-300">
+                    <span>Productos ({cart.getTotalItems()})</span>
+                    <span className="font-semibold text-white">${cart.getTotalPrice().toLocaleString()}</span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Envío</span>
-                    <span className="text-green-600 font-medium">Calculado en checkout</span>
+                  <div className="flex justify-between text-neutral-300">
+                    <span>Envío</span>
+                    <span className="text-lime-400 font-semibold">Calculado en checkout</span>
                   </div>
-                  <hr className="my-4" />
-                  <div className="flex justify-between">
-                    <span className="font-semibold text-gray-900">Total</span>
-                    <span className="text-xl font-bold text-gray-900">
+                  <div className="border-t border-neutral-800 pt-3 flex justify-between items-baseline">
+                    <span className="font-bold text-white text-base">Total</span>
+                    <span className="text-2xl font-extrabold text-lime-400">
                       ${cart.getTotalPrice().toLocaleString()}
                     </span>
                   </div>
                 </div>
 
-                {/* Alertas */}
                 {hasInvalidItems && (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
-                    <div className="flex gap-2">
-                      <span className="text-red-500">⚠️</span>
-                      <div>
-                        <p className="text-sm font-medium text-red-800">Productos inválidos</p>
-                        <p className="text-xs text-red-600">Elimínalos para continuar</p>
-                      </div>
-                    </div>
+                  <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3 text-xs text-red-400 flex items-center gap-2">
+                    <ShieldAlert className="w-4 h-4 flex-shrink-0" />
+                    <span>Hay productos inválidos en el carrito. Elimínalos para proceder.</span>
                   </div>
                 )}
 
-                {error && (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
-                    <p className="text-sm text-red-800">{error}</p>
-                  </div>
-                )}
-
-                {success && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
-                    <p className="text-sm text-green-800">{success}</p>
-                  </div>
-                )}
-
-                {/* Botón principal */}
                 <button
                   onClick={() => router.push('/comprador/checkout')}
                   disabled={hasInvalidItems}
-                  className="w-full bg-gray-900 hover:bg-gray-800 text-white py-3 px-4 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full bg-gradient-to-r from-lime-600 to-lime-500 hover:from-lime-500 hover:to-lime-600 text-white py-3.5 px-4 rounded-xl font-bold transition-all shadow-lg shadow-lime-900/40 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
                 >
-                  <ShoppingBag size={18} />
-                  Proceder al Checkout
+                  <span>Proceder al Checkout</span>
+                  <ArrowRight size={18} />
                 </button>
-                
-                <p className="text-xs text-gray-500 text-center mt-3">
-                  Compra segura y protegida
+
+                <p className="text-[11px] text-neutral-400 text-center">
+                  Garantía AgroConecta: Compra directa y segura
                 </p>
               </div>
             </div>
