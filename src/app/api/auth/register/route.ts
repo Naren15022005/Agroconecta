@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { validatePassword } from '@/lib/password';
 import { sendWelcomeEmail } from '@/lib/email';
@@ -40,9 +39,10 @@ export async function POST(req: NextRequest) {
     const dbUrl = process.env.DATABASE_URL || '';
     const isLocalDb = dbUrl.includes('localhost') || dbUrl.includes('127.0.0.1');
 
-    // Intento 1: Registro en Prisma (solo si no es Vercel con URL local)
-    if (!isVercel || !isLocalDb) {
+    // Intento 1: Registro en Prisma MySQL (solo si no es Vercel con URL local)
+    if (!isVercel && !isLocalDb) {
       try {
+        const { prisma } = await import('@/lib/prisma');
         const connectPromise = (async () => {
           await prisma.$connect();
           return await prisma.role.findUnique({ where: { name: role } });
@@ -70,7 +70,6 @@ export async function POST(req: NextRequest) {
           });
           roleName = roleRecord.displayName || roleRecord.name;
           
-          // Enviar correo de bienvenida
           try {
             await sendWelcomeEmail(user.correo, user.nombre);
           } catch (e) {

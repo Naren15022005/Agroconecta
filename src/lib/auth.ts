@@ -28,26 +28,34 @@ export const authOptions: NextAuthOptions = {
   },
   // Wrap PrismaAdapter to adapt our schema (user email field is `correo`)
   adapter: (() => {
-    const base = PrismaAdapter(prisma) as any;
-    return {
-      ...base,
-      // NextAuth calls `getUserByEmail(email)` — our schema uses `correo`
-      async getUserByEmail(email: string) {
-        return prisma.user.findUnique({ where: { correo: email } });
-      },
-      // Ensure createUser returns a shape compatible with NextAuth when called
-      async createUser(data: any) {
-        // Map `email` -> `correo` if present
-        const toCreate: any = { ...data };
-        if (toCreate.email) {
-          toCreate.correo = toCreate.email;
-          delete toCreate.email;
+    const isVercel = Boolean(process.env.VERCEL) || Boolean(process.env.VERCEL_ENV);
+    const dbUrl = process.env.DATABASE_URL || '';
+    const isLocalDb = dbUrl.includes('localhost') || dbUrl.includes('127.0.0.1');
+
+    if (isVercel || isLocalDb) {
+      return undefined;
+    }
+
+    try {
+      const base = PrismaAdapter(prisma) as any;
+      return {
+        ...base,
+        async getUserByEmail(email: string) {
+          return prisma.user.findUnique({ where: { correo: email } });
+        },
+        async createUser(data: any) {
+          const toCreate: any = { ...data };
+          if (toCreate.email) {
+            toCreate.correo = toCreate.email;
+            delete toCreate.email;
+          }
+          if (toCreate.contraseña === undefined) toCreate.contraseña = '';
+          return prisma.user.create({ data: toCreate as any });
         }
-        // Prisma schema may require `contraseña` field; ensure it's present
-        if (toCreate.contraseña === undefined) toCreate.contraseña = '';
-        return prisma.user.create({ data: toCreate as any });
-      }
-    } as any;
+      } as any;
+    } catch (_) {
+      return undefined;
+    }
   })(),
   providers: [
     // Google OAuth
@@ -84,8 +92,9 @@ export const authOptions: NextAuthOptions = {
         const isLocalDb = dbUrl.includes('localhost') || dbUrl.includes('127.0.0.1');
 
         // Intento 1: Prisma MySQL (solo si no es Vercel con URL local)
-        if (!isVercel || !isLocalDb) {
+        if (!isVercel && !isLocalDb) {
           try {
+            const { prisma } = await import('./prisma');
             const dbPromise = prisma.user.findUnique({
               where: { correo: credentials.email },
               include: { role: true }
