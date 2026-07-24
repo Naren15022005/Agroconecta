@@ -14,12 +14,17 @@ export default function MobileMenu({ showMarketLink = false }: MobileMenuProps) 
   const ref = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    function onClick(e: MouseEvent) {
-      if (!ref.current) return;
-      if (!ref.current.contains(e.target as Node)) setOpen(false);
+    function handleClickOutside(e: MouseEvent | TouchEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
     }
-    document.addEventListener('click', onClick);
-    return () => document.removeEventListener('click', onClick);
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
   }, []);
 
   useEffect(() => {
@@ -39,15 +44,22 @@ export default function MobileMenu({ showMarketLink = false }: MobileMenuProps) 
   }, []);
 
   return (
-    <div className="relative" ref={ref}>
+    <div className="relative inline-block" ref={ref}>
       <button
         type="button"
         aria-expanded={open}
         aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
-        onClick={() => setOpen(!open)}
-        className="p-2 rounded-lg bg-neutral-800/80 hover:bg-neutral-700/80 border border-neutral-700 text-neutral-200 hover:text-white transition-all focus:outline-none focus:ring-2 focus:ring-lime-500/40"
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((prev) => !prev);
+        }}
+        className="p-2.5 rounded-xl bg-neutral-800/90 hover:bg-neutral-750 border border-neutral-700/80 text-neutral-200 hover:text-white transition-all focus:outline-none focus:ring-2 focus:ring-lime-500/50 cursor-pointer select-none active:scale-95 flex items-center justify-center"
       >
-        {open ? <X className="w-5 h-5 text-lime-400" /> : <Menu className="w-5 h-5 text-white" />}
+        {open ? (
+          <X className="w-5 h-5 text-lime-400 pointer-events-none" />
+        ) : (
+          <Menu className="w-5 h-5 text-white pointer-events-none" />
+        )}
       </button>
 
       {open && (
@@ -57,7 +69,7 @@ export default function MobileMenu({ showMarketLink = false }: MobileMenuProps) 
               <Link
                 href="/comprador/mercado"
                 onClick={() => setOpen(false)}
-                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-neutral-200 hover:text-white hover:bg-neutral-800 rounded-lg transition-colors"
+                className="flex items-center gap-2 px-3.5 py-2.5 text-sm font-medium text-neutral-200 hover:text-white hover:bg-neutral-800 rounded-lg transition-colors"
               >
                 🌾 Explorar Mercado
               </Link>
@@ -68,7 +80,7 @@ export default function MobileMenu({ showMarketLink = false }: MobileMenuProps) 
               onClick={() => setOpen(false)}
               className="flex items-center gap-2.5 px-3.5 py-2.5 text-sm font-medium text-neutral-200 hover:text-white hover:bg-neutral-800 rounded-lg transition-all"
             >
-              <LogIn className="w-4 h-4 text-neutral-400" />
+              <LogIn className="w-4 h-4 text-neutral-400 pointer-events-none" />
               <span>Iniciar sesión</span>
             </Link>
 
@@ -77,7 +89,7 @@ export default function MobileMenu({ showMarketLink = false }: MobileMenuProps) 
               onClick={() => setOpen(false)}
               className="flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-lime-600 to-lime-500 hover:from-lime-500 hover:to-lime-600 rounded-lg transition-all shadow-lg shadow-lime-900/50"
             >
-              <UserPlus className="w-4 h-4" />
+              <UserPlus className="w-4 h-4 pointer-events-none" />
               <span>Registrarse</span>
             </Link>
 
@@ -96,7 +108,7 @@ export default function MobileMenu({ showMarketLink = false }: MobileMenuProps) 
               }}
               className="flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800/60 rounded-lg transition-colors pt-2 border-t border-neutral-800"
             >
-              <Download className="w-3.5 h-3.5" />
+              <Download className="w-3.5 h-3.5 pointer-events-none" />
               <span>Descargar App (PWA)</span>
             </button>
           </nav>
