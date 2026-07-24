@@ -13,26 +13,26 @@ function sanitizeEnvString(v?: string) {
 }
 
 function isEmailConfigured() {
-  return true;
+  return Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
 }
 
 function getFromAddress() {
-  const smtpUser = sanitizeEnvString(process.env.SMTP_USER) || 'agroconecta50@gmail.com';
+  const smtpUser = sanitizeEnvString(process.env.SMTP_USER);
   const from = process.env.SMTP_FROM;
   if (from) return from;
   if (smtpUser) return `AgroConecta <${smtpUser}>`;
-  return 'AgroConecta <agroconecta50@gmail.com>';
+  return 'AgroConecta <no-reply@agroconecta.com>';
 }
 
-const smtpUserSan = sanitizeEnvString(process.env.SMTP_USER) || 'agroconecta50@gmail.com';
-const smtpPassSan = sanitizeEnvString(process.env.SMTP_PASS) || 'trzdtgegjepgbubt';
+const smtpUserSan = sanitizeEnvString(process.env.SMTP_USER);
+const smtpPassSan = sanitizeEnvString(process.env.SMTP_PASS);
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   host: 'smtp.gmail.com',
   port: 465,
   secure: true,
-  auth: { user: smtpUserSan, pass: smtpPassSan },
+  auth: smtpUserSan && smtpPassSan ? { user: smtpUserSan, pass: smtpPassSan } : undefined,
   tls: { rejectUnauthorized: false }
 });
 
