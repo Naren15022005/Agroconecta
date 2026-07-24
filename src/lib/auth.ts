@@ -79,31 +79,37 @@ export const authOptions: NextAuthOptions = {
         let user: any = null;
         let roleName: string = 'COMPRADOR';
 
-        try {
-          const dbPromise = prisma.user.findUnique({
-            where: { correo: credentials.email },
-            include: { role: true }
-          });
-          const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 1000));
-          const dbUser = await Promise.race([dbPromise, timeoutPromise]);
+        const isVercel = Boolean(process.env.VERCEL);
+        const dbUrl = process.env.DATABASE_URL || '';
+        const isLocalDb = dbUrl.includes('localhost') || dbUrl.includes('127.0.0.1');
 
-          if (dbUser) {
-            user = dbUser;
-            roleName = dbUser.role.name;
+        // Intento 1: Prisma MySQL (solo si no es Vercel con URL local)
+        if (!isVercel || !isLocalDb) {
+          try {
+            const dbPromise = prisma.user.findUnique({
+              where: { correo: credentials.email },
+              include: { role: true }
+            });
+            const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 1000));
+            const dbUser = await Promise.race([dbPromise, timeoutPromise]);
+
+            if (dbUser) {
+              user = dbUser;
+              roleName = dbUser.role.name;
+            }
+          } catch (dbErr) {
+            logToFile('[AUTH] Prisma DB timeout o error: ' + String(dbErr));
           }
-        } catch (dbErr) {
-          logToFile('[AUTH] Prisma DB timeout o error, usando Firebase Cloud Firestore: ' + String(dbErr));
         }
 
-        // Intento 2: Backend Express Server (/firebase/login)
-        const backendUrl = process.env.BACKEND_URL || (!process.env.VERCEL ? 'http://localhost:10000' : '');
-        if (!user && backendUrl) {
+        // Intento 2: Backend Express Server (solo local)
+        if (!user && !isVercel) {
           try {
-            const expressRes = await fetch(`${backendUrl}/firebase/login`, {
+            const expressRes = await fetch('http://localhost:10000/firebase/login', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ email: credentials.email, password: credentials.password }),
-              signal: AbortSignal.timeout(1200)
+              signal: AbortSignal.timeout(1000)
             });
             if (expressRes.ok) {
               const expressJson = await expressRes.json();
@@ -119,7 +125,7 @@ export const authOptions: NextAuthOptions = {
               }
             }
           } catch (expressErr) {
-            logToFile('[AUTH] Express Backend inaccesible para login, intentando Firestore directo: ' + String(expressErr));
+            logToFile('[AUTH] Express Backend inaccesible: ' + String(expressErr));
           }
         }
 
