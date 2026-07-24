@@ -95,7 +95,34 @@ export const authOptions: NextAuthOptions = {
           logToFile('[AUTH] Prisma DB timeout o error, usando Firebase Cloud Firestore: ' + String(dbErr));
         }
 
-        // Firebase Cloud Firestore fallback if user not found in Prisma or DB unavailable
+        // Intento 2: Backend Express Server (/firebase/login)
+        if (!user) {
+          try {
+            const expressRes = await fetch('http://localhost:10000/firebase/login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: credentials.email, password: credentials.password }),
+              signal: AbortSignal.timeout(2000)
+            });
+            if (expressRes.ok) {
+              const expressJson = await expressRes.json();
+              if (expressJson.success && expressJson.user) {
+                logToFile('[AUTH] Usuario autenticado desde Backend Express Firebase: ' + expressJson.user.id);
+                return {
+                  id: expressJson.user.id,
+                  email: expressJson.user.correo,
+                  name: expressJson.user.nombre,
+                  role: expressJson.user.role || 'COMPRADOR',
+                  remember: credentials?.remember === 'true' || credentials?.remember === true
+                };
+              }
+            }
+          } catch (expressErr) {
+            logToFile('[AUTH] Express Backend inaccesible para login, intentando Firestore directo: ' + String(expressErr));
+          }
+        }
+
+        // Intento 3: Firestore directo cliente
         if (!user) {
           try {
             const { db } = await import('@/lib/firebase');
