@@ -142,11 +142,18 @@ export const authOptions: NextAuthOptions = {
         if (!user) {
           try {
             const cleanEmail = credentials.email.toLowerCase().trim();
+            const origEmail = credentials.email.trim();
             const { db } = await import('@/lib/firebase');
             const { collection, getDocs, query, where } = await import('firebase/firestore');
             const usersRef = collection(db, 'users');
-            const q = query(usersRef, where('correo', '==', cleanEmail));
-            const querySnapshot = await getDocs(q);
+            
+            let q = query(usersRef, where('correo', '==', cleanEmail));
+            let querySnapshot = await getDocs(q);
+
+            if (querySnapshot.empty && cleanEmail !== origEmail) {
+              q = query(usersRef, where('correo', '==', origEmail));
+              querySnapshot = await getDocs(q);
+            }
 
             if (!querySnapshot.empty) {
               const docSnap = querySnapshot.docs[0];
@@ -155,7 +162,7 @@ export const authOptions: NextAuthOptions = {
                 id: docSnap.id,
                 nombre: fbUser.nombre,
                 correo: fbUser.correo,
-                contraseña: fbUser.contraseña,
+                contraseña: fbUser.contraseña || fbUser.password || '',
                 isActive: fbUser.isActive !== false
               };
               roleName = fbUser.role || 'COMPRADOR';
