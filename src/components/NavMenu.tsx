@@ -14,7 +14,7 @@ import {
   Wallet
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { signOut, useSession } from 'next-auth/react';
+import BrandIcon from './BrandIcon';
 
 const menu = [
   { href: '/agricultor/mercado', label: 'Mercado', icon: Store },
@@ -105,14 +105,18 @@ export default function NavMenu({ children }: { children: React.ReactNode }) {
               <Menu className="w-6 h-6 text-neutral-100" />
             </button>
             
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-r from-green-600 to-green-700 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">A</span>
+            <Link href="/" className="flex items-center gap-3 group">
+              <div className="relative">
+                <div className="absolute inset-0 bg-lime-500/20 blur-xl rounded-full group-hover:bg-lime-500/30 transition-all"></div>
+                <BrandIcon className="relative h-9 w-9" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-white">AgroConecta</h1>
+                <div className="text-lg font-bold bg-gradient-to-r from-lime-500 to-lime-600 bg-clip-text text-transparent">
+                  AgroConecta
+                </div>
+                <div className="text-xs text-neutral-400">Marketplace Agrícola</div>
               </div>
-            </div>
+            </Link>
           </div>
 
           {/* Información del usuario en topbar */}
