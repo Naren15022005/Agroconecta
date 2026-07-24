@@ -38,52 +38,66 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: pwCheck.errors.join(' ') }, { status: 400 });
     }
 
-    // Validar que el rol sea válido y obtener el roleId
-    // Check DB connectivity early to return a helpful 503 instead of a crash
+    let user: any = null;
+    let roleName = role;
+
     try {
       await prisma.$connect();
+      const roleRecord = await prisma.role.findUnique({ where: { name: role } });
+      if (!roleRecord) {
+        return NextResponse.json({ success: false, error: 'El rol seleccionado no es válido.' }, { status: 400 });
+      }
+
+      const existingUser = await prisma.user.findUnique({ where: { correo: email } });
+      if (existingUser) {
+        return NextResponse.json({ success: false, error: 'El correo electrónico ya está registrado.' }, { status: 409 });
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+      user = await prisma.user.create({
+        data: {
+          id: AgroConectaIdGenerator.generateUserId(),
+          nombre: name,
+          correo: email,
+          contraseña: hashedPassword,
+          roleId: roleRecord.id,
+          isActive: true,
+        },
+      });
+      roleName = roleRecord.displayName || roleRecord.name;
     } catch (dbErr: any) {
-      console.error('DB connection failed:', String(dbErr));
-      return NextResponse.json({ success: false, error: 'Base de datos inaccesible. Por favor asegúrate de que el servicio MySQL (XAMPP / Docker / Servidor) esté iniciado en el puerto 3306.' }, { status: 503 });
+      console.warn('[Register] Prisma MySQL deshabilitado o inaccesible, usando Firebase Cloud Firestore fallback:', String(dbErr));
+      try {
+        const { db } = await import('@/lib/firebase');
+        const { collection, getDocs, query, where, setDoc, doc } = await import('firebase/firestore');
+
+        // Check if user exists in Firebase Firestore
+        const usersRef = collection(db, 'users');
+        const q = query(usersRef, where('correo', '==', email));
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          return NextResponse.json({ success: false, error: 'El correo electrónico ya está registrado en Firebase.' }, { status: 409 });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const userId = AgroConectaIdGenerator.generateUserId();
+        user = {
+          id: userId,
+          nombre: name,
+          correo: email,
+          contraseña: hashedPassword,
+          role: role,
+          isActive: true,
+          createdAt: new Date().toISOString()
+        };
+
+        await setDoc(doc(db, 'users', userId), user);
+        console.log('[Register] Usuario registrado en Firebase Cloud Firestore:', userId);
+      } catch (fbErr: any) {
+        console.error('[Register] Error crítico en Firebase Firestore fallback:', String(fbErr));
+        return NextResponse.json({ success: false, error: 'No se pudo conectar a la base de datos de producción (Firebase).' }, { status: 503 });
+      }
     }
-
-    let roleRecord: any = null;
-    try {
-      roleRecord = await prisma.role.findUnique({ where: { name: role } });
-    } catch (findErr: any) {
-      console.error('Error fetching role:', String(findErr));
-      return NextResponse.json({ success: false, error: 'No se pudo validar el rol — problema de conexión a la base de datos.' }, { status: 503 });
-    }
-
-    if (!roleRecord) {
-      return NextResponse.json({
-        success: false,
-        error: 'El rol seleccionado no es válido.'
-      }, { status: 400 });
-    }
-
-    // Verificar si el usuario ya existe
-    const existingUser = await prisma.user.findUnique({ where: { correo: email } });
-    if (existingUser) {
-      return NextResponse.json({
-        success: false,
-        error: 'El correo electrónico ya está registrado. ¿Olvidaste tu contraseña?'
-      }, { status: 409 });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Crear el usuario base SOLO con los campos de la tabla users
-    const user = await prisma.user.create({
-      data: {
-        id: AgroConectaIdGenerator.generateUserId(),
-        nombre: name,
-        correo: email,
-        contraseña: hashedPassword,
-        roleId: roleRecord.id,
-        isActive: false,
-      },
-    });
 
     // Crear perfil específico según el rol (solo si corresponde)
     try {

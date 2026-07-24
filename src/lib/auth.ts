@@ -76,27 +76,58 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const user = await prisma.user.findUnique({
-          where: {
-            correo: credentials.email
-          },
-          include: {
-            role: true
+        let user: any = null;
+        let roleName: string = 'COMPRADOR';
+
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { correo: credentials.email },
+            include: { role: true }
+          });
+          if (dbUser) {
+            user = dbUser;
+            roleName = dbUser.role.name;
           }
-        });
-        logToFile('AUTH: user encontrado ' + JSON.stringify(user));
+        } catch (dbErr) {
+          logToFile('[AUTH] Prisma DB error, trying Firebase Cloud Firestore: ' + String(dbErr));
+        }
+
+        // Firebase Cloud Firestore fallback if user not found in Prisma or DB unavailable
+        if (!user) {
+          try {
+            const { db } = await import('@/lib/firebase');
+            const { collection, getDocs, query, where } = await import('firebase/firestore');
+            const usersRef = collection(db, 'users');
+            const q = query(usersRef, where('correo', '==', credentials.email));
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+              const docSnap = querySnapshot.docs[0];
+              const fbUser = docSnap.data();
+              user = {
+                id: docSnap.id,
+                nombre: fbUser.nombre,
+                correo: fbUser.correo,
+                contraseña: fbUser.contraseña,
+                isActive: fbUser.isActive !== false
+              };
+              roleName = fbUser.role || 'COMPRADOR';
+              logToFile('[AUTH] Usuario autenticado desde Firebase Cloud Firestore: ' + user.id);
+            }
+          } catch (fbErr) {
+            logToFile('[AUTH] Error buscando usuario en Firebase: ' + String(fbErr));
+          }
+        }
 
         if (!user) {
           logToFile('AUTH: Usuario no encontrado');
           return null;
         }
+
         if (!user.isActive) {
           logToFile('AUTH: Usuario inactivo');
           return null;
         }
-
-        // Do not log plaintext passwords or full hashes. Log attempt metadata only.
-        logToFile(`AUTH: login attempt for ${credentials.email} (userId=${user.id})`);
 
         let isValidPassword = false;
         try {
@@ -107,19 +138,18 @@ export const authOptions: NextAuthOptions = {
         } catch (err) {
           logToFile('AUTH: Error comparando hash ' + err);
         }
-        logToFile('AUTH: isValidPassword ' + isValidPassword);
 
         if (!isValidPassword) {
           logToFile('AUTH: Contraseña incorrecta');
           return null;
         }
 
-        logToFile('AUTH: Login exitoso');
+        logToFile('AUTH: Login exitoso para ' + user.correo);
         return {
           id: user.id,
           email: user.correo,
           name: user.nombre,
-          role: user.role.name,
+          role: roleName,
           remember: credentials?.remember === 'true' || credentials?.remember === true
         };
       }
