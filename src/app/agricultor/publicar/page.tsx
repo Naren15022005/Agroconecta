@@ -19,8 +19,11 @@ import {
   Clock,
   Layers,
   ArrowRight,
+  ArrowLeft,
   Home,
-  Store
+  Store,
+  Check,
+  AlertCircle
 } from "lucide-react";
 import PackagingModal from '@/components/PackagingModal';
 import CitySelector from '@/components/CitySelector';
@@ -75,6 +78,9 @@ export default function PublicarPage() {
   const [categorias, setCategorias] = useState<{ id: string; name: string }[]>([]);
   const [subcategorias, setSubcategorias] = useState<{ id: string; name: string; categoryId: string }[]>([]);
 
+  // Estado para el carrusel de pasos en móvil (1, 2, 3, 4)
+  const [currentStep, setCurrentStep] = useState<number>(1);
+
   const [formData, setFormData] = useState<FormDataType>({
     name: '',
     description: '',
@@ -96,6 +102,14 @@ export default function PublicarPage() {
   const [showConfirm, setShowConfirm] = useState<boolean>(false);
   const [showPackagingModal, setShowPackagingModal] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
+  // Validación granular de cada paso
+  const isStep1Valid = Boolean(formData.name.trim() !== '' && formData.category !== '');
+  const isStep2Valid = Boolean(formData.price !== '' && Number(formData.price) > 0 && formData.stock !== '' && Number(formData.stock) > 0);
+  const isStep3Valid = Boolean(formData.municipio.trim() !== '');
+  const isStep4Valid = true; // Fotos son opcionales con imagen predeterminada
+
+  const isFormValid = isStep1Valid && isStep2Valid && isStep3Valid;
 
   // Cargar perfil del agricultor
   useEffect(() => {
@@ -194,8 +208,8 @@ export default function PublicarPage() {
       return;
     }
 
-    if (!formData.name || !formData.price || !formData.category || !formData.stock) {
-      alert("Por favor completa los campos obligatorios (*)");
+    if (!isFormValid) {
+      alert("Por favor completa todos los campos obligatorios (*) antes de publicar.");
       return;
     }
 
@@ -272,43 +286,117 @@ export default function PublicarPage() {
     }
   };
 
+  const stepsInfo = [
+    { num: 1, label: 'Info', icon: Package, valid: isStep1Valid },
+    { num: 2, label: 'Precio', icon: DollarSign, valid: isStep2Valid },
+    { num: 3, label: 'Ubicación', icon: MapPin, valid: isStep3Valid },
+    { num: 4, label: 'Fotos', icon: Camera, valid: isStep4Valid }
+  ];
+
   return (
-    <div className="min-h-screen bg-neutral-950 text-white py-10 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto space-y-8">
+    <div className="min-h-screen bg-neutral-950 text-white pb-32 pt-6 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto space-y-6">
         
         {/* Encabezado Principal */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-neutral-850">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-neutral-850">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lime-500/10 border border-lime-500/20 text-lime-400 text-xs font-semibold uppercase tracking-wider mb-2">
               <Sparkles className="w-3.5 h-3.5" /> Nuevo Producto Agrícola
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Publicar en el Mercado</h1>
-            <p className="text-sm text-neutral-400 mt-1">Completa los datos esenciales para conectar tu cosecha con compradores directos.</p>
+            <p className="text-sm text-neutral-400 mt-1">Conecta tu cosecha directamente con miles de compradores.</p>
           </div>
 
           <button
             type="button"
             onClick={() => setShowPreview(true)}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-neutral-750 bg-neutral-900 text-neutral-200 hover:text-white hover:bg-neutral-800 hover:border-neutral-700 transition-all font-semibold text-sm cursor-pointer shadow-sm"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-neutral-750 bg-neutral-900 text-neutral-200 hover:text-white hover:bg-neutral-800 hover:border-neutral-700 transition-all font-semibold text-sm cursor-pointer shadow-sm self-start sm:self-auto"
           >
             <Eye className="w-4 h-4 text-lime-400" />
             <span>Previsualizar</span>
           </button>
         </div>
 
-        {/* Formulario Rediseñado */}
+        {/* Carrusel de Pasos (Pestañas móviles / Escritorio) */}
+        <div className="bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-3 sm:p-4 shadow-xl backdrop-blur-sm">
+          <div className="grid grid-cols-4 gap-2">
+            {stepsInfo.map(st => {
+              const Icon = st.icon;
+              const isCurrent = currentStep === st.num;
+              return (
+                <button
+                  key={st.num}
+                  type="button"
+                  onClick={() => setCurrentStep(st.num)}
+                  className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2.5 p-2 sm:p-3 rounded-xl transition-all cursor-pointer ${
+                    isCurrent
+                      ? 'bg-lime-500/15 border border-lime-500/50 text-lime-400 font-bold shadow-md shadow-lime-950/20'
+                      : st.valid
+                      ? 'bg-neutral-950 border border-neutral-800/80 text-neutral-200 hover:bg-neutral-800'
+                      : 'bg-neutral-950 border border-neutral-850 text-neutral-400 hover:bg-neutral-900'
+                  }`}
+                >
+                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-extrabold ${
+                    isCurrent 
+                      ? 'bg-lime-500 text-neutral-950' 
+                      : st.valid 
+                      ? 'bg-lime-500/20 text-lime-400' 
+                      : 'bg-neutral-800 text-neutral-400'
+                  }`}>
+                    {st.valid && !isCurrent ? <Check className="w-4 h-4" /> : st.num}
+                  </div>
+
+                  <span className="text-xs sm:text-sm font-semibold truncate hidden xs:inline">{st.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Navegación rápida entre pasos en Móvil */}
+          <div className="flex items-center justify-between mt-3 pt-3 border-t border-neutral-800 sm:hidden">
+            <button
+              type="button"
+              disabled={currentStep === 1}
+              onClick={() => setCurrentStep(prev => Math.max(1, prev - 1))}
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-neutral-800 text-xs font-semibold text-neutral-300 disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" /> Anterior
+            </button>
+
+            <span className="text-xs font-semibold text-neutral-400">Paso {currentStep} de 4</span>
+
+            <button
+              type="button"
+              disabled={currentStep === 4}
+              onClick={() => setCurrentStep(prev => Math.min(4, prev + 1))}
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-neutral-800 text-xs font-semibold text-lime-400 disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              Siguiente <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Formulario Principal con Contenedor Carrusel */}
         <form onSubmit={handleSubmit} className="space-y-6">
           
           {/* Seccion 1: Datos del Producto */}
-          <div className="bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl backdrop-blur-sm">
-            <div className="flex items-center gap-3 pb-4 border-b border-neutral-800">
-              <div className="w-9 h-9 rounded-xl bg-lime-500/10 border border-lime-500/20 flex items-center justify-center text-lime-400 font-bold">
-                1
+          <div className={`${currentStep === 1 ? 'block' : 'hidden sm:block'} bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl backdrop-blur-sm transition-all`}>
+            <div className="flex items-center justify-between pb-4 border-b border-neutral-800">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-lime-500/10 border border-lime-500/20 flex items-center justify-center text-lime-400 font-bold">
+                  1
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-white">Información del Producto</h2>
+                  <p className="text-xs text-neutral-400">Nombre, descripción y categoría principal</p>
+                </div>
               </div>
-              <div>
-                <h2 className="text-lg font-bold text-white">Información del Producto</h2>
-                <p className="text-xs text-neutral-400">Nombre, descripción y categoría principal</p>
-              </div>
+
+              {isStep1Valid && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-lime-500/10 text-lime-400 text-xs font-bold">
+                  <Check className="w-3.5 h-3.5" /> Listo
+                </span>
+              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -321,7 +409,7 @@ export default function PublicarPage() {
                   value={formData.name}
                   onChange={e => handleInputChange('name', e.target.value)}
                   placeholder="Ej: Plátano Hartón Orgánico"
-                  className="w-full px-4 py-3 bg-neutral-950 border border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-500/50 text-sm"
+                  className="w-full px-4 py-3 bg-neutral-950 border border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-500/50 text-sm font-medium"
                   required
                 />
               </div>
@@ -333,7 +421,7 @@ export default function PublicarPage() {
                 <select
                   value={formData.category}
                   onChange={e => handleInputChange('category', e.target.value)}
-                  className="w-full px-4 py-3 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-lime-500/50 text-sm cursor-pointer"
+                  className="w-full px-4 py-3 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-lime-500/50 text-sm cursor-pointer font-medium"
                   required
                 >
                   <option value="">Seleccionar categoría</option>
@@ -351,7 +439,7 @@ export default function PublicarPage() {
                   value={formData.subcategory}
                   onChange={e => handleInputChange('subcategory', e.target.value)}
                   disabled={!formData.category}
-                  className="w-full px-4 py-3 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-lime-500/50 text-sm cursor-pointer disabled:opacity-50"
+                  className="w-full px-4 py-3 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-lime-500/50 text-sm cursor-pointer disabled:opacity-50 font-medium"
                 >
                   <option value="">Seleccionar subcategoría</option>
                   {subcategorias.map(sub => (
@@ -369,14 +457,25 @@ export default function PublicarPage() {
                   onChange={e => handleInputChange('description', e.target.value)}
                   rows={3}
                   placeholder="Describe la calidad de tu producto, época de cultivo o detalles de sabor y frescura..."
-                  className="w-full px-4 py-3 bg-neutral-950 border border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-500/50 text-sm"
+                  className="w-full px-4 py-3 bg-neutral-950 border border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-500/50 text-sm font-medium"
                 />
               </div>
+            </div>
+
+            {/* Botón Siguiente en Móvil */}
+            <div className="pt-2 flex justify-end sm:hidden">
+              <button
+                type="button"
+                onClick={() => setCurrentStep(2)}
+                className="px-4 py-2 bg-neutral-800 hover:bg-neutral-750 text-lime-400 font-bold text-xs rounded-xl inline-flex items-center gap-1.5"
+              >
+                <span>Ir a Precio y Cantidad</span> <ArrowRight className="w-4 h-4" />
+              </button>
             </div>
           </div>
 
           {/* Seccion 2: Precio y Disponible */}
-          <div className="bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl backdrop-blur-sm">
+          <div className={`${currentStep === 2 ? 'block' : 'hidden sm:block'} bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl backdrop-blur-sm transition-all`}>
             <div className="flex items-center justify-between pb-4 border-b border-neutral-800">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-lime-500/10 border border-lime-500/20 flex items-center justify-center text-lime-400 font-bold">
@@ -387,6 +486,12 @@ export default function PublicarPage() {
                   <p className="text-xs text-neutral-400">Define el valor de venta y el inventario disponible de tu cosecha</p>
                 </div>
               </div>
+
+              {isStep2Valid && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-lime-500/10 text-lime-400 text-xs font-bold">
+                  <Check className="w-3.5 h-3.5" /> Listo
+                </span>
+              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
@@ -487,18 +592,44 @@ export default function PublicarPage() {
                 </div>
               )}
             </div>
+
+            {/* Botón Siguiente en Móvil */}
+            <div className="pt-2 flex justify-between sm:hidden">
+              <button
+                type="button"
+                onClick={() => setCurrentStep(1)}
+                className="px-4 py-2 bg-neutral-800 text-neutral-300 font-semibold text-xs rounded-xl"
+              >
+                Anterior
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrentStep(3)}
+                className="px-4 py-2 bg-neutral-800 hover:bg-neutral-750 text-lime-400 font-bold text-xs rounded-xl inline-flex items-center gap-1.5"
+              >
+                <span>Ir a Ubicación</span> <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
           {/* Seccion 3: Ubicacion y Entrega */}
-          <div className="bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl backdrop-blur-sm">
-            <div className="flex items-center gap-3 pb-4 border-b border-neutral-800">
-              <div className="w-9 h-9 rounded-xl bg-lime-500/10 border border-lime-500/20 flex items-center justify-center text-lime-400 font-bold">
-                3
+          <div className={`${currentStep === 3 ? 'block' : 'hidden sm:block'} bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl backdrop-blur-sm transition-all`}>
+            <div className="flex items-center justify-between pb-4 border-b border-neutral-800">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-lime-500/10 border border-lime-500/20 flex items-center justify-center text-lime-400 font-bold">
+                  3
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-white">Ubicación y Métodos de Entrega</h2>
+                  <p className="text-xs text-neutral-400">¿Dónde estás ubicado y cómo entregas tu producto?</p>
+                </div>
               </div>
-              <div>
-                <h2 className="text-lg font-bold text-white">Ubicación y Métodos de Entrega</h2>
-                <p className="text-xs text-neutral-400">¿Dónde estás ubicado y cómo entregas tu producto?</p>
-              </div>
+
+              {isStep3Valid && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-lime-500/10 text-lime-400 text-xs font-bold">
+                  <Check className="w-3.5 h-3.5" /> Listo
+                </span>
+              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -525,7 +656,7 @@ export default function PublicarPage() {
                     onChange={e => handleInputChange('tiempoEntrega', e.target.value)}
                     placeholder="1"
                     min="1"
-                    className="w-full pl-10 pr-4 py-3 bg-neutral-950 border border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-500/50 text-sm"
+                    className="w-full pl-10 pr-4 py-3 bg-neutral-950 border border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-500/50 text-sm font-semibold"
                   />
                 </div>
               </div>
@@ -559,18 +690,44 @@ export default function PublicarPage() {
                 </div>
               </div>
             </div>
+
+            {/* Botón Siguiente en Móvil */}
+            <div className="pt-2 flex justify-between sm:hidden">
+              <button
+                type="button"
+                onClick={() => setCurrentStep(2)}
+                className="px-4 py-2 bg-neutral-800 text-neutral-300 font-semibold text-xs rounded-xl"
+              >
+                Anterior
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrentStep(4)}
+                className="px-4 py-2 bg-neutral-800 hover:bg-neutral-750 text-lime-400 font-bold text-xs rounded-xl inline-flex items-center gap-1.5"
+              >
+                <span>Ir a Fotos</span> <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
           {/* Seccion 4: Imagenes del Producto */}
-          <div className="bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl backdrop-blur-sm">
-            <div className="flex items-center gap-3 pb-4 border-b border-neutral-800">
-              <div className="w-9 h-9 rounded-xl bg-lime-500/10 border border-lime-500/20 flex items-center justify-center text-lime-400 font-bold">
-                4
+          <div className={`${currentStep === 4 ? 'block' : 'hidden sm:block'} bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl backdrop-blur-sm transition-all`}>
+            <div className="flex items-center justify-between pb-4 border-b border-neutral-800">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-lime-500/10 border border-lime-500/20 flex items-center justify-center text-lime-400 font-bold">
+                  4
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-white">Fotos del Producto</h2>
+                  <p className="text-xs text-neutral-400">Sube fotos reales para aumentar tus ventas hasta en un 80%</p>
+                </div>
               </div>
-              <div>
-                <h2 className="text-lg font-bold text-white">Fotos del Producto</h2>
-                <p className="text-xs text-neutral-400">Sube fotos reales para aumentar tus ventas hasta en un 80%</p>
-              </div>
+
+              {isStep4Valid && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-lime-500/10 text-lime-400 text-xs font-bold">
+                  <Check className="w-3.5 h-3.5" /> Listo
+                </span>
+              )}
             </div>
 
             <div>
@@ -618,23 +775,47 @@ export default function PublicarPage() {
             </div>
           </div>
 
-          {/* Boton de Publicacion */}
-          <div className="pt-4 flex flex-col sm:flex-row gap-4">
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full py-4 rounded-xl bg-gradient-to-r from-lime-600 to-lime-500 text-neutral-950 font-extrabold text-base hover:from-lime-500 hover:to-lime-400 transition-all shadow-lg shadow-lime-950/40 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-            >
-              {isSubmitting ? (
-                <span>Publicando producto...</span>
-              ) : (
-                <>
-                  <Send className="w-5 h-5" />
-                  <span>Publicar Producto Ahora</span>
-                </>
-              )}
-            </button>
+          {/* BARRA ESTÁTICA / FIJA INFERIOR CON BOTÓN DE PUBLICACIÓN */}
+          <div className="fixed bottom-0 left-0 right-0 z-40 bg-neutral-950/95 backdrop-blur-md border-t border-neutral-850 p-4 shadow-2xl">
+            <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+              
+              {/* Estado de Validación */}
+              <div className="flex items-center gap-2 text-xs">
+                {isFormValid ? (
+                  <span className="flex items-center gap-1.5 text-lime-400 font-semibold">
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>¡Formulario completo! Listo para publicar.</span>
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1.5 text-amber-400 font-medium">
+                    <AlertCircle className="w-4 h-4" />
+                    <span>Completa los campos obligatorios (*) para habilitar la publicación.</span>
+                  </span>
+                )}
+              </div>
+
+              {/* Botón de Publicación Estático Fijo */}
+              <button
+                type="submit"
+                disabled={!isFormValid || isSubmitting}
+                className={`w-full sm:w-auto px-8 py-3.5 rounded-xl font-extrabold text-sm transition-all shadow-lg flex items-center justify-center gap-2 ${
+                  isFormValid && !isSubmitting
+                    ? 'bg-gradient-to-r from-lime-600 to-lime-500 text-neutral-950 hover:from-lime-500 hover:to-lime-400 cursor-pointer shadow-lime-950/40'
+                    : 'bg-neutral-800 text-neutral-400 border border-neutral-700/60 opacity-60 cursor-not-allowed'
+                }`}
+              >
+                {isSubmitting ? (
+                  <span>Publicando producto...</span>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    <span>Publicar Producto Ahora</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
+
         </form>
 
         {/* Modal de Empaques Mayores */}
