@@ -23,6 +23,7 @@ import {
   Store
 } from "lucide-react";
 import PackagingModal from '@/components/PackagingModal';
+import CitySelector from '@/components/CitySelector';
 
 const unidades = [
   { value: 'kg', label: 'Kilogramo (kg)' },
@@ -505,17 +506,11 @@ export default function PublicarPage() {
                 <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-2">
                   Municipio / Ciudad <span className="text-lime-400">*</span>
                 </label>
-                <div className="relative">
-                  <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400 w-4 h-4" />
-                  <input
-                    type="text"
-                    value={formData.municipio}
-                    onChange={e => handleInputChange('municipio', e.target.value)}
-                    placeholder="Ej: Medellín, Antioquia"
-                    className="w-full pl-10 pr-4 py-3 bg-neutral-950 border border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-500/50 text-sm"
-                    required
-                  />
-                </div>
+                <CitySelector
+                  value={formData.municipio}
+                  onChange={(ciudad) => handleInputChange('municipio', ciudad)}
+                  placeholder="Buscar municipio o ciudad de Colombia..."
+                />
               </div>
 
               <div>
