@@ -18,7 +18,9 @@ import {
   Info,
   Clock,
   Layers,
-  ArrowRight
+  ArrowRight,
+  Home,
+  Store
 } from "lucide-react";
 import PackagingModal from '@/components/PackagingModal';
 
@@ -36,10 +38,10 @@ const unidades = [
 ];
 
 const metodosEntregaDisponibles = [
-  { value: 'domicilio', label: 'Entrega a domicilio', icon: '🚚' },
-  { value: 'punto', label: 'Punto de encuentro', icon: '📍' },
-  { value: 'finca', label: 'Recogida en finca', icon: '🏡' },
-  { value: 'mercado', label: 'Mercado local', icon: '🏪' }
+  { value: 'domicilio', label: 'Entrega a domicilio', icon: Truck },
+  { value: 'punto', label: 'Punto de encuentro', icon: MapPin },
+  { value: 'finca', label: 'Recogida en finca', icon: Home },
+  { value: 'mercado', label: 'Mercado local', icon: Store }
 ];
 
 type PurchaseUnit = {
@@ -85,7 +87,7 @@ export default function PublicarPage() {
     tiempoEntrega: '1',
     imageUrl: '',
     purchaseUnits: [],
-    metodosEntrega: ['domicilio', 'punto'],
+    metodosEntrega: [],
   });
 
   const [previewImages, setPreviewImages] = useState<string[]>([]);
@@ -539,19 +541,22 @@ export default function PublicarPage() {
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {metodosEntregaDisponibles.map(m => {
+                    const Icon = m.icon;
                     const selected = formData.metodosEntrega.includes(m.value);
                     return (
                       <button
                         type="button"
                         key={m.value}
                         onClick={() => toggleMetodoEntrega(m.value)}
-                        className={`flex flex-col items-center justify-center p-3.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+                        className={`flex flex-col items-center justify-center p-3.5 rounded-2xl border text-xs font-semibold transition-all cursor-pointer ${
                           selected
-                            ? 'bg-lime-500/15 border-lime-500/60 text-lime-400 font-bold'
-                            : 'bg-neutral-950 border-neutral-800 text-neutral-400 hover:text-white hover:bg-neutral-800'
+                            ? 'bg-lime-500/15 border-lime-500/60 text-lime-400 font-bold shadow-md shadow-lime-950/20'
+                            : 'bg-neutral-950 border-neutral-800 text-neutral-400 hover:text-white hover:bg-neutral-900 hover:border-neutral-750'
                         }`}
                       >
-                        <span className="text-2xl mb-1.5">{m.icon}</span>
+                        <div className={`p-2 rounded-xl mb-2 transition-colors ${selected ? 'bg-lime-500/20 text-lime-400' : 'bg-neutral-900 text-neutral-400'}`}>
+                          <Icon className="w-5 h-5" />
+                        </div>
                         <span className="text-center">{m.label}</span>
                       </button>
                     );
