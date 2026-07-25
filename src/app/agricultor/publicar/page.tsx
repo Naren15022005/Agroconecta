@@ -23,7 +23,9 @@ import {
   Home,
   Store,
   Check,
-  AlertCircle
+  AlertCircle,
+  ChevronRight,
+  ChevronLeft
 } from "lucide-react";
 import PackagingModal from '@/components/PackagingModal';
 import CitySelector from '@/components/CitySelector';
@@ -81,6 +83,10 @@ export default function PublicarPage() {
   // Estado para el carrusel de pasos en móvil (1, 2, 3, 4)
   const [currentStep, setCurrentStep] = useState<number>(1);
 
+  // Soporte de gestos táctiles (Swipe) en móvil
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [touchEndX, setTouchEndX] = useState<number | null>(null);
+
   const [formData, setFormData] = useState<FormDataType>({
     name: '',
     description: '',
@@ -107,9 +113,28 @@ export default function PublicarPage() {
   const isStep1Valid = Boolean(formData.name.trim() !== '' && formData.category !== '');
   const isStep2Valid = Boolean(formData.price !== '' && Number(formData.price) > 0 && formData.stock !== '' && Number(formData.stock) > 0);
   const isStep3Valid = Boolean(formData.municipio.trim() !== '');
-  const isStep4Valid = true; // Fotos son opcionales con imagen predeterminada
+  const isStep4Valid = true; // Fotos opcionales
 
   const isFormValid = isStep1Valid && isStep2Valid && isStep3Valid;
+
+  // Manejo de deslizado táctil (Swipe)
+  const minSwipeDistance = 45;
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchEndX(null);
+    setTouchStartX(e.targetTouches[0].clientX);
+  };
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEndX(e.targetTouches[0].clientX);
+  };
+  const handleTouchEnd = () => {
+    if (!touchStartX || !touchEndX) return;
+    const distance = touchStartX - touchEndX;
+    if (distance > minSwipeDistance && currentStep < 4) {
+      setCurrentStep(prev => prev + 1);
+    } else if (distance < -minSwipeDistance && currentStep > 1) {
+      setCurrentStep(prev => prev - 1);
+    }
+  };
 
   // Cargar perfil del agricultor
   useEffect(() => {
@@ -287,105 +312,123 @@ export default function PublicarPage() {
   };
 
   const stepsInfo = [
-    { num: 1, label: 'Info', icon: Package, valid: isStep1Valid },
-    { num: 2, label: 'Precio', icon: DollarSign, valid: isStep2Valid },
-    { num: 3, label: 'Ubicación', icon: MapPin, valid: isStep3Valid },
-    { num: 4, label: 'Fotos', icon: Camera, valid: isStep4Valid }
+    { num: 1, label: 'Información', icon: Package, valid: isStep1Valid, title: 'Datos del Producto' },
+    { num: 2, label: 'Precio & Stock', icon: DollarSign, valid: isStep2Valid, title: 'Valores e Inventario' },
+    { num: 3, label: 'Ubicación', icon: MapPin, valid: isStep3Valid, title: 'Origen y Entrega' },
+    { num: 4, label: 'Fotos', icon: Camera, valid: isStep4Valid, title: 'Galería de Imágenes' }
   ];
 
+  const currentStepMeta = stepsInfo[currentStep - 1];
+
   return (
-    <div className="min-h-screen bg-neutral-950 text-white pb-28 sm:pb-12 pt-6 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-neutral-950 text-white pb-32 sm:pb-12 pt-4 sm:pt-6 px-3 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto space-y-5">
         
         {/* Encabezado Principal */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-neutral-850">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-neutral-850">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lime-500/10 border border-lime-500/20 text-lime-400 text-xs font-semibold uppercase tracking-wider mb-2">
-              <Sparkles className="w-3.5 h-3.5" /> Nuevo Producto Agrícola
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lime-500/10 border border-lime-500/20 text-lime-400 text-xs font-semibold uppercase tracking-wider mb-1.5">
+              <Sparkles className="w-3.5 h-3.5" /> Publicación AgroConecta
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Publicar en el Mercado</h1>
-            <p className="text-sm text-neutral-400 mt-1">Conecta tu cosecha directamente con miles de compradores.</p>
+            <h1 className="text-xl sm:text-3xl font-extrabold text-white tracking-tight">Publicar Cosecha o Producto</h1>
           </div>
 
           <button
             type="button"
             onClick={() => setShowPreview(true)}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-neutral-750 bg-neutral-900 text-neutral-200 hover:text-white hover:bg-neutral-800 hover:border-neutral-700 transition-all font-semibold text-sm cursor-pointer shadow-sm self-start sm:self-auto"
+            className="inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl border border-neutral-750 bg-neutral-900 text-neutral-200 hover:text-white hover:bg-neutral-800 transition-all font-semibold text-xs sm:text-sm cursor-pointer shadow-sm self-start sm:self-auto"
           >
             <Eye className="w-4 h-4 text-lime-400" />
             <span>Previsualizar</span>
           </button>
         </div>
 
-        {/* Carrusel de Pasos (ÚNICAMENTE VISIBLE EN VISTA MÓVIL sm:hidden) */}
-        <div className="sm:hidden bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-3 shadow-xl backdrop-blur-sm">
-          <div className="grid grid-cols-4 gap-2">
+        {/* ============================================================ */}
+        {/* CARRUSEL STEPPER ULTRA MEJORADO (ÚNICAMENTE EN VISTA MÓVIL sm:hidden) */}
+        {/* ============================================================ */}
+        <div className="sm:hidden bg-neutral-900/95 border border-neutral-800 rounded-2xl p-4 shadow-2xl backdrop-blur-md space-y-3.5">
+          
+          {/* Barra de Progreso Superior en Gradiente */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-extrabold text-lime-400 flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-lime-500/20 text-lime-400 flex items-center justify-center text-[11px] font-black">
+                  {currentStep}
+                </span>
+                {currentStepMeta.title}
+              </span>
+              <span className="text-[11px] font-bold text-neutral-400 bg-neutral-950 px-2 py-0.5 rounded-full border border-neutral-800">
+                Paso {currentStep} de 4
+              </span>
+            </div>
+
+            <div className="w-full bg-neutral-950 h-2 rounded-full overflow-hidden border border-neutral-850">
+              <div 
+                className="h-full bg-gradient-to-r from-lime-500 to-emerald-400 rounded-full transition-all duration-300 ease-out shadow-sm shadow-lime-500/50"
+                style={{ width: `${(currentStep / 4) * 100}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Botones de Pasos con Íconos y Checkmarks */}
+          <div className="grid grid-cols-4 gap-1.5 pt-1">
             {stepsInfo.map(st => {
+              const Icon = st.icon;
               const isCurrent = currentStep === st.num;
               return (
                 <button
                   key={st.num}
                   type="button"
                   onClick={() => setCurrentStep(st.num)}
-                  className={`flex flex-col items-center justify-center gap-1 p-2 rounded-xl transition-all cursor-pointer ${
+                  className={`flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-all cursor-pointer ${
                     isCurrent
-                      ? 'bg-lime-500/15 border border-lime-500/50 text-lime-400 font-bold shadow-md'
+                      ? 'bg-lime-500/15 border-2 border-lime-500 text-lime-400 font-bold scale-[1.03] shadow-md shadow-lime-950/40'
                       : st.valid
-                      ? 'bg-neutral-950 border border-neutral-800 text-neutral-200'
+                      ? 'bg-neutral-950 border border-neutral-800 text-neutral-200 hover:bg-neutral-800'
                       : 'bg-neutral-950 border border-neutral-850 text-neutral-500'
                   }`}
                 >
-                  <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-extrabold ${
+                  <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold mb-1 ${
                     isCurrent 
                       ? 'bg-lime-500 text-neutral-950' 
                       : st.valid 
                       ? 'bg-lime-500/20 text-lime-400' 
                       : 'bg-neutral-800 text-neutral-400'
                   }`}>
-                    {st.valid && !isCurrent ? <Check className="w-3.5 h-3.5" /> : st.num}
+                    {st.valid && !isCurrent ? <Check className="w-3.5 h-3.5" /> : <Icon className="w-3.5 h-3.5" />}
                   </div>
-                  <span className="text-[10px] font-semibold truncate">{st.label}</span>
+                  <span className="text-[10px] font-semibold truncate w-full text-center">{st.label}</span>
                 </button>
               );
             })}
           </div>
 
-          {/* Navegación rápida entre pasos en Móvil */}
-          <div className="flex items-center justify-between mt-2.5 pt-2.5 border-t border-neutral-800">
-            <button
-              type="button"
-              disabled={currentStep === 1}
-              onClick={() => setCurrentStep(prev => Math.max(1, prev - 1))}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-neutral-800 text-xs font-semibold text-neutral-300 disabled:opacity-30 cursor-pointer"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" /> Anterior
-            </button>
-
-            <span className="text-xs font-semibold text-neutral-400">Paso {currentStep} de 4</span>
-
-            <button
-              type="button"
-              disabled={currentStep === 4}
-              onClick={() => setCurrentStep(prev => Math.min(4, prev + 1))}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-neutral-800 text-xs font-semibold text-lime-400 disabled:opacity-30 cursor-pointer"
-            >
-              Siguiente <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+          {/* Indicador de Gestos Swipe */}
+          <div className="text-center pt-0.5">
+            <span className="text-[10px] text-neutral-500 font-medium tracking-wide">
+              Desliza a los lados para cambiar de paso 👈 👉
+            </span>
           </div>
         </div>
 
-        {/* Formulario Principal: Móvil usa carrusel (currentStep), Escritorio (sm:block) muestra todo continuo */}
-        <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Formulario Principal: Soporta gestos Swipe en Móvil y despliegue continuo en Escritorio */}
+        <form 
+          onSubmit={handleSubmit} 
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          className="space-y-6"
+        >
           
           {/* Seccion 1: Datos del Producto */}
-          <div className={`${currentStep === 1 ? 'block' : 'hidden sm:block'} bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl backdrop-blur-sm`}>
-            <div className="flex items-center justify-between pb-4 border-b border-neutral-800">
+          <div className={`${currentStep === 1 ? 'block animate-fadeIn' : 'hidden sm:block'} bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-5 sm:p-8 space-y-5 sm:space-y-6 shadow-xl backdrop-blur-sm transition-all duration-300`}>
+            <div className="flex items-center justify-between pb-3.5 border-b border-neutral-800">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-lime-500/10 border border-lime-500/20 flex items-center justify-center text-lime-400 font-bold">
                   1
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-white">Información del Producto</h2>
+                  <h2 className="text-base sm:text-lg font-bold text-white">Información del Producto</h2>
                   <p className="text-xs text-neutral-400">Nombre, descripción y categoría principal</p>
                 </div>
               </div>
@@ -397,7 +440,7 @@ export default function PublicarPage() {
               )}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
               <div className="sm:col-span-2">
                 <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-2">
                   Nombre del Producto <span className="text-lime-400">*</span>
@@ -460,27 +503,27 @@ export default function PublicarPage() {
               </div>
             </div>
 
-            {/* Botón Siguiente Únicamente Móvil */}
+            {/* Controles Flotantes del Carrusel en Móvil */}
             <div className="pt-2 flex justify-end sm:hidden">
               <button
                 type="button"
                 onClick={() => setCurrentStep(2)}
-                className="px-4 py-2 bg-neutral-800 hover:bg-neutral-750 text-lime-400 font-bold text-xs rounded-xl inline-flex items-center gap-1.5"
+                className="w-full py-3 bg-lime-500/10 hover:bg-lime-500/20 border border-lime-500/30 text-lime-400 font-extrabold text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-all"
               >
-                <span>Siguiente: Precio</span> <ArrowRight className="w-4 h-4" />
+                <span>Siguiente: Precio y Stock</span> <ChevronRight className="w-4 h-4" />
               </button>
             </div>
           </div>
 
           {/* Seccion 2: Precio y Disponible */}
-          <div className={`${currentStep === 2 ? 'block' : 'hidden sm:block'} bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl backdrop-blur-sm`}>
-            <div className="flex items-center justify-between pb-4 border-b border-neutral-800">
+          <div className={`${currentStep === 2 ? 'block animate-fadeIn' : 'hidden sm:block'} bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-5 sm:p-8 space-y-5 sm:space-y-6 shadow-xl backdrop-blur-sm transition-all duration-300`}>
+            <div className="flex items-center justify-between pb-3.5 border-b border-neutral-800">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-lime-500/10 border border-lime-500/20 flex items-center justify-center text-lime-400 font-bold">
                   2
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-white">Precio y Cantidad Disponible</h2>
+                  <h2 className="text-base sm:text-lg font-bold text-white">Precio y Cantidad Disponible</h2>
                   <p className="text-xs text-neutral-400">Define el valor de venta y el inventario disponible de tu cosecha</p>
                 </div>
               </div>
@@ -492,7 +535,7 @@ export default function PublicarPage() {
               )}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-6">
               {/* 1. Selección de Unidad Primero */}
               <div>
                 <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-2">
@@ -559,9 +602,9 @@ export default function PublicarPage() {
                 <button
                   type="button"
                   onClick={() => setShowPackagingModal(true)}
-                  className="px-3.5 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-750 text-xs font-semibold text-lime-400 border border-neutral-700 transition-all cursor-pointer"
+                  className="px-3 py-1.5 rounded-xl bg-neutral-800 hover:bg-neutral-750 text-xs font-semibold text-lime-400 border border-neutral-700 transition-all cursor-pointer"
                 >
-                  + Agregar Empaque
+                  + Empaque
                 </button>
               </div>
 
@@ -591,34 +634,34 @@ export default function PublicarPage() {
               )}
             </div>
 
-            {/* Botón Siguiente Únicamente Móvil */}
-            <div className="pt-2 flex justify-between sm:hidden">
+            {/* Controles Flotantes del Carrusel en Móvil */}
+            <div className="pt-2 flex gap-2 sm:hidden">
               <button
                 type="button"
                 onClick={() => setCurrentStep(1)}
-                className="px-4 py-2 bg-neutral-800 text-neutral-300 font-semibold text-xs rounded-xl"
+                className="w-1/2 py-3 bg-neutral-950 border border-neutral-800 text-neutral-300 font-bold text-xs rounded-xl flex items-center justify-center gap-1 cursor-pointer"
               >
-                Anterior
+                <ChevronLeft className="w-4 h-4" /> <span>Anterior</span>
               </button>
               <button
                 type="button"
                 onClick={() => setCurrentStep(3)}
-                className="px-4 py-2 bg-neutral-800 hover:bg-neutral-750 text-lime-400 font-bold text-xs rounded-xl inline-flex items-center gap-1.5"
+                className="w-1/2 py-3 bg-lime-500/10 border border-lime-500/30 text-lime-400 font-extrabold text-xs rounded-xl flex items-center justify-center gap-1 cursor-pointer"
               >
-                <span>Siguiente: Ubicación</span> <ArrowRight className="w-4 h-4" />
+                <span>Ubicación</span> <ChevronRight className="w-4 h-4" />
               </button>
             </div>
           </div>
 
           {/* Seccion 3: Ubicacion y Entrega */}
-          <div className={`${currentStep === 3 ? 'block' : 'hidden sm:block'} bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl backdrop-blur-sm`}>
-            <div className="flex items-center justify-between pb-4 border-b border-neutral-800">
+          <div className={`${currentStep === 3 ? 'block animate-fadeIn' : 'hidden sm:block'} bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-5 sm:p-8 space-y-5 sm:space-y-6 shadow-xl backdrop-blur-sm transition-all duration-300`}>
+            <div className="flex items-center justify-between pb-3.5 border-b border-neutral-800">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-lime-500/10 border border-lime-500/20 flex items-center justify-center text-lime-400 font-bold">
                   3
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-white">Ubicación y Métodos de Entrega</h2>
+                  <h2 className="text-base sm:text-lg font-bold text-white">Ubicación y Métodos de Entrega</h2>
                   <p className="text-xs text-neutral-400">¿Dónde estás ubicado y cómo entregas tu producto?</p>
                 </div>
               </div>
@@ -630,7 +673,7 @@ export default function PublicarPage() {
               )}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
               <div>
                 <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-2">
                   Municipio / Ciudad <span className="text-lime-400">*</span>
@@ -663,7 +706,7 @@ export default function PublicarPage() {
                 <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-3">
                   Métodos de Entrega Disponibles
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
                   {metodosEntregaDisponibles.map(m => {
                     const Icon = m.icon;
                     const selected = formData.metodosEntrega.includes(m.value);
@@ -672,16 +715,16 @@ export default function PublicarPage() {
                         type="button"
                         key={m.value}
                         onClick={() => toggleMetodoEntrega(m.value)}
-                        className={`flex flex-col items-center justify-center p-3.5 rounded-2xl border text-xs font-semibold transition-all cursor-pointer ${
+                        className={`flex flex-col items-center justify-center p-3 rounded-2xl border text-xs font-semibold transition-all cursor-pointer ${
                           selected
                             ? 'bg-lime-500/15 border-lime-500/60 text-lime-400 font-bold shadow-md shadow-lime-950/20'
                             : 'bg-neutral-950 border-neutral-800 text-neutral-400 hover:text-white hover:bg-neutral-900 hover:border-neutral-750'
                         }`}
                       >
-                        <div className={`p-2 rounded-xl mb-2 transition-colors ${selected ? 'bg-lime-500/20 text-lime-400' : 'bg-neutral-900 text-neutral-400'}`}>
+                        <div className={`p-1.5 rounded-xl mb-1.5 transition-colors ${selected ? 'bg-lime-500/20 text-lime-400' : 'bg-neutral-900 text-neutral-400'}`}>
                           <Icon className="w-5 h-5" />
                         </div>
-                        <span className="text-center">{m.label}</span>
+                        <span className="text-center text-[11px]">{m.label}</span>
                       </button>
                     );
                   })}
@@ -689,34 +732,34 @@ export default function PublicarPage() {
               </div>
             </div>
 
-            {/* Botón Siguiente Únicamente Móvil */}
-            <div className="pt-2 flex justify-between sm:hidden">
+            {/* Controles Flotantes del Carrusel en Móvil */}
+            <div className="pt-2 flex gap-2 sm:hidden">
               <button
                 type="button"
                 onClick={() => setCurrentStep(2)}
-                className="px-4 py-2 bg-neutral-800 text-neutral-300 font-semibold text-xs rounded-xl"
+                className="w-1/2 py-3 bg-neutral-950 border border-neutral-800 text-neutral-300 font-bold text-xs rounded-xl flex items-center justify-center gap-1 cursor-pointer"
               >
-                Anterior
+                <ChevronLeft className="w-4 h-4" /> <span>Anterior</span>
               </button>
               <button
                 type="button"
                 onClick={() => setCurrentStep(4)}
-                className="px-4 py-2 bg-neutral-800 hover:bg-neutral-750 text-lime-400 font-bold text-xs rounded-xl inline-flex items-center gap-1.5"
+                className="w-1/2 py-3 bg-lime-500/10 border border-lime-500/30 text-lime-400 font-extrabold text-xs rounded-xl flex items-center justify-center gap-1 cursor-pointer"
               >
-                <span>Siguiente: Fotos</span> <ArrowRight className="w-4 h-4" />
+                <span>Fotos</span> <ChevronRight className="w-4 h-4" />
               </button>
             </div>
           </div>
 
           {/* Seccion 4: Imagenes del Producto */}
-          <div className={`${currentStep === 4 ? 'block' : 'hidden sm:block'} bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl backdrop-blur-sm`}>
-            <div className="flex items-center justify-between pb-4 border-b border-neutral-800">
+          <div className={`${currentStep === 4 ? 'block animate-fadeIn' : 'hidden sm:block'} bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-5 sm:p-8 space-y-5 sm:space-y-6 shadow-xl backdrop-blur-sm transition-all duration-300`}>
+            <div className="flex items-center justify-between pb-3.5 border-b border-neutral-800">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-lime-500/10 border border-lime-500/20 flex items-center justify-center text-lime-400 font-bold">
                   4
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-white">Fotos del Producto</h2>
+                  <h2 className="text-base sm:text-lg font-bold text-white">Fotos del Producto</h2>
                   <p className="text-xs text-neutral-400">Sube fotos reales para aumentar tus ventas hasta en un 80%</p>
                 </div>
               </div>
@@ -731,34 +774,34 @@ export default function PublicarPage() {
             <div>
               <label 
                 htmlFor="imagenes-upload" 
-                className="w-full border-2 border-dashed border-neutral-800 hover:border-lime-500/50 rounded-2xl p-6 sm:p-8 flex flex-col items-center justify-center text-center bg-neutral-950 hover:bg-neutral-900/80 transition-all cursor-pointer group"
+                className="w-full border-2 border-dashed border-neutral-800 hover:border-lime-500/50 rounded-2xl p-5 sm:p-8 flex flex-col items-center justify-center text-center bg-neutral-950 hover:bg-neutral-900/80 transition-all cursor-pointer group"
               >
-                <div className="w-12 h-12 rounded-2xl bg-lime-500/10 border border-lime-500/20 flex items-center justify-center text-lime-400 mb-3 group-hover:scale-110 transition-transform">
-                  <Camera className="w-6 h-6" />
+                <div className="w-11 h-11 rounded-2xl bg-lime-500/10 border border-lime-500/20 flex items-center justify-center text-lime-400 mb-2 group-hover:scale-110 transition-transform">
+                  <Camera className="w-5 h-5" />
                 </div>
-                <span className="font-bold text-sm text-white">Haz clic aquí o arrastra tus fotos</span>
-                <span className="text-xs text-neutral-400 mt-1">Soporta JPG, PNG, WEBP de alta calidad</span>
+                <span className="font-bold text-xs sm:text-sm text-white">Haz clic aquí o arrastra tus fotos</span>
+                <span className="text-[11px] text-neutral-400 mt-0.5">Soporta JPG, PNG, WEBP de alta calidad</span>
                 <input id="imagenes-upload" type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" />
               </label>
 
               {previewImages.length > 0 && (
-                <div className="flex flex-wrap gap-3 mt-4">
+                <div className="flex flex-wrap gap-2.5 mt-3.5">
                   {previewImages.map((img, idx) => (
-                    <div key={idx} className="relative w-24 h-24 rounded-xl overflow-hidden border border-neutral-800 shadow-md group">
+                    <div key={idx} className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden border border-neutral-800 shadow-md group">
                       <img src={img} alt={`Preview ${idx + 1}`} className="w-full h-full object-cover" />
                       <button 
                         type="button" 
                         onClick={() => removeImage(idx)}
                         className="absolute top-1 right-1 bg-black/80 text-white rounded-lg p-1 hover:bg-red-600 transition-colors"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 className="w-3 h-3" />
                       </button>
                     </div>
                   ))}
                 </div>
               )}
 
-              <div className="mt-4">
+              <div className="mt-3.5">
                 <label className="block text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-1.5">
                   O pega una URL de Imagen Directa
                 </label>
@@ -770,6 +813,17 @@ export default function PublicarPage() {
                   className="w-full px-4 py-2.5 bg-neutral-950 border border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-500/50 text-xs"
                 />
               </div>
+            </div>
+
+            {/* Controles Flotantes del Carrusel en Móvil */}
+            <div className="pt-2 flex justify-start sm:hidden">
+              <button
+                type="button"
+                onClick={() => setCurrentStep(3)}
+                className="w-full py-3 bg-neutral-950 border border-neutral-800 text-neutral-300 font-bold text-xs rounded-xl flex items-center justify-center gap-1 cursor-pointer"
+              >
+                <ChevronLeft className="w-4 h-4" /> <span>Anterior: Ubicación</span>
+              </button>
             </div>
           </div>
 
@@ -810,19 +864,24 @@ export default function PublicarPage() {
           </div>
 
           {/* BARRA ESTÁTICA FIJA INFERIOR ÚNICAMENTE EN VISTA MÓVIL (sm:hidden) */}
-          <div className="fixed bottom-0 left-0 right-0 z-40 bg-neutral-950/95 backdrop-blur-md border-t border-neutral-850 p-4 shadow-2xl sm:hidden">
-            <div className="flex flex-col gap-2.5">
+          <div className="fixed bottom-0 left-0 right-0 z-40 bg-neutral-950/95 backdrop-blur-xl border-t border-neutral-850 p-3.5 shadow-2xl sm:hidden">
+            <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between text-[11px]">
                 {isFormValid ? (
                   <span className="flex items-center gap-1 text-lime-400 font-semibold">
-                    <CheckCircle2 className="w-3.5 h-3.5" /> Formulario completo
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Formulario completo listo
                   </span>
                 ) : (
-                  <span className="flex items-center gap-1 text-amber-400 font-medium">
-                    <AlertCircle className="w-3.5 h-3.5" /> Faltan campos obligatorios (*)
+                  <span className="flex items-center gap-1 text-amber-400 font-medium truncate max-w-[220px]">
+                    <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" /> 
+                    <span>
+                      {!isStep1Valid ? 'Paso 1: Nombre/Categoría (*)' : !isStep2Valid ? 'Paso 2: Precio/Stock (*)' : 'Paso 3: Municipio (*)'}
+                    </span>
                   </span>
                 )}
-                <span className="text-neutral-400 font-medium">Paso {currentStep} de 4</span>
+                <span className="text-neutral-400 font-bold bg-neutral-900 px-2 py-0.5 rounded-md border border-neutral-800">
+                  {currentStep}/4
+                </span>
               </div>
 
               <button
@@ -830,12 +889,12 @@ export default function PublicarPage() {
                 disabled={!isFormValid || isSubmitting}
                 className={`w-full py-3.5 rounded-xl font-extrabold text-sm transition-all shadow-lg flex items-center justify-center gap-2 ${
                   isFormValid && !isSubmitting
-                    ? 'bg-gradient-to-r from-lime-600 to-lime-500 text-neutral-950 cursor-pointer shadow-lime-950/40'
-                    : 'bg-neutral-800 text-neutral-400 border border-neutral-700/60 opacity-60 cursor-not-allowed'
+                    ? 'bg-gradient-to-r from-lime-600 to-lime-500 text-neutral-950 cursor-pointer shadow-lime-950/40 animate-pulse'
+                    : 'bg-neutral-850 text-neutral-400 border border-neutral-750 opacity-60 cursor-not-allowed'
                 }`}
               >
                 {isSubmitting ? (
-                  <span>Publicando...</span>
+                  <span>Publicando producto...</span>
                 ) : (
                   <>
                     <Send className="w-4 h-4" />
