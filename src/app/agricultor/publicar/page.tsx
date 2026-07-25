@@ -21,7 +21,8 @@ import {
   ArrowRight,
   ArrowLeft,
   Home,
-  Store
+  Store,
+  Check
 } from "lucide-react";
 import PackagingModal from '@/components/PackagingModal';
 import CitySelector from '@/components/CitySelector';
@@ -76,7 +77,7 @@ export default function PublicarPage() {
   const [categorias, setCategorias] = useState<{ id: string; name: string }[]>([]);
   const [subcategorias, setSubcategorias] = useState<{ id: string; name: string; categoryId: string }[]>([]);
 
-  // Paso actual para navegación tipo tarjeta en móvil (1, 2, 3, 4)
+  // Paso actual para tarjetas en móvil (1, 2, 3, 4)
   const [currentStep, setCurrentStep] = useState<number>(1);
 
   const [formData, setFormData] = useState<FormDataType>({
@@ -276,18 +277,25 @@ export default function PublicarPage() {
     }
   };
 
+  const stepsMeta = [
+    { title: '1. Información del Producto', subtitle: 'Nombre, categoría y detalles' },
+    { title: '2. Precio y Cantidad', subtitle: 'Costo por unidad e inventario' },
+    { title: '3. Ubicación y Entrega', subtitle: 'Municipio y logística' },
+    { title: '4. Fotos del Producto', subtitle: 'Imágenes reales de tu cosecha' }
+  ];
+
   return (
-    <div className="min-h-screen bg-neutral-950 text-white py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-neutral-950 text-white py-4 sm:py-8 px-3 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
         
         {/* Encabezado Principal */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-neutral-850">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-neutral-850">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lime-500/10 border border-lime-500/20 text-lime-400 text-xs font-semibold uppercase tracking-wider mb-1.5">
-              <Sparkles className="w-3.5 h-3.5" /> Publicación AgroConecta
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-lime-500/10 border border-lime-500/20 text-lime-400 text-[11px] font-semibold uppercase tracking-wider mb-1">
+              <Sparkles className="w-3 h-3" /> Publicación AgroConecta
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Publicar Cosecha o Producto</h1>
-            <p className="text-xs sm:text-sm text-neutral-400 mt-1">Completa los datos esenciales para conectar tu cosecha con compradores directos.</p>
+            <h1 className="text-xl sm:text-3xl font-extrabold text-white tracking-tight">Publicar Cosecha o Producto</h1>
+            <p className="text-xs sm:text-sm text-neutral-400 mt-0.5">Completa los datos esenciales para conectar tu cosecha con compradores directos.</p>
           </div>
 
           <button
@@ -300,24 +308,37 @@ export default function PublicarPage() {
           </button>
         </div>
 
+        {/* Indicador Móvil Elegante de Paso Actual */}
+        <div className="sm:hidden flex items-center justify-between px-3.5 py-2.5 bg-neutral-900/90 border border-neutral-800 rounded-xl text-xs backdrop-blur-sm shadow-md">
+          <div className="flex items-center gap-2">
+            <span className="w-5 h-5 rounded-full bg-lime-500/20 text-lime-400 flex items-center justify-center text-xs font-black">
+              {currentStep}
+            </span>
+            <span className="font-bold text-white text-xs">{stepsMeta[currentStep - 1].title}</span>
+          </div>
+          <span className="text-[11px] font-semibold text-neutral-400 bg-neutral-950 px-2 py-0.5 rounded-md border border-neutral-800">
+            {currentStep} / 4
+          </span>
+        </div>
+
         {/* Formulario en Pasos (Móvil muestra 1 paso por tarjeta, Escritorio muestra todo continuo) */}
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           
           {/* Seccion 1: Datos del Producto */}
-          <div className={`${currentStep === 1 ? 'block' : 'hidden sm:block'} bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl backdrop-blur-sm`}>
-            <div className="flex items-center gap-3 pb-4 border-b border-neutral-800">
-              <div className="w-9 h-9 rounded-xl bg-lime-500/10 border border-lime-500/20 flex items-center justify-center text-lime-400 font-bold">
+          <div className={`${currentStep === 1 ? 'block' : 'hidden sm:block'} bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-4 sm:p-8 space-y-4 sm:space-y-6 shadow-xl backdrop-blur-sm`}>
+            <div className="flex items-center gap-2.5 pb-3 border-b border-neutral-800">
+              <div className="w-8 h-8 rounded-xl bg-lime-500/10 border border-lime-500/20 flex items-center justify-center text-lime-400 font-extrabold text-xs sm:text-sm">
                 1
               </div>
               <div>
-                <h2 className="text-lg font-bold text-white">Información del Producto</h2>
-                <p className="text-xs text-neutral-400">Nombre, descripción y categoría principal</p>
+                <h2 className="text-base sm:text-lg font-bold text-white">Información del Producto</h2>
+                <p className="text-[11px] sm:text-xs text-neutral-400">Nombre, descripción y categoría principal</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               <div className="sm:col-span-2">
-                <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-2">
+                <label className="block text-[11px] sm:text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-1.5">
                   Nombre del Producto <span className="text-lime-400">*</span>
                 </label>
                 <input
@@ -325,19 +346,19 @@ export default function PublicarPage() {
                   value={formData.name}
                   onChange={e => handleInputChange('name', e.target.value)}
                   placeholder="Ej: Plátano Hartón Orgánico"
-                  className="w-full px-4 py-3 bg-neutral-950 border border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-500/50 text-sm font-medium"
+                  className="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 bg-neutral-950 border border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-500/50 text-xs sm:text-sm font-medium"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-2">
+                <label className="block text-[11px] sm:text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-1.5">
                   Categoría <span className="text-lime-400">*</span>
                 </label>
                 <select
                   value={formData.category}
                   onChange={e => handleInputChange('category', e.target.value)}
-                  className="w-full px-4 py-3 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-lime-500/50 text-sm cursor-pointer font-medium"
+                  className="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-lime-500/50 text-xs sm:text-sm cursor-pointer font-medium"
                   required
                 >
                   <option value="">Seleccionar categoría</option>
@@ -348,14 +369,14 @@ export default function PublicarPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-2">
+                <label className="block text-[11px] sm:text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-1.5">
                   Subcategoría <span className="text-neutral-400">(Opcional)</span>
                 </label>
                 <select
                   value={formData.subcategory}
                   onChange={e => handleInputChange('subcategory', e.target.value)}
                   disabled={!formData.category}
-                  className="w-full px-4 py-3 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-lime-500/50 text-sm cursor-pointer disabled:opacity-50 font-medium"
+                  className="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-lime-500/50 text-xs sm:text-sm cursor-pointer disabled:opacity-50 font-medium"
                 >
                   <option value="">Seleccionar subcategoría</option>
                   {subcategorias.map(sub => (
@@ -365,56 +386,53 @@ export default function PublicarPage() {
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-2">
+                <label className="block text-[11px] sm:text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-1.5">
                   Descripción Corta <span className="text-neutral-400">(Recomendado)</span>
                 </label>
                 <textarea
                   value={formData.description}
                   onChange={e => handleInputChange('description', e.target.value)}
                   rows={3}
-                  placeholder="Describe la calidad de tu producto, época de cultivo o detalles de sabor y frescura..."
-                  className="w-full px-4 py-3 bg-neutral-950 border border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-500/50 text-sm font-medium"
+                  placeholder="Describe la calidad de tu producto, época de cultivo o detalles de sabor..."
+                  className="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 bg-neutral-950 border border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-500/50 text-xs sm:text-sm font-medium"
                 />
               </div>
             </div>
 
             {/* Controles de Navegación de Tarjeta en Móvil */}
-            <div className="pt-2 flex justify-between items-center sm:hidden">
-              <span className="text-xs text-neutral-400 font-semibold">Paso 1 de 4</span>
+            <div className="pt-2 flex justify-end items-center sm:hidden">
               <button
                 type="button"
                 onClick={() => setCurrentStep(2)}
-                className="px-4 py-2.5 bg-neutral-800 hover:bg-neutral-750 text-lime-400 font-bold text-xs rounded-xl inline-flex items-center gap-1.5 cursor-pointer"
+                className="px-4 py-2 bg-neutral-800 hover:bg-neutral-750 text-lime-400 font-bold text-xs rounded-xl inline-flex items-center gap-1.5 cursor-pointer shadow-sm"
               >
-                <span>Siguiente: Precio y Stock</span> <ArrowRight className="w-4 h-4" />
+                <span>Siguiente: Precio y Stock</span> <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
 
           {/* Seccion 2: Precio y Disponible */}
-          <div className={`${currentStep === 2 ? 'block' : 'hidden sm:block'} bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl backdrop-blur-sm`}>
-            <div className="flex items-center justify-between pb-4 border-b border-neutral-800">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-lime-500/10 border border-lime-500/20 flex items-center justify-center text-lime-400 font-bold">
-                  2
-                </div>
-                <div>
-                  <h2 className="text-lg font-bold text-white">Precio y Cantidad Disponible</h2>
-                  <p className="text-xs text-neutral-400">Define el valor de venta y el inventario disponible de tu cosecha</p>
-                </div>
+          <div className={`${currentStep === 2 ? 'block' : 'hidden sm:block'} bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-4 sm:p-8 space-y-4 sm:space-y-6 shadow-xl backdrop-blur-sm`}>
+            <div className="flex items-center gap-2.5 pb-3 border-b border-neutral-800">
+              <div className="w-8 h-8 rounded-xl bg-lime-500/10 border border-lime-500/20 flex items-center justify-center text-lime-400 font-extrabold text-xs sm:text-sm">
+                2
+              </div>
+              <div>
+                <h2 className="text-base sm:text-lg font-bold text-white">Precio y Cantidad Disponible</h2>
+                <p className="text-[11px] sm:text-xs text-neutral-400">Define el valor de venta e inventario disponible</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
               {/* 1. Selección de Unidad Primero */}
               <div>
-                <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-2">
+                <label className="block text-[11px] sm:text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-1.5">
                   Unidad de Medida <span className="text-lime-400">*</span>
                 </label>
                 <select
                   value={formData.unit}
                   onChange={e => handleInputChange('unit', e.target.value)}
-                  className="w-full px-4 py-3 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-lime-500/50 text-sm cursor-pointer font-medium"
+                  className="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-lime-500/50 text-xs sm:text-sm cursor-pointer font-medium"
                   required
                 >
                   {unidades.map(u => (
@@ -425,18 +443,18 @@ export default function PublicarPage() {
 
               {/* 2. Precio Dinámico según Unidad */}
               <div>
-                <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-2">
+                <label className="block text-[11px] sm:text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-1.5">
                   Precio por {unidades.find(u => u.value === formData.unit)?.label.split(' ')[0] || 'Unidad'} <span className="text-lime-400">*</span>
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400 font-bold text-sm">$</span>
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400 font-bold text-xs sm:text-sm">$</span>
                   <input
                     type="number"
                     value={formData.price}
                     onChange={e => handleInputChange('price', e.target.value)}
                     placeholder="Ej: 2.500 COP"
                     min="0"
-                    className="w-full pl-8 pr-4 py-3 bg-neutral-950 border border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-500/50 text-sm font-semibold"
+                    className="w-full pl-7 sm:pl-8 pr-3.5 py-2.5 sm:py-3 bg-neutral-950 border border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-500/50 text-xs sm:text-sm font-semibold"
                     required
                   />
                 </div>
@@ -444,7 +462,7 @@ export default function PublicarPage() {
 
               {/* 3. Cantidad Disponible Dinámica */}
               <div>
-                <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-2">
+                <label className="block text-[11px] sm:text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-1.5">
                   Cantidad Disponible <span className="text-neutral-400 font-normal">({unidades.find(u => u.value === formData.unit)?.label.split(' ')[0].toLowerCase() || 'unidades'})</span> <span className="text-lime-400">*</span>
                 </label>
                 <input
@@ -453,40 +471,40 @@ export default function PublicarPage() {
                   onChange={e => handleInputChange('stock', e.target.value)}
                   placeholder="Ej: 100"
                   min="1"
-                  className="w-full px-4 py-3 bg-neutral-950 border border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-500/50 text-sm font-semibold"
+                  className="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 bg-neutral-950 border border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-500/50 text-xs sm:text-sm font-semibold"
                   required
                 />
               </div>
             </div>
 
             {/* Empaques Mayores Opcionales */}
-            <div className="pt-4 border-t border-neutral-800/60">
-              <div className="flex items-center justify-between">
+            <div className="pt-3 border-t border-neutral-800/60">
+              <div className="flex items-center justify-between gap-2">
                 <div>
-                  <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                    <Layers className="w-4 h-4 text-lime-400" /> Empaques y Ventas al por Mayor
+                  <h4 className="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5">
+                    <Layers className="w-3.5 h-3.5 text-lime-400" /> Empaques al por Mayor
                   </h4>
-                  <p className="text-xs text-neutral-400 mt-0.5">Permite vender por Cajas o Bultos de varias unidades.</p>
+                  <p className="text-[10px] sm:text-xs text-neutral-400 mt-0.5">Venta por Cajas o Bultos.</p>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => setShowPackagingModal(true)}
-                  className="px-3.5 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-750 text-xs font-semibold text-lime-400 border border-neutral-700 transition-all cursor-pointer"
+                  className="px-3 py-1.5 rounded-xl bg-neutral-800 hover:bg-neutral-750 text-xs font-semibold text-lime-400 border border-neutral-700 transition-all cursor-pointer flex-shrink-0"
                 >
-                  + Agregar Empaque
+                  + Empaque
                 </button>
               </div>
 
               {formData.purchaseUnits.length > 0 && (
-                <div className="mt-3 space-y-2">
+                <div className="mt-2.5 space-y-2">
                   {formData.purchaseUnits.map((pu, idx) => (
-                    <div key={idx} className="flex items-center justify-between bg-neutral-950 p-3 rounded-xl border border-neutral-800 text-xs">
+                    <div key={idx} className="flex items-center justify-between bg-neutral-950 p-2.5 rounded-xl border border-neutral-800 text-xs">
                       <div>
                         <span className="font-bold text-white">{pu.unit}</span>
                         <span className="text-neutral-400 ml-2">({pu.equivalencia} {formData.unit})</span>
                         {formData.price && (
-                          <span className="text-lime-400 font-semibold ml-3">
+                          <span className="text-lime-400 font-semibold ml-2">
                             ${(Number(formData.price) * pu.equivalencia).toLocaleString('es-CO')}
                           </span>
                         )}
@@ -494,9 +512,9 @@ export default function PublicarPage() {
                       <button
                         type="button"
                         onClick={() => removePurchaseUnit(idx)}
-                        className="p-1.5 text-neutral-400 hover:text-red-400 transition-colors"
+                        className="p-1 text-neutral-400 hover:text-red-400 transition-colors"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   ))}
@@ -509,36 +527,35 @@ export default function PublicarPage() {
               <button
                 type="button"
                 onClick={() => setCurrentStep(1)}
-                className="px-3.5 py-2 bg-neutral-800 text-neutral-300 font-semibold text-xs rounded-xl flex items-center gap-1 cursor-pointer"
+                className="px-3 py-2 bg-neutral-800 text-neutral-300 font-semibold text-xs rounded-xl flex items-center gap-1 cursor-pointer"
               >
                 <ArrowLeft className="w-3.5 h-3.5" /> Anterior
               </button>
-              <span className="text-xs text-neutral-400 font-semibold">Paso 2 de 4</span>
               <button
                 type="button"
                 onClick={() => setCurrentStep(3)}
-                className="px-4 py-2.5 bg-neutral-800 hover:bg-neutral-750 text-lime-400 font-bold text-xs rounded-xl inline-flex items-center gap-1.5 cursor-pointer"
+                className="px-4 py-2 bg-neutral-800 hover:bg-neutral-750 text-lime-400 font-bold text-xs rounded-xl inline-flex items-center gap-1.5 cursor-pointer shadow-sm"
               >
-                <span>Siguiente: Ubicación</span> <ArrowRight className="w-4 h-4" />
+                <span>Siguiente: Ubicación</span> <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
 
           {/* Seccion 3: Ubicacion y Entrega */}
-          <div className={`${currentStep === 3 ? 'block' : 'hidden sm:block'} bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl backdrop-blur-sm`}>
-            <div className="flex items-center gap-3 pb-4 border-b border-neutral-800">
-              <div className="w-9 h-9 rounded-xl bg-lime-500/10 border border-lime-500/20 flex items-center justify-center text-lime-400 font-bold">
+          <div className={`${currentStep === 3 ? 'block' : 'hidden sm:block'} bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-4 sm:p-8 space-y-4 sm:space-y-6 shadow-xl backdrop-blur-sm`}>
+            <div className="flex items-center gap-2.5 pb-3 border-b border-neutral-800">
+              <div className="w-8 h-8 rounded-xl bg-lime-500/10 border border-lime-500/20 flex items-center justify-center text-lime-400 font-extrabold text-xs sm:text-sm">
                 3
               </div>
               <div>
-                <h2 className="text-lg font-bold text-white">Ubicación y Métodos de Entrega</h2>
-                <p className="text-xs text-neutral-400">¿Dónde estás ubicado y cómo entregas tu producto?</p>
+                <h2 className="text-base sm:text-lg font-bold text-white">Ubicación y Métodos de Entrega</h2>
+                <p className="text-[11px] sm:text-xs text-neutral-400">¿Dónde entregas tu producto?</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               <div>
-                <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-2">
+                <label className="block text-[11px] sm:text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-1.5">
                   Municipio / Ciudad <span className="text-lime-400">*</span>
                 </label>
                 <CitySelector
@@ -549,7 +566,7 @@ export default function PublicarPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-2">
+                <label className="block text-[11px] sm:text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-1.5">
                   Tiempo Estimado de Entrega <span className="text-neutral-400">(Días)</span>
                 </label>
                 <div className="relative">
@@ -560,16 +577,16 @@ export default function PublicarPage() {
                     onChange={e => handleInputChange('tiempoEntrega', e.target.value)}
                     placeholder="1"
                     min="1"
-                    className="w-full pl-10 pr-4 py-3 bg-neutral-950 border border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-500/50 text-sm font-semibold"
+                    className="w-full pl-10 pr-3.5 py-2.5 sm:py-3 bg-neutral-950 border border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-500/50 text-xs sm:text-sm font-semibold"
                   />
                 </div>
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-3">
+                <label className="block text-[11px] sm:text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-2.5">
                   Métodos de Entrega Disponibles
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
                   {metodosEntregaDisponibles.map(m => {
                     const Icon = m.icon;
                     const selected = formData.metodosEntrega.includes(m.value);
@@ -578,16 +595,16 @@ export default function PublicarPage() {
                         type="button"
                         key={m.value}
                         onClick={() => toggleMetodoEntrega(m.value)}
-                        className={`flex flex-col items-center justify-center p-3.5 rounded-2xl border text-xs font-semibold transition-all cursor-pointer ${
+                        className={`flex flex-col items-center justify-center p-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
                           selected
                             ? 'bg-lime-500/15 border-lime-500/60 text-lime-400 font-bold shadow-md shadow-lime-950/20'
-                            : 'bg-neutral-950 border-neutral-800 text-neutral-400 hover:text-white hover:bg-neutral-900 hover:border-neutral-750'
+                            : 'bg-neutral-950 border-neutral-800 text-neutral-400 hover:text-white hover:bg-neutral-900'
                         }`}
                       >
-                        <div className={`p-2 rounded-xl mb-2 transition-colors ${selected ? 'bg-lime-500/20 text-lime-400' : 'bg-neutral-900 text-neutral-400'}`}>
-                          <Icon className="w-5 h-5" />
+                        <div className={`p-1.5 rounded-lg mb-1 transition-colors ${selected ? 'bg-lime-500/20 text-lime-400' : 'bg-neutral-900 text-neutral-400'}`}>
+                          <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
                         </div>
-                        <span className="text-center">{m.label}</span>
+                        <span className="text-center text-[11px] sm:text-xs">{m.label}</span>
                       </button>
                     );
                   })}
@@ -600,65 +617,64 @@ export default function PublicarPage() {
               <button
                 type="button"
                 onClick={() => setCurrentStep(2)}
-                className="px-3.5 py-2 bg-neutral-800 text-neutral-300 font-semibold text-xs rounded-xl flex items-center gap-1 cursor-pointer"
+                className="px-3 py-2 bg-neutral-800 text-neutral-300 font-semibold text-xs rounded-xl flex items-center gap-1 cursor-pointer"
               >
                 <ArrowLeft className="w-3.5 h-3.5" /> Anterior
               </button>
-              <span className="text-xs text-neutral-400 font-semibold">Paso 3 de 4</span>
               <button
                 type="button"
                 onClick={() => setCurrentStep(4)}
-                className="px-4 py-2.5 bg-neutral-800 hover:bg-neutral-750 text-lime-400 font-bold text-xs rounded-xl inline-flex items-center gap-1.5 cursor-pointer"
+                className="px-4 py-2 bg-neutral-800 hover:bg-neutral-750 text-lime-400 font-bold text-xs rounded-xl inline-flex items-center gap-1.5 cursor-pointer shadow-sm"
               >
-                <span>Siguiente: Fotos</span> <ArrowRight className="w-4 h-4" />
+                <span>Siguiente: Fotos</span> <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
 
           {/* Seccion 4: Imagenes del Producto */}
-          <div className={`${currentStep === 4 ? 'block' : 'hidden sm:block'} bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl backdrop-blur-sm`}>
-            <div className="flex items-center gap-3 pb-4 border-b border-neutral-800">
-              <div className="w-9 h-9 rounded-xl bg-lime-500/10 border border-lime-500/20 flex items-center justify-center text-lime-400 font-bold">
+          <div className={`${currentStep === 4 ? 'block' : 'hidden sm:block'} bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-4 sm:p-8 space-y-4 sm:space-y-6 shadow-xl backdrop-blur-sm`}>
+            <div className="flex items-center gap-2.5 pb-3 border-b border-neutral-800">
+              <div className="w-8 h-8 rounded-xl bg-lime-500/10 border border-lime-500/20 flex items-center justify-center text-lime-400 font-extrabold text-xs sm:text-sm">
                 4
               </div>
               <div>
-                <h2 className="text-lg font-bold text-white">Fotos del Producto</h2>
-                <p className="text-xs text-neutral-400">Sube fotos reales para aumentar tus ventas hasta en un 80%</p>
+                <h2 className="text-base sm:text-lg font-bold text-white">Fotos del Producto</h2>
+                <p className="text-[11px] sm:text-xs text-neutral-400">Sube fotos reales para tus ventas</p>
               </div>
             </div>
 
             <div>
               <label 
                 htmlFor="imagenes-upload" 
-                className="w-full border-2 border-dashed border-neutral-800 hover:border-lime-500/50 rounded-2xl p-6 sm:p-8 flex flex-col items-center justify-center text-center bg-neutral-950 hover:bg-neutral-900/80 transition-all cursor-pointer group"
+                className="w-full border-2 border-dashed border-neutral-800 hover:border-lime-500/50 rounded-2xl p-5 sm:p-8 flex flex-col items-center justify-center text-center bg-neutral-950 hover:bg-neutral-900/80 transition-all cursor-pointer group"
               >
-                <div className="w-12 h-12 rounded-2xl bg-lime-500/10 border border-lime-500/20 flex items-center justify-center text-lime-400 mb-3 group-hover:scale-110 transition-transform">
-                  <Camera className="w-6 h-6" />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-lime-500/10 border border-lime-500/20 flex items-center justify-center text-lime-400 mb-2 group-hover:scale-110 transition-transform">
+                  <Camera className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
-                <span className="font-bold text-sm text-white">Haz clic aquí o arrastra tus fotos</span>
-                <span className="text-xs text-neutral-400 mt-1">Soporta JPG, PNG, WEBP de alta calidad</span>
+                <span className="font-bold text-xs sm:text-sm text-white">Haz clic o arrastra fotos aquí</span>
+                <span className="text-[10px] sm:text-xs text-neutral-400 mt-0.5">Soporta JPG, PNG, WEBP</span>
                 <input id="imagenes-upload" type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" />
               </label>
 
               {previewImages.length > 0 && (
-                <div className="flex flex-wrap gap-3 mt-4">
+                <div className="flex flex-wrap gap-2.5 mt-3">
                   {previewImages.map((img, idx) => (
-                    <div key={idx} className="relative w-24 h-24 rounded-xl overflow-hidden border border-neutral-800 shadow-md group">
+                    <div key={idx} className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden border border-neutral-800 shadow-md group">
                       <img src={img} alt={`Preview ${idx + 1}`} className="w-full h-full object-cover" />
                       <button 
                         type="button" 
                         onClick={() => removeImage(idx)}
                         className="absolute top-1 right-1 bg-black/80 text-white rounded-lg p-1 hover:bg-red-600 transition-colors"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 className="w-3 h-3" />
                       </button>
                     </div>
                   ))}
                 </div>
               )}
 
-              <div className="mt-4">
-                <label className="block text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-1.5">
+              <div className="mt-3">
+                <label className="block text-[11px] sm:text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-1">
                   O pega una URL de Imagen Directa
                 </label>
                 <input
@@ -666,7 +682,7 @@ export default function PublicarPage() {
                   value={formData.imageUrl}
                   onChange={e => handleInputChange('imageUrl', e.target.value)}
                   placeholder="https://..."
-                  className="w-full px-4 py-2.5 bg-neutral-950 border border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-500/50 text-xs"
+                  className="w-full px-3.5 py-2.5 bg-neutral-950 border border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-500/50 text-xs"
                 />
               </div>
             </div>
@@ -676,37 +692,37 @@ export default function PublicarPage() {
               <button
                 type="button"
                 onClick={() => setCurrentStep(3)}
-                className="px-3.5 py-2 bg-neutral-800 text-neutral-300 font-semibold text-xs rounded-xl flex items-center gap-1 cursor-pointer"
+                className="px-3 py-2 bg-neutral-800 text-neutral-300 font-semibold text-xs rounded-xl flex items-center gap-1 cursor-pointer"
               >
                 <ArrowLeft className="w-3.5 h-3.5" /> Anterior
               </button>
-              <span className="text-xs text-neutral-400 font-semibold">Paso 4 de 4</span>
+              <span className="text-[11px] text-neutral-400 font-semibold">Paso 4 de 4</span>
             </div>
           </div>
 
           {/* Botones de Acción al Final (En móvil se muestran lado a lado Previsualizar + Publicar) */}
-          <div className="pt-2">
+          <div className="pt-2 sticky bottom-4 z-30 sm:static sm:bg-transparent">
             {/* Vista Móvil: Previsualizar (Izquierda) + Publicar (Derecha) */}
-            <div className="flex sm:hidden items-center gap-2.5">
+            <div className="flex sm:hidden items-center gap-2 bg-neutral-950/95 border border-neutral-800 p-2.5 rounded-2xl backdrop-blur-md shadow-2xl">
               <button
                 type="button"
                 onClick={() => setShowPreview(true)}
-                className="flex-1 py-3.5 px-3 rounded-xl border border-neutral-750 bg-neutral-900 text-neutral-200 hover:text-white hover:bg-neutral-800 font-semibold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                className="flex-1 py-3 px-2.5 rounded-xl border border-neutral-750 bg-neutral-900 text-neutral-200 hover:text-white font-semibold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
               >
-                <Eye className="w-4 h-4 text-lime-400" />
+                <Eye className="w-3.5 h-3.5 text-lime-400" />
                 <span>Previsualizar</span>
               </button>
 
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-[1.5] py-3.5 px-4 rounded-xl bg-gradient-to-r from-lime-600 to-lime-500 text-neutral-950 font-extrabold text-xs hover:from-lime-500 hover:to-lime-400 transition-all shadow-lg shadow-lime-950/40 flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                className="flex-[1.4] py-3 px-3 rounded-xl bg-gradient-to-r from-lime-600 to-lime-500 text-neutral-950 font-extrabold text-xs hover:from-lime-500 hover:to-lime-400 transition-all shadow-lg shadow-lime-950/40 flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
               >
                 {isSubmitting ? (
                   <span>Publicando...</span>
                 ) : (
                   <>
-                    <Send className="w-4 h-4" />
+                    <Send className="w-3.5 h-3.5" />
                     <span>Publicar Ahora</span>
                   </>
                 )}
@@ -744,9 +760,9 @@ export default function PublicarPage() {
         {/* Modal de Previsualización */}
         {showPreview && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
-            <div className="bg-neutral-900 border border-neutral-800 rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl p-6 space-y-5">
+            <div className="bg-neutral-900 border border-neutral-800 rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl p-5 sm:p-6 space-y-4 shadow-2xl">
               <div className="flex items-center justify-between pb-3 border-b border-neutral-800">
-                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <h3 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
                   <Eye className="w-4 h-4 text-lime-400" /> Vista Previa del Producto
                 </h3>
                 <button onClick={() => setShowPreview(false)} className="text-neutral-400 hover:text-white">
@@ -755,7 +771,7 @@ export default function PublicarPage() {
               </div>
 
               <div className="bg-neutral-950 rounded-2xl overflow-hidden border border-neutral-800 shadow-xl">
-                <div className="h-48 bg-neutral-900 relative">
+                <div className="h-44 sm:h-48 bg-neutral-900 relative">
                   {previewImages[0] || formData.imageUrl ? (
                     <img src={previewImages[0] || formData.imageUrl} alt="Producto" className="w-full h-full object-cover" />
                   ) : (
@@ -763,12 +779,12 @@ export default function PublicarPage() {
                   )}
                 </div>
 
-                <div className="p-4 space-y-3">
-                  <h4 className="text-lg font-bold text-white">{formData.name || 'Nombre del producto'}</h4>
+                <div className="p-4 space-y-2.5">
+                  <h4 className="text-base sm:text-lg font-bold text-white">{formData.name || 'Nombre del producto'}</h4>
                   <p className="text-xs text-neutral-400">{formData.description || 'Sin descripción.'}</p>
                   
-                  <div className="flex items-center justify-between">
-                    <span className="text-xl font-extrabold text-lime-400">
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-lg sm:text-xl font-extrabold text-lime-400">
                       ${formData.price ? Number(formData.price).toLocaleString('es-CO') : '0'}
                       <span className="text-xs text-neutral-400 font-normal"> / {formData.unit}</span>
                     </span>
