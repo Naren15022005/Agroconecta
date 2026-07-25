@@ -18,6 +18,8 @@ import {
   Info,
   Clock,
   Layers,
+  ArrowRight,
+  ArrowLeft,
   Home,
   Store
 } from "lucide-react";
@@ -73,6 +75,9 @@ export default function PublicarPage() {
 
   const [categorias, setCategorias] = useState<{ id: string; name: string }[]>([]);
   const [subcategorias, setSubcategorias] = useState<{ id: string; name: string; categoryId: string }[]>([]);
+
+  // Paso actual para navegación tipo tarjeta en móvil (1, 2, 3, 4)
+  const [currentStep, setCurrentStep] = useState<number>(1);
 
   const [formData, setFormData] = useState<FormDataType>({
     name: '',
@@ -295,11 +300,11 @@ export default function PublicarPage() {
           </button>
         </div>
 
-        {/* Formulario Continuo en 4 Secciones */}
+        {/* Formulario en Pasos (Móvil muestra 1 paso por tarjeta, Escritorio muestra todo continuo) */}
         <form onSubmit={handleSubmit} className="space-y-6">
           
           {/* Seccion 1: Datos del Producto */}
-          <div className="bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl backdrop-blur-sm">
+          <div className={`${currentStep === 1 ? 'block' : 'hidden sm:block'} bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl backdrop-blur-sm`}>
             <div className="flex items-center gap-3 pb-4 border-b border-neutral-800">
               <div className="w-9 h-9 rounded-xl bg-lime-500/10 border border-lime-500/20 flex items-center justify-center text-lime-400 font-bold">
                 1
@@ -372,10 +377,22 @@ export default function PublicarPage() {
                 />
               </div>
             </div>
+
+            {/* Controles de Navegación de Tarjeta en Móvil */}
+            <div className="pt-2 flex justify-between items-center sm:hidden">
+              <span className="text-xs text-neutral-400 font-semibold">Paso 1 de 4</span>
+              <button
+                type="button"
+                onClick={() => setCurrentStep(2)}
+                className="px-4 py-2.5 bg-neutral-800 hover:bg-neutral-750 text-lime-400 font-bold text-xs rounded-xl inline-flex items-center gap-1.5 cursor-pointer"
+              >
+                <span>Siguiente: Precio y Stock</span> <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
           {/* Seccion 2: Precio y Disponible */}
-          <div className="bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl backdrop-blur-sm">
+          <div className={`${currentStep === 2 ? 'block' : 'hidden sm:block'} bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl backdrop-blur-sm`}>
             <div className="flex items-center justify-between pb-4 border-b border-neutral-800">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-lime-500/10 border border-lime-500/20 flex items-center justify-center text-lime-400 font-bold">
@@ -486,10 +503,29 @@ export default function PublicarPage() {
                 </div>
               )}
             </div>
+
+            {/* Controles de Navegación de Tarjeta en Móvil */}
+            <div className="pt-2 flex justify-between items-center sm:hidden">
+              <button
+                type="button"
+                onClick={() => setCurrentStep(1)}
+                className="px-3.5 py-2 bg-neutral-800 text-neutral-300 font-semibold text-xs rounded-xl flex items-center gap-1 cursor-pointer"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" /> Anterior
+              </button>
+              <span className="text-xs text-neutral-400 font-semibold">Paso 2 de 4</span>
+              <button
+                type="button"
+                onClick={() => setCurrentStep(3)}
+                className="px-4 py-2.5 bg-neutral-800 hover:bg-neutral-750 text-lime-400 font-bold text-xs rounded-xl inline-flex items-center gap-1.5 cursor-pointer"
+              >
+                <span>Siguiente: Ubicación</span> <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
           {/* Seccion 3: Ubicacion y Entrega */}
-          <div className="bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl backdrop-blur-sm">
+          <div className={`${currentStep === 3 ? 'block' : 'hidden sm:block'} bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl backdrop-blur-sm`}>
             <div className="flex items-center gap-3 pb-4 border-b border-neutral-800">
               <div className="w-9 h-9 rounded-xl bg-lime-500/10 border border-lime-500/20 flex items-center justify-center text-lime-400 font-bold">
                 3
@@ -558,10 +594,29 @@ export default function PublicarPage() {
                 </div>
               </div>
             </div>
+
+            {/* Controles de Navegación de Tarjeta en Móvil */}
+            <div className="pt-2 flex justify-between items-center sm:hidden">
+              <button
+                type="button"
+                onClick={() => setCurrentStep(2)}
+                className="px-3.5 py-2 bg-neutral-800 text-neutral-300 font-semibold text-xs rounded-xl flex items-center gap-1 cursor-pointer"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" /> Anterior
+              </button>
+              <span className="text-xs text-neutral-400 font-semibold">Paso 3 de 4</span>
+              <button
+                type="button"
+                onClick={() => setCurrentStep(4)}
+                className="px-4 py-2.5 bg-neutral-800 hover:bg-neutral-750 text-lime-400 font-bold text-xs rounded-xl inline-flex items-center gap-1.5 cursor-pointer"
+              >
+                <span>Siguiente: Fotos</span> <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
           {/* Seccion 4: Imagenes del Producto */}
-          <div className="bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl backdrop-blur-sm">
+          <div className={`${currentStep === 4 ? 'block' : 'hidden sm:block'} bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl backdrop-blur-sm`}>
             <div className="flex items-center gap-3 pb-4 border-b border-neutral-800">
               <div className="w-9 h-9 rounded-xl bg-lime-500/10 border border-lime-500/20 flex items-center justify-center text-lime-400 font-bold">
                 4
@@ -614,6 +669,18 @@ export default function PublicarPage() {
                   className="w-full px-4 py-2.5 bg-neutral-950 border border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-500/50 text-xs"
                 />
               </div>
+            </div>
+
+            {/* Controles de Navegación de Tarjeta en Móvil */}
+            <div className="pt-2 flex justify-between items-center sm:hidden">
+              <button
+                type="button"
+                onClick={() => setCurrentStep(3)}
+                className="px-3.5 py-2 bg-neutral-800 text-neutral-300 font-semibold text-xs rounded-xl flex items-center gap-1 cursor-pointer"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" /> Anterior
+              </button>
+              <span className="text-xs text-neutral-400 font-semibold">Paso 4 de 4</span>
             </div>
           </div>
 
