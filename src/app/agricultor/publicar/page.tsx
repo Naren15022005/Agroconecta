@@ -381,30 +381,13 @@ export default function PublicarPage() {
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-white">Precio y Cantidad Disponible</h2>
-                  <p className="text-xs text-neutral-400">Define el costo por unidad y el inventario disponible</p>
+                  <p className="text-xs text-neutral-400">Define el valor de venta y el inventario disponible de tu cosecha</p>
                 </div>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              <div>
-                <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-2">
-                  Precio por Unidad <span className="text-lime-400">*</span>
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400 font-bold text-sm">$</span>
-                  <input
-                    type="number"
-                    value={formData.price}
-                    onChange={e => handleInputChange('price', e.target.value)}
-                    placeholder="2500"
-                    min="0"
-                    className="w-full pl-8 pr-4 py-3 bg-neutral-950 border border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-500/50 text-sm font-semibold"
-                    required
-                  />
-                </div>
-              </div>
-
+              {/* 1. Selección de Unidad Primero */}
               <div>
                 <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-2">
                   Unidad de Medida <span className="text-lime-400">*</span>
@@ -412,7 +395,7 @@ export default function PublicarPage() {
                 <select
                   value={formData.unit}
                   onChange={e => handleInputChange('unit', e.target.value)}
-                  className="w-full px-4 py-3 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-lime-500/50 text-sm cursor-pointer"
+                  className="w-full px-4 py-3 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-lime-500/50 text-sm cursor-pointer font-medium"
                   required
                 >
                   {unidades.map(u => (
@@ -421,15 +404,35 @@ export default function PublicarPage() {
                 </select>
               </div>
 
+              {/* 2. Precio Dinámico según Unidad */}
               <div>
                 <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-2">
-                  Stock Total ({formData.unit}) <span className="text-lime-400">*</span>
+                  Precio por {unidades.find(u => u.value === formData.unit)?.label.split(' ')[0] || 'Unidad'} <span className="text-lime-400">*</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400 font-bold text-sm">$</span>
+                  <input
+                    type="number"
+                    value={formData.price}
+                    onChange={e => handleInputChange('price', e.target.value)}
+                    placeholder="Ej: 2.500 COP"
+                    min="0"
+                    className="w-full pl-8 pr-4 py-3 bg-neutral-950 border border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-500/50 text-sm font-semibold"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* 3. Cantidad Disponible Dinámica */}
+              <div>
+                <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-2">
+                  Cantidad Disponible <span className="text-neutral-400 font-normal">({unidades.find(u => u.value === formData.unit)?.label.split(' ')[0].toLowerCase() || 'unidades'})</span> <span className="text-lime-400">*</span>
                 </label>
                 <input
                   type="number"
                   value={formData.stock}
                   onChange={e => handleInputChange('stock', e.target.value)}
-                  placeholder="100"
+                  placeholder="Ej: 100"
                   min="1"
                   className="w-full px-4 py-3 bg-neutral-950 border border-neutral-800 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-lime-500/50 text-sm font-semibold"
                   required
