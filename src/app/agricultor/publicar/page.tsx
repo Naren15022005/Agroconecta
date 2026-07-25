@@ -294,7 +294,7 @@ export default function PublicarPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-white pb-32 pt-6 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-neutral-950 text-white pb-28 sm:pb-12 pt-6 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto space-y-6">
         
         {/* Encabezado Principal */}
@@ -317,48 +317,46 @@ export default function PublicarPage() {
           </button>
         </div>
 
-        {/* Carrusel de Pasos (Pestañas móviles / Escritorio) */}
-        <div className="bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-3 sm:p-4 shadow-xl backdrop-blur-sm">
+        {/* Carrusel de Pasos (ÚNICAMENTE VISIBLE EN VISTA MÓVIL sm:hidden) */}
+        <div className="sm:hidden bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-3 shadow-xl backdrop-blur-sm">
           <div className="grid grid-cols-4 gap-2">
             {stepsInfo.map(st => {
-              const Icon = st.icon;
               const isCurrent = currentStep === st.num;
               return (
                 <button
                   key={st.num}
                   type="button"
                   onClick={() => setCurrentStep(st.num)}
-                  className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2.5 p-2 sm:p-3 rounded-xl transition-all cursor-pointer ${
+                  className={`flex flex-col items-center justify-center gap-1 p-2 rounded-xl transition-all cursor-pointer ${
                     isCurrent
-                      ? 'bg-lime-500/15 border border-lime-500/50 text-lime-400 font-bold shadow-md shadow-lime-950/20'
+                      ? 'bg-lime-500/15 border border-lime-500/50 text-lime-400 font-bold shadow-md'
                       : st.valid
-                      ? 'bg-neutral-950 border border-neutral-800/80 text-neutral-200 hover:bg-neutral-800'
-                      : 'bg-neutral-950 border border-neutral-850 text-neutral-400 hover:bg-neutral-900'
+                      ? 'bg-neutral-950 border border-neutral-800 text-neutral-200'
+                      : 'bg-neutral-950 border border-neutral-850 text-neutral-500'
                   }`}
                 >
-                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-extrabold ${
+                  <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-extrabold ${
                     isCurrent 
                       ? 'bg-lime-500 text-neutral-950' 
                       : st.valid 
                       ? 'bg-lime-500/20 text-lime-400' 
                       : 'bg-neutral-800 text-neutral-400'
                   }`}>
-                    {st.valid && !isCurrent ? <Check className="w-4 h-4" /> : st.num}
+                    {st.valid && !isCurrent ? <Check className="w-3.5 h-3.5" /> : st.num}
                   </div>
-
-                  <span className="text-xs sm:text-sm font-semibold truncate hidden xs:inline">{st.label}</span>
+                  <span className="text-[10px] font-semibold truncate">{st.label}</span>
                 </button>
               );
             })}
           </div>
 
           {/* Navegación rápida entre pasos en Móvil */}
-          <div className="flex items-center justify-between mt-3 pt-3 border-t border-neutral-800 sm:hidden">
+          <div className="flex items-center justify-between mt-2.5 pt-2.5 border-t border-neutral-800">
             <button
               type="button"
               disabled={currentStep === 1}
               onClick={() => setCurrentStep(prev => Math.max(1, prev - 1))}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-neutral-800 text-xs font-semibold text-neutral-300 disabled:opacity-30 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-neutral-800 text-xs font-semibold text-neutral-300 disabled:opacity-30 cursor-pointer"
             >
               <ArrowLeft className="w-3.5 h-3.5" /> Anterior
             </button>
@@ -369,18 +367,18 @@ export default function PublicarPage() {
               type="button"
               disabled={currentStep === 4}
               onClick={() => setCurrentStep(prev => Math.min(4, prev + 1))}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-neutral-800 text-xs font-semibold text-lime-400 disabled:opacity-30 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-neutral-800 text-xs font-semibold text-lime-400 disabled:opacity-30 cursor-pointer"
             >
               Siguiente <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
 
-        {/* Formulario Principal con Contenedor Carrusel */}
+        {/* Formulario Principal: Móvil usa carrusel (currentStep), Escritorio (sm:block) muestra todo continuo */}
         <form onSubmit={handleSubmit} className="space-y-6">
           
           {/* Seccion 1: Datos del Producto */}
-          <div className={`${currentStep === 1 ? 'block' : 'hidden sm:block'} bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl backdrop-blur-sm transition-all`}>
+          <div className={`${currentStep === 1 ? 'block' : 'hidden sm:block'} bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl backdrop-blur-sm`}>
             <div className="flex items-center justify-between pb-4 border-b border-neutral-800">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-lime-500/10 border border-lime-500/20 flex items-center justify-center text-lime-400 font-bold">
@@ -462,20 +460,20 @@ export default function PublicarPage() {
               </div>
             </div>
 
-            {/* Botón Siguiente en Móvil */}
+            {/* Botón Siguiente Únicamente Móvil */}
             <div className="pt-2 flex justify-end sm:hidden">
               <button
                 type="button"
                 onClick={() => setCurrentStep(2)}
                 className="px-4 py-2 bg-neutral-800 hover:bg-neutral-750 text-lime-400 font-bold text-xs rounded-xl inline-flex items-center gap-1.5"
               >
-                <span>Ir a Precio y Cantidad</span> <ArrowRight className="w-4 h-4" />
+                <span>Siguiente: Precio</span> <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </div>
 
           {/* Seccion 2: Precio y Disponible */}
-          <div className={`${currentStep === 2 ? 'block' : 'hidden sm:block'} bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl backdrop-blur-sm transition-all`}>
+          <div className={`${currentStep === 2 ? 'block' : 'hidden sm:block'} bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl backdrop-blur-sm`}>
             <div className="flex items-center justify-between pb-4 border-b border-neutral-800">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-lime-500/10 border border-lime-500/20 flex items-center justify-center text-lime-400 font-bold">
@@ -593,7 +591,7 @@ export default function PublicarPage() {
               )}
             </div>
 
-            {/* Botón Siguiente en Móvil */}
+            {/* Botón Siguiente Únicamente Móvil */}
             <div className="pt-2 flex justify-between sm:hidden">
               <button
                 type="button"
@@ -607,13 +605,13 @@ export default function PublicarPage() {
                 onClick={() => setCurrentStep(3)}
                 className="px-4 py-2 bg-neutral-800 hover:bg-neutral-750 text-lime-400 font-bold text-xs rounded-xl inline-flex items-center gap-1.5"
               >
-                <span>Ir a Ubicación</span> <ArrowRight className="w-4 h-4" />
+                <span>Siguiente: Ubicación</span> <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </div>
 
           {/* Seccion 3: Ubicacion y Entrega */}
-          <div className={`${currentStep === 3 ? 'block' : 'hidden sm:block'} bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl backdrop-blur-sm transition-all`}>
+          <div className={`${currentStep === 3 ? 'block' : 'hidden sm:block'} bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl backdrop-blur-sm`}>
             <div className="flex items-center justify-between pb-4 border-b border-neutral-800">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-lime-500/10 border border-lime-500/20 flex items-center justify-center text-lime-400 font-bold">
@@ -691,7 +689,7 @@ export default function PublicarPage() {
               </div>
             </div>
 
-            {/* Botón Siguiente en Móvil */}
+            {/* Botón Siguiente Únicamente Móvil */}
             <div className="pt-2 flex justify-between sm:hidden">
               <button
                 type="button"
@@ -705,13 +703,13 @@ export default function PublicarPage() {
                 onClick={() => setCurrentStep(4)}
                 className="px-4 py-2 bg-neutral-800 hover:bg-neutral-750 text-lime-400 font-bold text-xs rounded-xl inline-flex items-center gap-1.5"
               >
-                <span>Ir a Fotos</span> <ArrowRight className="w-4 h-4" />
+                <span>Siguiente: Fotos</span> <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </div>
 
           {/* Seccion 4: Imagenes del Producto */}
-          <div className={`${currentStep === 4 ? 'block' : 'hidden sm:block'} bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl backdrop-blur-sm transition-all`}>
+          <div className={`${currentStep === 4 ? 'block' : 'hidden sm:block'} bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl backdrop-blur-sm`}>
             <div className="flex items-center justify-between pb-4 border-b border-neutral-800">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-lime-500/10 border border-lime-500/20 flex items-center justify-center text-lime-400 font-bold">
@@ -775,37 +773,69 @@ export default function PublicarPage() {
             </div>
           </div>
 
-          {/* BARRA ESTÁTICA / FIJA INFERIOR CON BOTÓN DE PUBLICACIÓN */}
-          <div className="fixed bottom-0 left-0 right-0 z-40 bg-neutral-950/95 backdrop-blur-md border-t border-neutral-850 p-4 shadow-2xl">
-            <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-              
-              {/* Estado de Validación */}
-              <div className="flex items-center gap-2 text-xs">
+          {/* BOTÓN DE PUBLICACIÓN EN ESCRITORIO (hidden sm:flex - inline al final del formulario) */}
+          <div className="hidden sm:flex items-center justify-between bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-6 shadow-xl backdrop-blur-sm">
+            <div className="flex items-center gap-2 text-xs">
+              {isFormValid ? (
+                <span className="flex items-center gap-1.5 text-lime-400 font-semibold">
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>¡Formulario completo! Puedes publicar.</span>
+                </span>
+              ) : (
+                <span className="flex items-center gap-1.5 text-amber-400 font-medium">
+                  <AlertCircle className="w-4 h-4" />
+                  <span>Completa los campos obligatorios (*) para habilitar el botón.</span>
+                </span>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              disabled={!isFormValid || isSubmitting}
+              className={`px-8 py-3.5 rounded-xl font-extrabold text-sm transition-all shadow-lg flex items-center justify-center gap-2 ${
+                isFormValid && !isSubmitting
+                  ? 'bg-gradient-to-r from-lime-600 to-lime-500 text-neutral-950 hover:from-lime-500 hover:to-lime-400 cursor-pointer shadow-lime-950/40'
+                  : 'bg-neutral-800 text-neutral-400 border border-neutral-700/60 opacity-60 cursor-not-allowed'
+              }`}
+            >
+              {isSubmitting ? (
+                <span>Publicando producto...</span>
+              ) : (
+                <>
+                  <Send className="w-4 h-4" />
+                  <span>Publicar Producto Ahora</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* BARRA ESTÁTICA FIJA INFERIOR ÚNICAMENTE EN VISTA MÓVIL (sm:hidden) */}
+          <div className="fixed bottom-0 left-0 right-0 z-40 bg-neutral-950/95 backdrop-blur-md border-t border-neutral-850 p-4 shadow-2xl sm:hidden">
+            <div className="flex flex-col gap-2.5">
+              <div className="flex items-center justify-between text-[11px]">
                 {isFormValid ? (
-                  <span className="flex items-center gap-1.5 text-lime-400 font-semibold">
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>¡Formulario completo! Listo para publicar.</span>
+                  <span className="flex items-center gap-1 text-lime-400 font-semibold">
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Formulario completo
                   </span>
                 ) : (
-                  <span className="flex items-center gap-1.5 text-amber-400 font-medium">
-                    <AlertCircle className="w-4 h-4" />
-                    <span>Completa los campos obligatorios (*) para habilitar la publicación.</span>
+                  <span className="flex items-center gap-1 text-amber-400 font-medium">
+                    <AlertCircle className="w-3.5 h-3.5" /> Faltan campos obligatorios (*)
                   </span>
                 )}
+                <span className="text-neutral-400 font-medium">Paso {currentStep} de 4</span>
               </div>
 
-              {/* Botón de Publicación Estático Fijo */}
               <button
                 type="submit"
                 disabled={!isFormValid || isSubmitting}
-                className={`w-full sm:w-auto px-8 py-3.5 rounded-xl font-extrabold text-sm transition-all shadow-lg flex items-center justify-center gap-2 ${
+                className={`w-full py-3.5 rounded-xl font-extrabold text-sm transition-all shadow-lg flex items-center justify-center gap-2 ${
                   isFormValid && !isSubmitting
-                    ? 'bg-gradient-to-r from-lime-600 to-lime-500 text-neutral-950 hover:from-lime-500 hover:to-lime-400 cursor-pointer shadow-lime-950/40'
+                    ? 'bg-gradient-to-r from-lime-600 to-lime-500 text-neutral-950 cursor-pointer shadow-lime-950/40'
                     : 'bg-neutral-800 text-neutral-400 border border-neutral-700/60 opacity-60 cursor-not-allowed'
                 }`}
               >
                 {isSubmitting ? (
-                  <span>Publicando producto...</span>
+                  <span>Publicando...</span>
                 ) : (
                   <>
                     <Send className="w-4 h-4" />
