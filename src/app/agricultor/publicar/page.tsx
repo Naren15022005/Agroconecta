@@ -293,7 +293,7 @@ export default function PublicarPage() {
           <button
             type="button"
             onClick={() => setShowPreview(true)}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-neutral-750 bg-neutral-900 text-neutral-200 hover:text-white hover:bg-neutral-800 transition-all font-semibold text-xs sm:text-sm cursor-pointer shadow-sm self-start sm:self-auto"
+            className="hidden sm:inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-neutral-750 bg-neutral-900 text-neutral-200 hover:text-white hover:bg-neutral-800 transition-all font-semibold text-sm cursor-pointer shadow-sm"
           >
             <Eye className="w-4 h-4 text-lime-400" />
             <span>Previsualizar</span>
@@ -684,12 +684,40 @@ export default function PublicarPage() {
             </div>
           </div>
 
-          {/* Boton de Publicacion Limpio al Final */}
+          {/* Botones de Acción al Final (En móvil se muestran lado a lado Previsualizar + Publicar) */}
           <div className="pt-2">
+            {/* Vista Móvil: Previsualizar (Izquierda) + Publicar (Derecha) */}
+            <div className="flex sm:hidden items-center gap-2.5">
+              <button
+                type="button"
+                onClick={() => setShowPreview(true)}
+                className="flex-1 py-3.5 px-3 rounded-xl border border-neutral-750 bg-neutral-900 text-neutral-200 hover:text-white hover:bg-neutral-800 font-semibold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+              >
+                <Eye className="w-4 h-4 text-lime-400" />
+                <span>Previsualizar</span>
+              </button>
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex-[1.5] py-3.5 px-4 rounded-xl bg-gradient-to-r from-lime-600 to-lime-500 text-neutral-950 font-extrabold text-xs hover:from-lime-500 hover:to-lime-400 transition-all shadow-lg shadow-lime-950/40 flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+              >
+                {isSubmitting ? (
+                  <span>Publicando...</span>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    <span>Publicar Ahora</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Vista Escritorio: Botón único de publicación */}
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-4 rounded-xl bg-gradient-to-r from-lime-600 to-lime-500 text-neutral-950 font-extrabold text-base hover:from-lime-500 hover:to-lime-400 transition-all shadow-lg shadow-lime-950/40 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              className="hidden sm:flex w-full py-4 rounded-xl bg-gradient-to-r from-lime-600 to-lime-500 text-neutral-950 font-extrabold text-base hover:from-lime-500 hover:to-lime-400 transition-all shadow-lg shadow-lime-950/40 items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {isSubmitting ? (
                 <span>Publicando producto...</span>
