@@ -252,9 +252,25 @@ export default function ProductosCatalogo({
             categoria: p.category?.name || 'Sin categoría',
             agricultor: p.agricultor?.user?.nombre || 'Agricultor desconocido',
             agricultorId: p.agricultorId || p.agricultor?.id || '',
-            ubicacion: 'Colombia',
+            ubicacion: p.municipio || 'Colombia',
             fecha: 'Hace unas horas',
-            imagen: p.imageUrl || '',
+            imagen: (() => {
+              if (p.imageUrl && typeof p.imageUrl === 'string' && p.imageUrl.trim() !== '') {
+                return p.imageUrl;
+              }
+              if (p.imagenes) {
+                try {
+                  const parsed = typeof p.imagenes === 'string' ? JSON.parse(p.imagenes) : p.imagenes;
+                  if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === 'string') {
+                    return parsed[0];
+                  }
+                  if (typeof parsed === 'string') return parsed;
+                } catch (_) {
+                  if (typeof p.imagenes === 'string') return p.imagenes;
+                }
+              }
+              return '';
+            })(),
             stock: p.stock ?? 0,
             rating: 4.5,
             isFavorite: false,
@@ -390,7 +406,15 @@ export default function ProductosCatalogo({
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-5 lg:gap-6">
               {productosFiltrados.map((producto) => {
                 const isOwnerAgricultor = session?.user?.role === 'CAMPESINO' && !!miAgricultorId && !!producto.agricultorId && String(miAgricultorId) === String(producto.agricultorId);
-                const hasValidImage = producto.imagen && (producto.imagen.startsWith('http') || producto.imagen.startsWith('/'));
+                const hasValidImage = Boolean(
+                  producto.imagen && 
+                  typeof producto.imagen === 'string' && 
+                  (producto.imagen.startsWith('http') || producto.imagen.startsWith('/') || producto.imagen.startsWith('data:'))
+                );
+
+                const imageSrc = producto.imagen && (producto.imagen.startsWith('http') || producto.imagen.startsWith('data:'))
+                  ? producto.imagen
+                  : `${typeof window !== 'undefined' ? window.location.origin : ''}${producto.imagen && producto.imagen.startsWith('/') ? '' : '/'}${producto.imagen || ''}`;
 
                 return (
                   <div
@@ -402,7 +426,7 @@ export default function ProductosCatalogo({
                       <div className="relative bg-neutral-850 overflow-hidden">
                         {hasValidImage ? (
                           <img
-                            src={producto.imagen.startsWith('http') ? producto.imagen : `${typeof window !== 'undefined' ? window.location.origin : ''}${producto.imagen}`}
+                            src={imageSrc}
                             alt={producto.nombre}
                             className="w-full h-36 sm:h-40 md:h-44 object-cover transition-transform duration-500 group-hover:scale-105 cursor-pointer border-b border-neutral-700/80"
                             onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
@@ -500,7 +524,15 @@ export default function ProductosCatalogo({
             <div className="space-y-4">
               {productosFiltrados.map((producto) => {
                 const isOwnerAgricultor = session?.user?.role === 'CAMPESINO' && !!miAgricultorId && !!producto.agricultorId && String(miAgricultorId) === String(producto.agricultorId);
-                const hasValidImage = producto.imagen && (producto.imagen.startsWith('http') || producto.imagen.startsWith('/'));
+                const hasValidImage = Boolean(
+                  producto.imagen && 
+                  typeof producto.imagen === 'string' && 
+                  (producto.imagen.startsWith('http') || producto.imagen.startsWith('/') || producto.imagen.startsWith('data:'))
+                );
+
+                const imageSrc = producto.imagen && (producto.imagen.startsWith('http') || producto.imagen.startsWith('data:'))
+                  ? producto.imagen
+                  : `${typeof window !== 'undefined' ? window.location.origin : ''}${producto.imagen && producto.imagen.startsWith('/') ? '' : '/'}${producto.imagen || ''}`;
 
                 return (
                   <div
@@ -510,7 +542,7 @@ export default function ProductosCatalogo({
                     <div className="relative w-full md:w-48 h-40 flex-shrink-0 rounded-xl overflow-hidden bg-neutral-850">
                       {hasValidImage ? (
                         <img
-                          src={producto.imagen.startsWith('http') ? producto.imagen : `${typeof window !== 'undefined' ? window.location.origin : ''}${producto.imagen}`}
+                          src={imageSrc}
                           alt={producto.nombre}
                           className="w-full h-full object-cover cursor-pointer"
                           onClick={() => abrirDetalle(producto)}
