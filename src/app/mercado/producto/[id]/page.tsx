@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { MapPin, User, ArrowLeft, ShoppingCart, ChevronLeft, ChevronRight, Heart, ShieldCheck, Sprout, Package, Clock, CheckCircle2 } from "lucide-react";
+import { MapPin, User, ArrowLeft, ShoppingCart, ChevronLeft, ChevronRight, Heart, ShieldCheck, Sprout, Package, Clock, CheckCircle2, Image as ImageIcon } from "lucide-react";
 import { useCartStore } from "@/store/cart";
 import { useSession } from "next-auth/react";
 
