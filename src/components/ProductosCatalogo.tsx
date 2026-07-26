@@ -1,9 +1,10 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { Heart, MapPin, User, X, ShoppingCart, Package, Sprout, Sparkles, PackageSearch, CheckCircle2 } from 'lucide-react';
+import { Heart, MapPin, User, X, ShoppingCart, Package, Sprout, Sparkles, PackageSearch, CheckCircle2, Plus, Clock } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useCartStore } from '@/store/cart';
 import { useRouter } from 'next/navigation';
+import ProductoDetalleModal from '@/components/ProductoDetalleModal';
 
 interface PurchaseUnit {
   unit: string;
@@ -419,24 +420,21 @@ export default function ProductosCatalogo({
                 return (
                   <div
                     key={producto.id}
-                    className="bg-neutral-800/90 rounded-xl border border-neutral-700/80 hover:border-lime-500/60 transition-all duration-300 overflow-hidden group flex flex-col justify-between shadow-lg"
+                    className="bg-neutral-850 hover:bg-neutral-800 rounded-xl border border-neutral-750/80 hover:border-lime-500/50 transition-all duration-300 overflow-hidden group flex flex-col justify-between shadow-md cursor-pointer"
+                    onClick={() => abrirDetalle(producto)}
                   >
                     <div>
                       {/* Imagen con fallback limpio vectorizado */}
-                      <div className="relative bg-neutral-850 overflow-hidden">
+                      <div className="relative bg-neutral-900 overflow-hidden">
                         {hasValidImage ? (
                           <img
                             src={imageSrc}
                             alt={producto.nombre}
-                            className="w-full h-28 sm:h-40 md:h-44 object-cover transition-transform duration-500 group-hover:scale-105 cursor-pointer border-b border-neutral-700/80"
+                            className="w-full h-32 sm:h-40 md:h-44 object-cover transition-transform duration-500 group-hover:scale-105 border-b border-neutral-800"
                             onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                            onClick={() => abrirDetalle(producto)}
                           />
                         ) : (
-                          <div 
-                            className="w-full h-28 sm:h-40 md:h-44 bg-gradient-to-br from-neutral-800 to-neutral-750 flex flex-col items-center justify-center border-b border-neutral-700/80 cursor-pointer group-hover:from-neutral-750 group-hover:to-neutral-700 transition-colors"
-                            onClick={() => abrirDetalle(producto)}
-                          >
+                          <div className="w-full h-32 sm:h-40 md:h-44 bg-gradient-to-br from-neutral-900 to-neutral-800 flex flex-col items-center justify-center border-b border-neutral-800">
                             <div className="p-2 sm:p-3 rounded-xl bg-lime-500/10 border border-lime-500/20 text-lime-400 mb-1">
                               <Sprout className="w-5 h-5 sm:w-7 sm:h-7" />
                             </div>
@@ -445,74 +443,63 @@ export default function ProductosCatalogo({
                         )}
 
                         <button
-                          onClick={() => toggleFavorite(producto.id)}
-                          className={`absolute top-2 right-2 sm:top-3 sm:right-3 p-1.5 sm:p-2.5 rounded-lg sm:rounded-xl transition-all shadow-md ${
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); toggleFavorite(producto.id); }}
+                          className={`absolute top-2 right-2 p-1.5 rounded-full transition-all shadow-md ${
                             producto.isFavorite
                               ? 'bg-red-600 text-white hover:bg-red-700'
                               : 'bg-neutral-900/80 backdrop-blur-md text-neutral-300 hover:text-red-400 border border-neutral-700/60'
                           }`}
                         >
-                          <Heart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${producto.isFavorite ? 'fill-current' : ''}`} />
+                          <Heart className={`w-3.5 h-3.5 ${producto.isFavorite ? 'fill-current' : ''}`} />
                         </button>
                       </div>
 
                       {/* Contenido del Producto */}
-                      <div className="p-2.5 sm:p-4 space-y-1.5 sm:space-y-3">
-                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-0.5 sm:gap-2">
-                          <div className="flex-1 min-w-0">
-                            <h3 
-                              className="text-xs sm:text-base font-bold text-neutral-100 hover:text-lime-400 transition-colors cursor-pointer truncate"
-                              onClick={() => abrirDetalle(producto)}
-                              title={producto.nombre}
-                            >
-                              {producto.nombre}
-                            </h3>
-                          </div>
-                          <div className="text-left sm:text-right flex-shrink-0">
-                            <div className="text-sm sm:text-lg font-extrabold text-lime-400">
-                              {formatearPrecio(producto.precio)}
-                            </div>
-                            <div className="text-[10px] sm:text-[11px] text-neutral-400 font-medium">por {producto.unidad}</div>
-                          </div>
+                      <div className="p-3 space-y-1.5">
+                        {/* Insignia de Unidad (Pill) */}
+                        <div>
+                          <span className="inline-block bg-lime-500/10 border border-lime-500/20 text-lime-400 font-bold text-[10px] sm:text-xs px-2 py-0.5 rounded-md uppercase tracking-wide">
+                            {producto.unidad}
+                          </span>
                         </div>
 
-                        <p className="text-neutral-300 text-[11px] sm:text-xs leading-tight sm:leading-relaxed line-clamp-1 sm:line-clamp-2">
-                          {producto.descripcion}
-                        </p>
+                        {/* Nombre del Producto */}
+                        <h3 
+                          className="text-xs sm:text-sm font-bold text-white group-hover:text-lime-400 transition-colors line-clamp-1"
+                          title={producto.nombre}
+                        >
+                          {producto.nombre}
+                        </h3>
 
-                        {/* Presentaciones */}
-                        {producto.purchaseUnits && producto.purchaseUnits.length > 0 && (
-                          <div className="pt-0.5">
-                            <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs bg-lime-500/10 text-lime-400 border border-lime-500/20 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full font-medium">
-                              <Package className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                              <span>{producto.purchaseUnits.length + 1} pres.</span>
-                            </span>
-                          </div>
-                        )}
-
-                        {/* Datos de Origen y Agricultor */}
-                        <div className="pt-2 sm:pt-3 border-t border-neutral-800 space-y-1">
-                          <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-neutral-200">
-                            <User className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-lime-500 flex-shrink-0" />
-                            <span className="font-semibold truncate">{producto.agricultor}</span>
-                          </div>
-                          <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-neutral-400">
-                            <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-orange-400 flex-shrink-0" />
-                            <span className="truncate">{producto.ubicacion}</span>
-                          </div>
+                        {/* Sub-info: Tiempo de Entrega u Opciones */}
+                        <div className="flex items-center gap-1 text-[10px] text-neutral-400 font-medium pt-0.5">
+                          <Clock className="w-3 h-3 text-neutral-500 flex-shrink-0" />
+                          <span>Entrega rápida</span>
+                          {producto.purchaseUnits && producto.purchaseUnits.length > 0 && (
+                            <span className="ml-1 text-lime-400 font-semibold">• {producto.purchaseUnits.length + 1} ops</span>
+                          )}
                         </div>
                       </div>
                     </div>
 
-                    {/* Acciones */}
-                    <div className="p-2.5 sm:p-4 pt-0">
+                    {/* Fila Inferior: Precio + Botón Agregar (+) */}
+                    <div className="p-3 pt-0 flex items-center justify-between gap-2 mt-1">
+                      <div>
+                        <span className="text-sm sm:text-base font-extrabold text-lime-400 block leading-none">
+                          {formatearPrecio(producto.precio)}
+                        </span>
+                        <span className="text-[9px] sm:text-[10px] text-neutral-400 font-medium">por {producto.unidad}</span>
+                      </div>
+
                       {!(session?.user?.role === 'CAMPESINO' && miAgricultorId === undefined) && !isOwnerAgricultor && (
                         <button
-                          className="w-full bg-gradient-to-r from-lime-600 to-lime-500 hover:from-lime-500 hover:to-lime-600 text-white font-bold py-2 sm:py-2.5 px-2 sm:px-4 rounded-xl transition-all shadow-lg shadow-lime-900/30 flex items-center justify-center gap-1.5 text-xs sm:text-sm cursor-pointer"
-                          onClick={() => handleAddToCart(producto)}
+                          type="button"
+                          className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-lime-500 hover:bg-lime-400 text-neutral-950 font-black flex items-center justify-center transition-all shadow-md shadow-lime-950/40 cursor-pointer flex-shrink-0 active:scale-95"
+                          onClick={(e) => { e.stopPropagation(); handleAddToCart(producto); }}
+                          title="Agregar al carrito"
                         >
-                          <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                          <span>Comprar</span>
+                          <Plus className="w-5 h-5 text-neutral-950 stroke-[3]" />
                         </button>
                       )}
                     </div>
@@ -644,7 +631,40 @@ export default function ProductosCatalogo({
               No fue posible conectar con el servidor de productos.<br />
               <span className="font-semibold text-xs opacity-80">Por favor verifica tu conexión e intenta recargar la página.</span>
             </div>
-          )}
+          {/* Modal de Detalle de Producto al hacer clic en cualquier tarjeta */}
+          <ProductoDetalleModal
+            open={isModalOpen}
+            producto={selectedProduct ? {
+              id: selectedProduct.id,
+              nombre: selectedProduct.nombre,
+              descripcion: selectedProduct.descripcion,
+              precio: selectedProduct.precio,
+              unidad: selectedProduct.unidad,
+              categoria: selectedProduct.categoria,
+              agricultor: selectedProduct.agricultor,
+              agricultorId: selectedProduct.agricultorId,
+              ubicacion: selectedProduct.ubicacion,
+              imagen: selectedProduct.imagen,
+              stock: selectedProduct.stock,
+              metodosEntrega: selectedProduct.metodosEntrega,
+              purchaseUnits: selectedProduct.purchaseUnits
+            } : null}
+            onClose={() => setIsModalOpen(false)}
+            onConfirm={(_method, qty, _preparation) => {
+              if (!selectedProduct) return;
+              cart.addItem({
+                id: selectedProduct.id,
+                nombre: selectedProduct.nombre,
+                precio: selectedProduct.precio,
+                unidad: selectedProduct.unidad,
+                imagen: selectedProduct.imagen,
+                agricultor: selectedProduct.agricultor,
+                cantidad: qty
+              });
+              setIsModalOpen(false);
+              mostrarToast(`Agregado al carrito: ${selectedProduct.nombre}`, 'bg-lime-950/80 border-lime-600/50 text-lime-400');
+            }}
+          />
         </>
       )}
     </div>
