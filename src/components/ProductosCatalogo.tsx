@@ -420,7 +420,7 @@ export default function ProductosCatalogo({
                 return (
                   <div
                     key={producto.id}
-                    className="bg-neutral-900 hover:bg-neutral-850 rounded-xl border border-neutral-850/80 hover:border-neutral-800 transition-all duration-300 overflow-hidden group flex flex-col justify-between shadow-lg cursor-pointer"
+                    className="bg-neutral-900 hover:bg-neutral-800/80 rounded-xl border border-neutral-800/60 hover:border-neutral-700/60 transition-all duration-300 overflow-hidden group flex flex-col justify-between shadow-lg cursor-pointer"
                     onClick={() => abrirDetalle(producto)}
                   >
                     <div>
@@ -525,7 +525,7 @@ export default function ProductosCatalogo({
                 return (
                   <div
                     key={producto.id}
-                    className="bg-neutral-900 hover:bg-neutral-850 rounded-xl border border-neutral-850/80 transition-colors overflow-hidden p-4 flex flex-col md:flex-row gap-4 cursor-pointer"
+                    className="bg-neutral-900 hover:bg-neutral-800/80 rounded-xl border border-neutral-800/60 transition-colors overflow-hidden p-4 flex flex-col md:flex-row gap-4 cursor-pointer"
                     onClick={() => abrirDetalle(producto)}
                   >
                     <div className="relative w-full md:w-48 h-40 flex-shrink-0 rounded-xl overflow-hidden bg-neutral-850">
