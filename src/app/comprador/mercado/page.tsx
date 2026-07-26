@@ -141,10 +141,10 @@ export default function MercadoCompradorPage() {
                     <button
                       key={categoria.id}
                       onClick={() => setFiltroCategoria(categoria.id)}
-                      className={`w-full text-left px-3.5 py-2.5 rounded-xl text-sm font-medium border transition-all ${
+                      className={`w-full text-left px-3.5 py-2.5 rounded-xl text-sm font-medium border transition-all cursor-pointer ${
                         filtroCategoria === categoria.id
-                          ? 'bg-lime-600/20 text-lime-400 border-lime-500/60 font-semibold'
-                          : 'bg-neutral-800/60 text-neutral-300 border-neutral-700/60 hover:bg-neutral-800'
+                          ? 'bg-gradient-to-r from-lime-600 to-lime-500 text-neutral-950 font-extrabold border-lime-500 shadow-md shadow-lime-950/40'
+                          : 'bg-neutral-800/60 text-neutral-300 border-neutral-700/60 hover:bg-neutral-800 hover:text-white'
                       }`}
                     >
                       {categoria.nombre}
@@ -237,10 +237,10 @@ export default function MercadoCompradorPage() {
                       <button
                         key={categoria.id}
                         onClick={() => setFiltroCategoria(categoria.id)}
-                        className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium border ${
+                        className={`w-full text-left px-3.5 py-2.5 rounded-xl text-sm font-medium border transition-all cursor-pointer ${
                           filtroCategoria === categoria.id
-                            ? 'bg-green-600 text-white border-green-600'
-                            : 'bg-neutral-800 text-neutral-200 border-neutral-700 hover:bg-neutral-700'
+                            ? 'bg-gradient-to-r from-lime-600 to-lime-500 text-neutral-950 font-extrabold border-lime-500 shadow-md shadow-lime-950/40'
+                            : 'bg-neutral-800/60 text-neutral-300 border-neutral-700/60 hover:bg-neutral-800 hover:text-white'
                         }`}
                       >
                         {categoria.nombre}

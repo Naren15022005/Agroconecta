@@ -146,7 +146,7 @@ export default function MercadoPage() {
                       onClick={() => setFiltroCategoria(categoria.id)}
                       className={`w-full text-left px-3.5 py-2.5 rounded-xl text-sm font-medium border transition-all cursor-pointer ${
                         filtroCategoria === categoria.id
-                          ? 'bg-lime-600/20 text-lime-400 border-lime-500/60 font-semibold'
+                          ? 'bg-gradient-to-r from-lime-600 to-lime-500 text-neutral-950 font-extrabold border-lime-500 shadow-md shadow-lime-950/40'
                           : 'bg-neutral-800/60 text-neutral-300 border-neutral-700/60 hover:bg-neutral-800 hover:text-white'
                       }`}
                     >
@@ -248,7 +248,7 @@ export default function MercadoPage() {
                         onClick={() => setFiltroCategoria(categoria.id)}
                         className={`w-full text-left px-3.5 py-2.5 rounded-xl text-sm font-medium border transition-all cursor-pointer ${
                           filtroCategoria === categoria.id
-                            ? 'bg-lime-600/20 text-lime-400 border-lime-500/60 font-semibold'
+                            ? 'bg-gradient-to-r from-lime-600 to-lime-500 text-neutral-950 font-extrabold border-lime-500 shadow-md shadow-lime-950/40'
                             : 'bg-neutral-800/60 text-neutral-300 border-neutral-700/60 hover:bg-neutral-800 hover:text-white'
                         }`}
                       >
