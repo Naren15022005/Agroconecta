@@ -361,8 +361,7 @@ export default function ProductosCatalogo({
   };
 
   const abrirDetalle = (producto: Producto) => {
-    setSelectedProduct(producto);
-    setIsModalOpen(true);
+    router.push(`/mercado/producto/${producto.id}`);
   };
 
   const handleAddToCart = (producto: Producto) => {
@@ -631,40 +630,6 @@ export default function ProductosCatalogo({
               <span className="font-semibold text-xs opacity-80">Por favor verifica tu conexión e intenta recargar la página.</span>
             </div>
           )}
-          {/* Modal de Detalle de Producto al hacer clic en cualquier tarjeta */}
-          <ProductoDetalleModal
-            open={isModalOpen}
-            producto={selectedProduct ? {
-              id: selectedProduct.id,
-              nombre: selectedProduct.nombre,
-              descripcion: selectedProduct.descripcion,
-              precio: selectedProduct.precio,
-              unidad: selectedProduct.unidad,
-              categoria: selectedProduct.categoria,
-              agricultor: selectedProduct.agricultor,
-              agricultorId: selectedProduct.agricultorId,
-              ubicacion: selectedProduct.ubicacion,
-              imagen: selectedProduct.imagen,
-              stock: selectedProduct.stock,
-              metodosEntrega: selectedProduct.metodosEntrega,
-              purchaseUnits: selectedProduct.purchaseUnits
-            } : null}
-            onClose={() => setIsModalOpen(false)}
-            onConfirm={(_method, qty, _preparation) => {
-              if (!selectedProduct) return;
-              cart.addItem({
-                id: selectedProduct.id,
-                nombre: selectedProduct.nombre,
-                precio: selectedProduct.precio,
-                unidad: selectedProduct.unidad,
-                imagen: selectedProduct.imagen,
-                agricultor: selectedProduct.agricultor,
-                cantidad: qty
-              });
-              setIsModalOpen(false);
-              mostrarToast(`Agregado al carrito: ${selectedProduct.nombre}`, 'bg-lime-950/80 border-lime-600/50 text-lime-400');
-            }}
-          />
         </>
       )}
     </div>

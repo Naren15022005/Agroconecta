@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { db } from "@/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 export async function GET(
   _req: NextRequest,
@@ -9,23 +11,39 @@ export async function GET(
 ) {
   try {
     const { id: productId } = await params;
-    const producto = await prisma.product.findUnique({
-      where: { id: productId },
-      include: {
-        category: { select: { id: true, name: true } },
-        agricultor: {
-          select: {
-            id: true,
-            user_id: true,
-            user: { select: { nombre: true } }
+    
+    // Intento 1: Prisma DB
+    try {
+      const producto = await prisma.product.findUnique({
+        where: { id: productId },
+        include: {
+          category: { select: { id: true, name: true } },
+          agricultor: {
+            select: {
+              id: true,
+              user_id: true,
+              user: { select: { nombre: true } }
+            }
           }
         }
+      });
+      if (producto) {
+        return NextResponse.json(producto);
       }
-    });
-    if (!producto) {
-      return NextResponse.json({ error: "Producto no encontrado" }, { status: 404 });
+    } catch (e) {
+      console.warn('[API productos/[id]] Prisma no disponible, buscando en Firebase Cloud Firestore...');
     }
-    return NextResponse.json(producto);
+
+    // Intento 2: Fallback a Firebase Cloud Firestore
+    const docRef = doc(db, "products", productId);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      const fbData = { id: docSnap.id, ...docSnap.data() };
+      return NextResponse.json(fbData, { status: 200 });
+    }
+
+    return NextResponse.json({ error: "Producto no encontrado" }, { status: 404 });
+
   } catch (error) {
     return NextResponse.json({ error: "Error interno del servidor", details: error instanceof Error ? error.message : 'Error desconocido' }, { status: 500 });
   }
@@ -130,17 +148,16 @@ export async function PUT(
       fechaCosechaDate = new Date(fechaCosecha);
     }
 
-    // Procesar tipo de cultivo - convertir a mayúsculas para que coincida con el enum
-    let tipoCultivoProcessed = 'CONVENCIONAL'; // valor por defecto
+    // Procesar tipo de cultivo
+    let tipoCultivoProcessed = 'CONVENCIONAL';
     if (tipoCultivo) {
       tipoCultivoProcessed = tipoCultivo.toUpperCase();
-      // Validar que sea un valor válido del enum
       if (!['ORGANICO', 'CONVENCIONAL'].includes(tipoCultivoProcessed)) {
-        tipoCultivoProcessed = 'CONVENCIONAL'; // fallback al valor por defecto
+        tipoCultivoProcessed = 'CONVENCIONAL';
       }
     }
 
-    // Actualizar el producto con todos los campos
+    // Actualizar el producto
     const productoActualizado = await prisma.product.update({
       where: { id: productId },
       data: {
@@ -152,7 +169,6 @@ export async function PUT(
         categoryId,
         imageUrl: imageUrl || null,
         status: status || 'DISPONIBLE',
-        // Campos extendidos
         fechaCosecha: fechaCosechaDate,
         tiempoEntrega: tiempoEntrega || null,
         stockMinimo: stockMinimo ? parseInt(stockMinimo) : null,
