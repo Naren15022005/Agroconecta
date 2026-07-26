@@ -308,18 +308,6 @@ export default function PublicarPage() {
           </button>
         </div>
 
-        {/* Indicador Móvil Elegante de Paso Actual */}
-        <div className="sm:hidden flex items-center justify-between px-3.5 py-2.5 bg-neutral-900/90 border border-neutral-800 rounded-xl text-xs backdrop-blur-sm shadow-md">
-          <div className="flex items-center gap-2">
-            <span className="w-5 h-5 rounded-full bg-lime-500/20 text-lime-400 flex items-center justify-center text-xs font-black">
-              {currentStep}
-            </span>
-            <span className="font-bold text-white text-xs">{stepsMeta[currentStep - 1].title}</span>
-          </div>
-          <span className="text-[11px] font-semibold text-neutral-400 bg-neutral-950 px-2 py-0.5 rounded-md border border-neutral-800">
-            {currentStep} / 4
-          </span>
-        </div>
 
         {/* Formulario en Pasos (Móvil muestra 1 paso por tarjeta, Escritorio muestra todo continuo) */}
         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
