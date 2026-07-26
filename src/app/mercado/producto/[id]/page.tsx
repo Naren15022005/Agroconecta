@@ -420,44 +420,40 @@ export default function ProductoDetallePage() {
 
               {/* Opciones de Compra / Empaque */}
               {purchaseUnits.length > 0 && (
-                <div className="space-y-3 pt-2">
+                <div className="space-y-2 pt-2">
                   <div className="flex items-center justify-between">
                     <label className="text-xs font-bold text-neutral-200 uppercase tracking-wider flex items-center gap-1.5">
                       <Package className="w-4 h-4 text-lime-400" /> Opciones de Presentación
                     </label>
-                    <span className="text-[11px] text-neutral-400 font-medium">Selecciona una presentación</span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                     {/* Opción Base */}
                     <button
                       type="button"
                       onClick={() => setSelectedPurchaseUnit(null)}
-                      className={`relative rounded-xl border text-left transition-all cursor-pointer overflow-hidden group flex flex-col justify-between ${
+                      className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between gap-3 ${
                         !selectedPurchaseUnit
-                          ? 'bg-lime-500/10 border-lime-500 text-lime-400 ring-2 ring-lime-500/50 shadow-lg shadow-lime-950/40'
-                          : 'bg-neutral-900 border-neutral-800 text-neutral-300 hover:bg-neutral-850 hover:border-neutral-700'
+                          ? 'bg-lime-500/10 border-lime-500 text-lime-400 ring-1 ring-lime-500/50 shadow-md shadow-lime-950/30'
+                          : 'bg-neutral-900 border-neutral-800 text-neutral-300 hover:bg-neutral-850 hover:border-neutral-750'
                       }`}
                     >
-                      <div className="p-3.5 space-y-1">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-extrabold uppercase tracking-wider text-white">
-                            {producto.unit}
-                          </span>
-                          {!selectedPurchaseUnit && (
-                            <CheckCircle2 className="w-4 h-4 text-lime-400 fill-lime-500/20" />
-                          )}
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${!selectedPurchaseUnit ? 'bg-lime-500/20 text-lime-400' : 'bg-neutral-800 text-neutral-400'}`}>
+                          <Package className="w-4.5 h-4.5" />
                         </div>
-                        <div className="text-base font-extrabold text-lime-400">
-                          {formatearPrecio(producto.price)}
+                        <div className="min-w-0">
+                          <div className="text-xs font-bold text-white uppercase truncate">{producto.unit}</div>
+                          <div className="text-[10px] text-neutral-400 font-medium truncate">Unidad base</div>
                         </div>
-                        <div className="text-[10px] text-neutral-400 font-semibold">
-                          Unidad base
-                        </div>
+                      </div>
+
+                      <div className="text-right flex-shrink-0">
+                        <div className="text-xs sm:text-sm font-extrabold text-lime-400">{formatearPrecio(producto.price)}</div>
                       </div>
                     </button>
 
-                    {/* Opciones de Empaque / Presentaciones Adicionales */}
+                    {/* Opciones Adicionales */}
                     {purchaseUnits.map((pu: any, idx: number) => {
                       const p = pu.price != null ? pu.price : producto.price * pu.equivalencia;
                       const isSel = selectedPurchaseUnit?.unit === pu.unit;
@@ -466,41 +462,30 @@ export default function ProductoDetallePage() {
                           key={idx}
                           type="button"
                           onClick={() => setSelectedPurchaseUnit(pu)}
-                          className={`relative rounded-xl border text-left transition-all cursor-pointer overflow-hidden group flex flex-col justify-between ${
+                          className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between gap-3 ${
                             isSel
-                              ? 'bg-lime-500/10 border-lime-500 text-lime-400 ring-2 ring-lime-500/50 shadow-lg shadow-lime-950/40'
-                              : 'bg-neutral-900 border-neutral-800 text-neutral-300 hover:bg-neutral-850 hover:border-neutral-700'
+                              ? 'bg-lime-500/10 border-lime-500 text-lime-400 ring-1 ring-lime-500/50 shadow-md shadow-lime-950/30'
+                              : 'bg-neutral-900 border-neutral-800 text-neutral-300 hover:bg-neutral-850 hover:border-neutral-750'
                           }`}
                         >
-                          {/* Foto del empaque si existe */}
-                          {pu.imagen ? (
-                            <div className="relative w-full h-24 bg-neutral-950 overflow-hidden border-b border-neutral-800">
-                              <img
-                                src={pu.imagen}
-                                alt={pu.unit}
-                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                              />
-                              <span className="absolute top-2 right-2 bg-neutral-950/80 backdrop-blur-md px-1.5 py-0.5 rounded text-[10px] font-bold text-lime-400 border border-neutral-700">
-                                {pu.equivalencia} {producto.unit}
-                              </span>
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            {pu.imagen ? (
+                              <div className="w-9 h-9 rounded-lg overflow-hidden bg-neutral-950 border border-neutral-750 flex-shrink-0">
+                                <img src={pu.imagen} alt={pu.unit} className="w-full h-full object-cover" />
+                              </div>
+                            ) : (
+                              <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${isSel ? 'bg-lime-500/20 text-lime-400' : 'bg-neutral-800 text-neutral-400'}`}>
+                                <Package className="w-4.5 h-4.5" />
+                              </div>
+                            )}
+                            <div className="min-w-0">
+                              <div className="text-xs font-bold text-white uppercase truncate">{pu.unit}</div>
+                              <div className="text-[10px] text-neutral-400 font-medium truncate">{pu.equivalencia} {producto.unit}</div>
                             </div>
-                          ) : null}
+                          </div>
 
-                          <div className="p-3.5 space-y-1">
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs font-extrabold uppercase tracking-wider text-white">
-                                {pu.unit}
-                              </span>
-                              {isSel && (
-                                <CheckCircle2 className="w-4 h-4 text-lime-400 fill-lime-500/20" />
-                              )}
-                            </div>
-                            <div className="text-base font-extrabold text-lime-400">
-                              {formatearPrecio(p)}
-                            </div>
-                            <div className="text-[10px] text-neutral-400 font-semibold">
-                              Equivale a {pu.equivalencia} {producto.unit}
-                            </div>
+                          <div className="text-right flex-shrink-0">
+                            <div className="text-xs sm:text-sm font-extrabold text-lime-400">{formatearPrecio(p)}</div>
                           </div>
                         </button>
                       );
