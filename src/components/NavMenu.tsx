@@ -12,15 +12,17 @@ import {
   X,
   LogOut,
   Wallet,
-  ShoppingCart
+  ShoppingCart,
+  LogIn,
+  UserPlus
 } from 'lucide-react';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { signOut, useSession } from 'next-auth/react';
 import BrandIcon from './BrandIcon';
 import { useCartStore } from '@/store/cart';
 import CartSidebar from './CartSidebar';
 
-const menu = [
+const farmerMenu = [
   { href: '/agricultor/mercado', label: 'Mercado', icon: Store },
   { href: '/agricultor/mis-productos', label: 'Mis productos', icon: Package },
   { href: '/agricultor/publicar', label: 'Publicar', icon: Plus },
@@ -33,11 +35,14 @@ const menu = [
 export default function NavMenu({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [pedidosNuevos, setPedidosNuevos] = useState(0);
 
   const cart = useCartStore();
   const totalItems = useCartStore(state => state.getTotalItems());
+
+  const isAuthenticated = status === 'authenticated' && !!session;
+  const isCampesino = session?.user?.role === 'CAMPESINO' || session?.user?.role === 'ADMINISTRADOR';
 
   // Cerrar sidebar al presionar la tecla ESC
   useEffect(() => {
@@ -49,6 +54,8 @@ export default function NavMenu({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
+    if (!isAuthenticated || !isCampesino) return;
+
     const fetchPedidosNuevos = async () => {
       try {
         const res = await fetch('/api/agricultor/pedidos');
@@ -67,7 +74,7 @@ export default function NavMenu({ children }: { children: React.ReactNode }) {
     fetchPedidosNuevos();
     const interval = setInterval(fetchPedidosNuevos, 15000);
     return () => clearInterval(interval);
-  }, []);
+  }, [isAuthenticated, isCampesino]);
 
   const handleLogout = () => {
     signOut({ callbackUrl: '/auth/signin' });
@@ -76,17 +83,20 @@ export default function NavMenu({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative min-h-screen bg-neutral-950 text-white">
       {/* Topbar fijo */}
-      <header className={`fixed top-0 left-0 right-0 z-40 bg-neutral-900 border-b border-neutral-800 shadow-sm transform transition-transform duration-300 ${isOpen ? 'md:translate-x-64 lg:translate-x-72' : ''}`}>
+      <header className={`fixed top-0 left-0 right-0 z-40 bg-neutral-900 border-b border-neutral-800 shadow-sm transform transition-transform duration-300 ${isOpen && isAuthenticated && isCampesino ? 'md:translate-x-64 lg:translate-x-72' : ''}`}>
         <div className="flex items-center justify-between h-16 px-4">
           {/* Toggle sidebar + Logo */}
           <div className="flex items-center space-x-4">
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="p-2 hover:bg-neutral-800 rounded-lg transition-colors cursor-pointer text-white"
-              aria-label="Abrir menú"
-            >
-              <Menu className="w-6 h-6 text-white" />
-            </button>
+            {/* Solo mostrar botón Hamburguesa si el usuario ESTÁ autenticado y es Agricultor / Admin */}
+            {isAuthenticated && isCampesino && (
+              <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="p-2 hover:bg-neutral-800 rounded-lg transition-colors cursor-pointer text-white"
+                aria-label="Abrir menú"
+              >
+                <Menu className="w-6 h-6 text-white" />
+              </button>
+            )}
             
             <Link href="/" className="flex items-center gap-3 group text-white hover:text-white no-underline">
               <div className="relative">
@@ -102,14 +112,33 @@ export default function NavMenu({ children }: { children: React.ReactNode }) {
             </Link>
           </div>
 
-          {/* Información del usuario + Carrito de compras en esquina derecha */}
-          <div className="flex items-center space-x-2">
-            <div className="flex items-center space-x-2 text-neutral-100 bg-neutral-800/60 hover:bg-neutral-800 px-3.5 py-1.5 rounded-full transition-all">
-              <User className="w-4 h-4 text-lime-400" />
-              <span className="hidden sm:block font-medium text-xs text-white">{session?.user?.name || 'Usuario'}</span>
-            </div>
+          {/* Información del usuario / Botones de Autenticación */}
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            {isAuthenticated ? (
+              <div className="flex items-center space-x-2 text-neutral-100 bg-neutral-800/60 hover:bg-neutral-800 px-3.5 py-1.5 rounded-full transition-all border border-neutral-750">
+                <User className="w-4 h-4 text-lime-400" />
+                <span className="hidden sm:block font-semibold text-xs text-white">{session?.user?.name || 'Usuario'}</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/auth/signin"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-200 hover:text-white bg-neutral-800 hover:bg-neutral-750 px-3 py-1.5 rounded-xl border border-neutral-700 transition"
+                >
+                  <LogIn className="w-3.5 h-3.5 text-lime-400" />
+                  <span>Iniciar Sesión</span>
+                </Link>
+                <Link
+                  href="/auth/signup"
+                  className="hidden xs:inline-flex items-center gap-1.5 text-xs font-extrabold text-neutral-950 bg-gradient-to-r from-lime-500 to-lime-400 hover:from-lime-400 hover:to-lime-300 px-3 py-1.5 rounded-xl transition shadow-sm"
+                >
+                  <UserPlus className="w-3.5 h-3.5 text-neutral-950" />
+                  <span>Registrarse</span>
+                </Link>
+              </div>
+            )}
 
-            {/* Botón Carrito de Compras en Esquina Derecha sin borde */}
+            {/* Botón Carrito de Compras en Esquina Derecha */}
             <button
               id="cart-sidebar-btn"
               onClick={() => cart.toggleCart()}
@@ -127,8 +156,8 @@ export default function NavMenu({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      {/* Overlay/Backdrop oscuro para cerrar el sidebar al hacer click o tap fuera */}
-      {isOpen && (
+      {/* Overlay/Backdrop oscuro para cerrar el sidebar */}
+      {isOpen && isAuthenticated && isCampesino && (
         <div 
           className="fixed inset-0 z-45 bg-black/60 backdrop-blur-xs transition-opacity"
           onClick={() => setIsOpen(false)}
@@ -136,80 +165,82 @@ export default function NavMenu({ children }: { children: React.ReactNode }) {
         />
       )}
 
-      {/* Sidebar de Navegación del Agricultor */}
-      <nav className={`
-        fixed top-0 left-0 z-50
-        w-64 md:w-72 bg-neutral-900 border-r border-neutral-800 shadow-2xl
-        transform transition-transform duration-300 ease-in-out
-        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-        flex flex-col
-        h-screen
-      `}>
-        {/* Header del sidebar */}
-        <div className="p-4 border-b border-neutral-800 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-white">Navegación</h2>
-          <button
-            onClick={() => setIsOpen(false)}
-            className="p-1 hover:bg-neutral-800 rounded-lg transition-colors cursor-pointer text-white"
-            aria-label="Cerrar menú"
-          >
-            <X className="w-5 h-5 text-white" />
-          </button>
-        </div>
+      {/* Sidebar de Navegación del Agricultor (Sólo si está autenticado) */}
+      {isAuthenticated && isCampesino && (
+        <nav className={`
+          fixed top-0 left-0 z-50
+          w-64 md:w-72 bg-neutral-900 border-r border-neutral-800 shadow-2xl
+          transform transition-transform duration-300 ease-in-out
+          ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+          flex flex-col
+          h-screen
+        `}>
+          {/* Header del sidebar */}
+          <div className="p-4 border-b border-neutral-800 flex items-center justify-between">
+            <h2 className="text-lg font-bold text-white">Navegación</h2>
+            <button
+              onClick={() => setIsOpen(false)}
+              className="p-1 hover:bg-neutral-800 rounded-lg transition-colors cursor-pointer text-white"
+              aria-label="Cerrar menú"
+            >
+              <X className="w-5 h-5 text-white" />
+            </button>
+          </div>
 
-        {/* Links del sidebar con tipografía blanca garantizada */}
-        <div className="flex-1 p-4 space-y-2 overflow-y-auto">
-          {menu.map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.href;
-            const esPedidos = item.href === '/agricultor/pedidos';
+          {/* Links del sidebar */}
+          <div className="flex-1 p-4 space-y-2 overflow-y-auto">
+            {farmerMenu.map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href;
+              const esPedidos = item.href === '/agricultor/pedidos';
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setIsOpen(false)}
-                className={`
-                  flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 group no-underline
-                  ${isActive 
-                    ? 'bg-neutral-800 text-white font-semibold shadow-lg shadow-black/30 border border-neutral-700' 
-                    : 'text-white hover:bg-neutral-800/80 hover:text-white'
-                  }
-                `}
-              >
-                <div className="flex items-center space-x-3">
-                  <Icon className={`w-5 h-5 transition-colors ${
-                    isActive ? 'text-lime-400' : 'text-neutral-300 group-hover:text-white'
-                  }`} />
-                  <span className="text-white font-medium text-sm group-hover:text-white">{item.label}</span>
-                </div>
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setIsOpen(false)}
+                  className={`
+                    flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 group no-underline
+                    ${isActive 
+                      ? 'bg-neutral-800 text-white font-semibold shadow-lg shadow-black/30 border border-neutral-700' 
+                      : 'text-white hover:bg-neutral-800/80 hover:text-white'
+                    }
+                  `}
+                >
+                  <div className="flex items-center space-x-3">
+                    <Icon className={`w-5 h-5 transition-colors ${
+                      isActive ? 'text-lime-400' : 'text-neutral-300 group-hover:text-white'
+                    }`} />
+                    <span className="text-white font-medium text-sm group-hover:text-white">{item.label}</span>
+                  </div>
 
-                {esPedidos && pedidosNuevos > 0 && (
-                  <span className="bg-lime-500 text-neutral-950 font-bold text-xs px-2 py-0.5 rounded-full animate-pulse">
-                    {pedidosNuevos}
-                  </span>
-                )}
-              </Link>
-            );
-          })}
-        </div>
+                  {esPedidos && pedidosNuevos > 0 && (
+                    <span className="bg-lime-500 text-neutral-950 font-bold text-xs px-2 py-0.5 rounded-full animate-pulse">
+                      {pedidosNuevos}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
 
-        {/* Footer del sidebar con botón de logout */}
-        <div className="p-4 border-t border-neutral-800 bg-neutral-900/90">
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center space-x-3 px-4 py-3 text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-xl transition-all duration-200 group cursor-pointer"
-          >
-            <LogOut className="w-5 h-5 text-red-400" />
-            <span className="font-medium text-sm text-red-400 group-hover:text-red-300">Cerrar Sesión</span>
-          </button>
-        </div>
-      </nav>
+          {/* Footer del sidebar con botón de logout */}
+          <div className="p-4 border-t border-neutral-800 bg-neutral-900/90">
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center space-x-3 px-4 py-3 text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-xl transition-all duration-200 group cursor-pointer"
+            >
+              <LogOut className="w-5 h-5 text-red-400" />
+              <span className="font-medium text-sm text-red-400 group-hover:text-red-300">Cerrar Sesión</span>
+            </button>
+          </div>
+        </nav>
+      )}
 
       {/* Contenido principal que se desplaza */}
       <div className={`
         transition-all duration-300 ease-in-out pt-16
-        ${isOpen ? 'md:ml-64 lg:ml-72' : 'ml-0'}
+        ${isOpen && isAuthenticated && isCampesino ? 'md:ml-64 lg:ml-72' : 'ml-0'}
       `}>
         {children}
       </div>
