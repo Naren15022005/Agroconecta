@@ -403,7 +403,7 @@ export default function ProductosCatalogo({
           )}
 
           {viewMode === 'grid' ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-5 lg:gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-2.5 sm:gap-5 lg:gap-6">
               {productosFiltrados.map((producto) => {
                 const isOwnerAgricultor = session?.user?.role === 'CAMPESINO' && !!miAgricultorId && !!producto.agricultorId && String(miAgricultorId) === String(producto.agricultorId);
                 const hasValidImage = Boolean(
@@ -428,75 +428,76 @@ export default function ProductosCatalogo({
                           <img
                             src={imageSrc}
                             alt={producto.nombre}
-                            className="w-full h-36 sm:h-40 md:h-44 object-cover transition-transform duration-500 group-hover:scale-105 cursor-pointer border-b border-neutral-700/80"
+                            className="w-full h-28 sm:h-40 md:h-44 object-cover transition-transform duration-500 group-hover:scale-105 cursor-pointer border-b border-neutral-700/80"
                             onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
                             onClick={() => abrirDetalle(producto)}
                           />
                         ) : (
                           <div 
-                            className="w-full h-36 sm:h-40 md:h-44 bg-gradient-to-br from-neutral-800 to-neutral-750 flex flex-col items-center justify-center border-b border-neutral-700/80 cursor-pointer group-hover:from-neutral-750 group-hover:to-neutral-700 transition-colors"
+                            className="w-full h-28 sm:h-40 md:h-44 bg-gradient-to-br from-neutral-800 to-neutral-750 flex flex-col items-center justify-center border-b border-neutral-700/80 cursor-pointer group-hover:from-neutral-750 group-hover:to-neutral-700 transition-colors"
                             onClick={() => abrirDetalle(producto)}
                           >
-                            <div className="p-3 rounded-xl bg-lime-500/10 border border-lime-500/20 text-lime-400 mb-1.5">
-                              <Sprout className="w-7 h-7" />
+                            <div className="p-2 sm:p-3 rounded-xl bg-lime-500/10 border border-lime-500/20 text-lime-400 mb-1">
+                              <Sprout className="w-5 h-5 sm:w-7 sm:h-7" />
                             </div>
-                            <span className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider">Producto Agrícola</span>
+                            <span className="text-[9px] sm:text-[11px] font-semibold text-neutral-400 uppercase tracking-wider">Producto Agrícola</span>
                           </div>
                         )}
 
                         <button
                           onClick={() => toggleFavorite(producto.id)}
-                          className={`absolute top-3 right-3 p-2.5 rounded-xl transition-all shadow-md ${
+                          className={`absolute top-2 right-2 sm:top-3 sm:right-3 p-1.5 sm:p-2.5 rounded-lg sm:rounded-xl transition-all shadow-md ${
                             producto.isFavorite
                               ? 'bg-red-600 text-white hover:bg-red-700'
                               : 'bg-neutral-900/80 backdrop-blur-md text-neutral-300 hover:text-red-400 border border-neutral-700/60'
                           }`}
                         >
-                          <Heart className={`w-4 h-4 ${producto.isFavorite ? 'fill-current' : ''}`} />
+                          <Heart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${producto.isFavorite ? 'fill-current' : ''}`} />
                         </button>
                       </div>
 
                       {/* Contenido del Producto */}
-                      <div className="p-4 space-y-3">
-                        <div className="flex justify-between items-start gap-2">
+                      <div className="p-2.5 sm:p-4 space-y-1.5 sm:space-y-3">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-0.5 sm:gap-2">
                           <div className="flex-1 min-w-0">
                             <h3 
-                              className="text-base font-bold text-neutral-100 hover:text-lime-400 transition-colors cursor-pointer truncate"
+                              className="text-xs sm:text-base font-bold text-neutral-100 hover:text-lime-400 transition-colors cursor-pointer truncate"
                               onClick={() => abrirDetalle(producto)}
+                              title={producto.nombre}
                             >
                               {producto.nombre}
                             </h3>
                           </div>
-                          <div className="text-right flex-shrink-0">
-                            <div className="text-lg font-extrabold text-lime-400">
+                          <div className="text-left sm:text-right flex-shrink-0">
+                            <div className="text-sm sm:text-lg font-extrabold text-lime-400">
                               {formatearPrecio(producto.precio)}
                             </div>
-                            <div className="text-[11px] text-neutral-400 font-medium">por {producto.unidad}</div>
+                            <div className="text-[10px] sm:text-[11px] text-neutral-400 font-medium">por {producto.unidad}</div>
                           </div>
                         </div>
 
-                        <p className="text-neutral-300 text-xs leading-relaxed line-clamp-2">
+                        <p className="text-neutral-300 text-[11px] sm:text-xs leading-tight sm:leading-relaxed line-clamp-1 sm:line-clamp-2">
                           {producto.descripcion}
                         </p>
 
                         {/* Presentaciones */}
                         {producto.purchaseUnits && producto.purchaseUnits.length > 0 && (
-                          <div className="pt-1">
-                            <span className="inline-flex items-center gap-1.5 text-xs bg-lime-500/10 text-lime-400 border border-lime-500/20 px-2.5 py-1 rounded-full font-medium">
-                              <Package className="w-3.5 h-3.5" />
-                              <span>{producto.purchaseUnits.length + 1} presentaciones</span>
+                          <div className="pt-0.5">
+                            <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs bg-lime-500/10 text-lime-400 border border-lime-500/20 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full font-medium">
+                              <Package className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                              <span>{producto.purchaseUnits.length + 1} pres.</span>
                             </span>
                           </div>
                         )}
 
                         {/* Datos de Origen y Agricultor */}
-                        <div className="pt-3 border-t border-neutral-800 space-y-1.5">
-                          <div className="flex items-center gap-2 text-xs text-neutral-200">
-                            <User className="w-3.5 h-3.5 text-lime-500 flex-shrink-0" />
+                        <div className="pt-2 sm:pt-3 border-t border-neutral-800 space-y-1">
+                          <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-neutral-200">
+                            <User className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-lime-500 flex-shrink-0" />
                             <span className="font-semibold truncate">{producto.agricultor}</span>
                           </div>
-                          <div className="flex items-center gap-2 text-xs text-neutral-400">
-                            <MapPin className="w-3.5 h-3.5 text-orange-400 flex-shrink-0" />
+                          <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-neutral-400">
+                            <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-orange-400 flex-shrink-0" />
                             <span className="truncate">{producto.ubicacion}</span>
                           </div>
                         </div>
@@ -504,14 +505,14 @@ export default function ProductosCatalogo({
                     </div>
 
                     {/* Acciones */}
-                    <div className="p-4 pt-0">
+                    <div className="p-2.5 sm:p-4 pt-0">
                       {!(session?.user?.role === 'CAMPESINO' && miAgricultorId === undefined) && !isOwnerAgricultor && (
                         <button
-                          className="w-full bg-gradient-to-r from-lime-600 to-lime-500 hover:from-lime-500 hover:to-lime-600 text-white font-bold py-2.5 px-4 rounded-xl transition-all shadow-lg shadow-lime-900/30 flex items-center justify-center gap-2 text-sm"
+                          className="w-full bg-gradient-to-r from-lime-600 to-lime-500 hover:from-lime-500 hover:to-lime-600 text-white font-bold py-2 sm:py-2.5 px-2 sm:px-4 rounded-xl transition-all shadow-lg shadow-lime-900/30 flex items-center justify-center gap-1.5 text-xs sm:text-sm cursor-pointer"
                           onClick={() => handleAddToCart(producto)}
                         >
-                          <ShoppingCart className="w-4 h-4" />
-                          <span>Comprar Ahora</span>
+                          <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                          <span>Comprar</span>
                         </button>
                       )}
                     </div>
