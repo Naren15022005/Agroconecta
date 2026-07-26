@@ -264,13 +264,13 @@ export default function ProductoDetallePage() {
 
   return (
     <div className="min-h-screen bg-neutral-900 text-white pb-16">
-      <div className="max-w-7xl mx-auto px-4 py-4 md:py-8 space-y-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-6 md:py-8 space-y-6 sm:space-y-8">
 
         {/* Tarjeta Principal de Detalle */}
-        <div className="bg-neutral-850 border border-neutral-800 rounded-2xl overflow-hidden shadow-2xl grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 p-4 md:p-8">
+        <div className="bg-neutral-850 border border-neutral-800 rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl grid grid-cols-1 lg:grid-cols-12 gap-5 md:gap-8 p-3.5 sm:p-6 md:p-8">
           
           {/* Galería izquierda */}
-          <div className="lg:col-span-6 flex flex-col sm:flex-row gap-4">
+          <div className="lg:col-span-6 flex flex-col sm:flex-row gap-3 sm:gap-4">
             {/* Thumbnails verticales (Escritorio / Tablet) */}
             {gallery.length > 1 && (
               <div className="hidden sm:flex flex-col gap-3 w-20 overflow-y-auto max-h-[460px] pr-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
@@ -294,13 +294,13 @@ export default function ProductoDetallePage() {
             )}
 
             {/* Visualizador de Imagen principal */}
-            <div className="flex-1 flex flex-col gap-3">
+            <div className="flex-1 flex flex-col gap-2.5 sm:gap-3">
               {(() => {
                 const currentDisplayImg = selectedPresentationImg || (gallery.length ? gallery[active] : producto.imageUrl);
                 return (
                   <div 
                     onClick={() => currentDisplayImg && setIsLightboxOpen(true)}
-                    className="relative w-full bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden group flex items-center justify-center h-[340px] sm:h-[420px] md:h-[460px] cursor-zoom-in"
+                    className="relative w-full bg-neutral-900 border border-neutral-800 rounded-xl sm:rounded-2xl overflow-hidden group flex items-center justify-center h-[260px] xs:h-[300px] sm:h-[400px] md:h-[460px] cursor-zoom-in"
                   >
                     {currentDisplayImg ? (
                       <img
@@ -317,7 +317,7 @@ export default function ProductoDetallePage() {
 
                     {/* Insignia cuando se visualiza una foto de presentación */}
                     {selectedPresentationImg && selectedPurchaseUnit && (
-                      <div className="absolute top-3 left-3 bg-neutral-950/85 backdrop-blur-md px-3 py-1.5 rounded-xl border border-lime-500/50 text-lime-400 text-xs font-extrabold flex items-center gap-1.5 shadow-lg">
+                      <div className="absolute top-2.5 left-2.5 bg-neutral-950/85 backdrop-blur-md px-2.5 py-1 rounded-lg sm:rounded-xl border border-lime-500/50 text-lime-400 text-[11px] sm:text-xs font-extrabold flex items-center gap-1.5 shadow-lg">
                         <Package className="w-3.5 h-3.5" />
                         <span>Presentación: {selectedPurchaseUnit.unit}</span>
                       </div>
@@ -330,17 +330,17 @@ export default function ProductoDetallePage() {
                           type="button"
                           onClick={(e) => { e.stopPropagation(); if (canPrev) setActive(a => Math.max(a-1, 0)); }}
                           disabled={!canPrev}
-                          className={`absolute left-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full ${canPrev ? 'bg-neutral-900/80 hover:bg-neutral-900 text-white cursor-pointer' : 'bg-neutral-900/40 text-neutral-600 cursor-not-allowed'} shadow-lg backdrop-blur-sm transition`}
+                          className={`absolute left-2.5 top-1/2 -translate-y-1/2 p-2 rounded-full ${canPrev ? 'bg-neutral-900/80 hover:bg-neutral-900 text-white cursor-pointer' : 'bg-neutral-900/40 text-neutral-600 cursor-not-allowed'} shadow-lg backdrop-blur-sm transition`}
                         >
-                          <ChevronLeft className="w-5 h-5" />
+                          <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
                         </button>
                         <button
                           type="button"
                           onClick={(e) => { e.stopPropagation(); if (canNext) setActive(a => Math.min(a+1, gallery.length-1)); }}
                           disabled={!canNext}
-                          className={`absolute right-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full ${canNext ? 'bg-neutral-900/80 hover:bg-neutral-900 text-white cursor-pointer' : 'bg-neutral-900/40 text-neutral-600 cursor-not-allowed'} shadow-lg backdrop-blur-sm transition`}
+                          className={`absolute right-2.5 top-1/2 -translate-y-1/2 p-2 rounded-full ${canNext ? 'bg-neutral-900/80 hover:bg-neutral-900 text-white cursor-pointer' : 'bg-neutral-900/40 text-neutral-600 cursor-not-allowed'} shadow-lg backdrop-blur-sm transition`}
                         >
-                          <ChevronRight className="w-5 h-5" />
+                          <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
                         </button>
                       </>
                     )}
@@ -358,7 +358,7 @@ export default function ProductoDetallePage() {
                         setActive(i);
                         setSelectedPresentationImg(null);
                       }}
-                      className={`rounded-lg overflow-hidden h-14 w-14 flex-shrink-0 transition-all ${
+                      className={`rounded-xl overflow-hidden h-14 w-14 flex-shrink-0 transition-all ${
                         i === active && !selectedPresentationImg
                           ? 'ring-2 ring-lime-500 scale-105' 
                           : 'border border-neutral-750 opacity-60'
@@ -395,19 +395,19 @@ export default function ProductoDetallePage() {
               </div>
 
               {/* Bloque de Precio */}
-              <div className="bg-neutral-900 p-4 rounded-xl border border-neutral-800 flex items-baseline justify-between">
+              <div className="bg-neutral-900 p-3.5 sm:p-4 rounded-xl border border-neutral-800 flex items-center justify-between gap-3">
                 <div>
-                  <div className="text-3xl md:text-4xl font-extrabold text-lime-400">
+                  <div className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-lime-400">
                     {formatearPrecio(precioActual)}
                   </div>
-                  <div className="text-xs text-neutral-400 font-medium">
+                  <div className="text-[11px] sm:text-xs text-neutral-400 font-medium">
                     Precio por {unidadActual}
                   </div>
                 </div>
 
                 {selectedPurchaseUnit && (
-                  <div className="text-right">
-                    <span className="inline-block bg-lime-500/10 text-lime-400 border border-lime-500/20 text-xs font-bold px-2.5 py-1 rounded-md">
+                  <div className="text-right flex-shrink-0">
+                    <span className="inline-block bg-lime-500/10 text-lime-400 border border-lime-500/20 text-[11px] sm:text-xs font-bold px-2.5 py-1 rounded-md">
                       {selectedPurchaseUnit.equivalencia} {producto.unit}
                     </span>
                   </div>
@@ -416,14 +416,14 @@ export default function ProductoDetallePage() {
 
               {/* Opciones de Compra / Empaque */}
               {purchaseUnits.length > 0 && (
-                <div className="space-y-2 pt-2">
+                <div className="space-y-2 pt-1">
                   <div className="flex items-center justify-between">
                     <label className="text-xs font-bold text-neutral-200 uppercase tracking-wider flex items-center gap-1.5">
                       <Package className="w-4 h-4 text-lime-400" /> Opciones de Presentación
                     </label>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                  <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                     {/* Opción Base */}
                     <button
                       type="button"
@@ -431,15 +431,15 @@ export default function ProductoDetallePage() {
                         setSelectedPurchaseUnit(null);
                         setSelectedPresentationImg(null);
                       }}
-                      className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                      className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between gap-2.5 ${
                         !selectedPurchaseUnit
                           ? 'bg-lime-500/10 border-lime-500 text-lime-400 ring-1 ring-lime-500/50 shadow-md shadow-lime-950/30'
                           : 'bg-neutral-900 border-neutral-800 text-neutral-300 hover:bg-neutral-850 hover:border-neutral-750'
                       }`}
                     >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${!selectedPurchaseUnit ? 'bg-lime-500/20 text-lime-400' : 'bg-neutral-800 text-neutral-400'}`}>
-                          <Package className="w-4.5 h-4.5" />
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${!selectedPurchaseUnit ? 'bg-lime-500/20 text-lime-400' : 'bg-neutral-800 text-neutral-400'}`}>
+                          <Package className="w-4 h-4" />
                         </div>
                         <div className="min-w-0">
                           <div className="text-xs font-bold text-white uppercase truncate">{producto.unit}</div>
@@ -468,20 +468,20 @@ export default function ProductoDetallePage() {
                               setSelectedPresentationImg(null);
                             }
                           }}
-                          className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                          className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between gap-2.5 ${
                             isSel
                               ? 'bg-lime-500/10 border-lime-500 text-lime-400 ring-1 ring-lime-500/50 shadow-md shadow-lime-950/30'
                               : 'bg-neutral-900 border-neutral-800 text-neutral-300 hover:bg-neutral-850 hover:border-neutral-750'
                           }`}
                         >
-                          <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="flex items-center gap-2 min-w-0">
                             {pu.imagen ? (
-                              <div className="w-9 h-9 rounded-lg overflow-hidden bg-neutral-950 border border-neutral-750 flex-shrink-0">
+                              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg overflow-hidden bg-neutral-950 border border-neutral-750 flex-shrink-0">
                                 <img src={pu.imagen} alt={pu.unit} className="w-full h-full object-cover" />
                               </div>
                             ) : (
-                              <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${isSel ? 'bg-lime-500/20 text-lime-400' : 'bg-neutral-800 text-neutral-400'}`}>
-                                <Package className="w-4.5 h-4.5" />
+                              <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${isSel ? 'bg-lime-500/20 text-lime-400' : 'bg-neutral-800 text-neutral-400'}`}>
+                                <Package className="w-4 h-4" />
                               </div>
                             )}
                             <div className="min-w-0">
@@ -501,29 +501,29 @@ export default function ProductoDetallePage() {
               )}
 
               {/* Tarjeta del Vendedor / Agricultor con Ubicación */}
-              <div className="bg-gradient-to-br from-neutral-900 to-neutral-850 p-4 rounded-xl border border-neutral-800 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-lime-500/10 border border-lime-500/30 flex items-center justify-center text-lime-400">
-                      <User className="w-5 h-5" />
+              <div className="bg-gradient-to-br from-neutral-900 to-neutral-850 p-3.5 sm:p-4 rounded-xl border border-neutral-800 space-y-3">
+                <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-2.5">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-lime-500/10 border border-lime-500/30 flex items-center justify-center text-lime-400 flex-shrink-0">
+                      <User className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
                     </div>
-                    <div>
-                      <div className="text-xs text-neutral-400 font-medium">Cultivado y vendido por</div>
-                      <div className="text-sm font-bold text-white flex items-center gap-1.5">
-                        <span>{nombreAgricultor}</span>
+                    <div className="min-w-0">
+                      <div className="text-[11px] sm:text-xs text-neutral-400 font-medium">Cultivado y vendido por</div>
+                      <div className="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5 truncate">
+                        <span className="truncate">{nombreAgricultor}</span>
                         <ShieldCheck className="w-4 h-4 text-lime-400 flex-shrink-0" />
                       </div>
                     </div>
                   </div>
 
-                  <span className="bg-lime-500/10 text-lime-400 text-[10px] font-bold px-2 py-0.5 rounded border border-lime-500/20 uppercase tracking-wider">
+                  <span className="self-start xs:self-center bg-lime-500/10 text-lime-400 text-[10px] font-bold px-2 py-0.5 rounded border border-lime-500/20 uppercase tracking-wider flex-shrink-0">
                     Campesino Directo
                   </span>
                 </div>
 
                 <div className="pt-2 border-t border-neutral-800 flex items-center gap-2 text-xs text-neutral-300">
                   <MapPin className="w-4 h-4 text-orange-400 flex-shrink-0" />
-                  <span className="font-semibold text-white">Origen:</span>
+                  <span className="font-semibold text-white flex-shrink-0">Origen:</span>
                   <span className="text-neutral-300 truncate">{ubicacionCompleta}</span>
                 </div>
               </div>
