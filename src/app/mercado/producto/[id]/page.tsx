@@ -186,6 +186,8 @@ export default function ProductoDetallePage() {
   const [active, setActive] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [showOwnerAlert, setShowOwnerAlert] = useState(false);
+  const [selectedPresentationImg, setSelectedPresentationImg] = useState<string | null>(null);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const canPrev = active > 0;
   const canNext = active < Math.max(gallery.length - 1, 0);
 
@@ -275,9 +277,12 @@ export default function ProductoDetallePage() {
                 {gallery.map((src, i) => (
                   <button
                     key={i}
-                    onClick={() => setActive(i)}
+                    onClick={() => {
+                      setActive(i);
+                      setSelectedPresentationImg(null);
+                    }}
                     className={`rounded-xl overflow-hidden h-20 w-20 flex-shrink-0 transition-all cursor-pointer ${
-                      i === active 
+                      i === active && !selectedPresentationImg
                         ? 'ring-2 ring-lime-500 scale-105 shadow-md shadow-lime-950/40' 
                         : 'border border-neutral-750 opacity-60 hover:opacity-100'
                     }`}
@@ -290,48 +295,58 @@ export default function ProductoDetallePage() {
 
             {/* Visualizador de Imagen principal */}
             <div className="flex-1 flex flex-col gap-3">
-              <div className="relative w-full bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden group flex items-center justify-center h-[340px] sm:h-[420px] md:h-[460px]">
-                {gallery.length ? (
-                  <img
-                    src={gallery[active]}
-                    alt={producto.name}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                ) : producto.imageUrl ? (
-                  <img
-                    src={producto.imageUrl}
-                    alt={producto.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="flex flex-col items-center justify-center text-neutral-400 p-8">
-                    <Sprout className="w-16 h-16 text-lime-500 mb-2" />
-                    <span className="text-xs uppercase tracking-wider font-semibold">Producto Agrícola</span>
-                  </div>
-                )}
+              {(() => {
+                const currentDisplayImg = selectedPresentationImg || (gallery.length ? gallery[active] : producto.imageUrl);
+                return (
+                  <div 
+                    onClick={() => currentDisplayImg && setIsLightboxOpen(true)}
+                    className="relative w-full bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden group flex items-center justify-center h-[340px] sm:h-[420px] md:h-[460px] cursor-zoom-in"
+                  >
+                    {currentDisplayImg ? (
+                      <img
+                        src={currentDisplayImg}
+                        alt={producto.name}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center text-neutral-400 p-8">
+                        <Sprout className="w-16 h-16 text-lime-500 mb-2" />
+                        <span className="text-xs uppercase tracking-wider font-semibold">Producto Agrícola</span>
+                      </div>
+                    )}
 
-                {/* Botones de Navegación de Galería */}
-                {gallery.length > 1 && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => canPrev && setActive(a => Math.max(a-1, 0))}
-                      disabled={!canPrev}
-                      className={`absolute left-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full ${canPrev ? 'bg-neutral-900/80 hover:bg-neutral-900 text-white cursor-pointer' : 'bg-neutral-900/40 text-neutral-600 cursor-not-allowed'} shadow-lg backdrop-blur-sm transition`}
-                    >
-                      <ChevronLeft className="w-5 h-5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => canNext && setActive(a => Math.min(a+1, gallery.length-1))}
-                      disabled={!canNext}
-                      className={`absolute right-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full ${canNext ? 'bg-neutral-900/80 hover:bg-neutral-900 text-white cursor-pointer' : 'bg-neutral-900/40 text-neutral-600 cursor-not-allowed'} shadow-lg backdrop-blur-sm transition`}
-                    >
-                      <ChevronRight className="w-5 h-5" />
-                    </button>
-                  </>
-                )}
-              </div>
+                    {/* Insignia cuando se visualiza una foto de presentación */}
+                    {selectedPresentationImg && selectedPurchaseUnit && (
+                      <div className="absolute top-3 left-3 bg-neutral-950/85 backdrop-blur-md px-3 py-1.5 rounded-xl border border-lime-500/50 text-lime-400 text-xs font-extrabold flex items-center gap-1.5 shadow-lg">
+                        <Package className="w-3.5 h-3.5" />
+                        <span>Presentación: {selectedPurchaseUnit.unit}</span>
+                      </div>
+                    )}
+
+                    {/* Botones de Navegación de Galería */}
+                    {gallery.length > 1 && !selectedPresentationImg && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); if (canPrev) setActive(a => Math.max(a-1, 0)); }}
+                          disabled={!canPrev}
+                          className={`absolute left-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full ${canPrev ? 'bg-neutral-900/80 hover:bg-neutral-900 text-white cursor-pointer' : 'bg-neutral-900/40 text-neutral-600 cursor-not-allowed'} shadow-lg backdrop-blur-sm transition`}
+                        >
+                          <ChevronLeft className="w-5 h-5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); if (canNext) setActive(a => Math.min(a+1, gallery.length-1)); }}
+                          disabled={!canNext}
+                          className={`absolute right-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full ${canNext ? 'bg-neutral-900/80 hover:bg-neutral-900 text-white cursor-pointer' : 'bg-neutral-900/40 text-neutral-600 cursor-not-allowed'} shadow-lg backdrop-blur-sm transition`}
+                        >
+                          <ChevronRight className="w-5 h-5" />
+                        </button>
+                      </>
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Thumbnails Horizontales (Sólo Móvil) */}
               {gallery.length > 1 && (
@@ -339,9 +354,12 @@ export default function ProductoDetallePage() {
                   {gallery.map((src, i) => (
                     <button
                       key={i}
-                      onClick={() => setActive(i)}
+                      onClick={() => {
+                        setActive(i);
+                        setSelectedPresentationImg(null);
+                      }}
                       className={`rounded-lg overflow-hidden h-14 w-14 flex-shrink-0 transition-all ${
-                        i === active 
+                        i === active && !selectedPresentationImg
                           ? 'ring-2 ring-lime-500 scale-105' 
                           : 'border border-neutral-750 opacity-60'
                       }`}
@@ -409,7 +427,10 @@ export default function ProductoDetallePage() {
                     {/* Opción Base */}
                     <button
                       type="button"
-                      onClick={() => setSelectedPurchaseUnit(null)}
+                      onClick={() => {
+                        setSelectedPurchaseUnit(null);
+                        setSelectedPresentationImg(null);
+                      }}
                       className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between gap-3 ${
                         !selectedPurchaseUnit
                           ? 'bg-lime-500/10 border-lime-500 text-lime-400 ring-1 ring-lime-500/50 shadow-md shadow-lime-950/30'
@@ -439,7 +460,14 @@ export default function ProductoDetallePage() {
                         <button
                           key={idx}
                           type="button"
-                          onClick={() => setSelectedPurchaseUnit(pu)}
+                          onClick={() => {
+                            setSelectedPurchaseUnit(pu);
+                            if (pu?.imagen) {
+                              setSelectedPresentationImg(pu.imagen);
+                            } else {
+                              setSelectedPresentationImg(null);
+                            }
+                          }}
                           className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between gap-3 ${
                             isSel
                               ? 'bg-lime-500/10 border-lime-500 text-lime-400 ring-1 ring-lime-500/50 shadow-md shadow-lime-950/30'
@@ -643,6 +671,42 @@ export default function ProductoDetallePage() {
                   </div>
                 );
               })}
+            </div>
+          </div>
+        )}
+
+        {/* Modal de Pantalla Completa / Lightbox en Alta Definición */}
+        {isLightboxOpen && (
+          <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4">
+            <button
+              type="button"
+              onClick={() => setIsLightboxOpen(false)}
+              className="absolute top-4 right-4 p-3 rounded-full bg-neutral-800 hover:bg-neutral-700 text-white transition cursor-pointer z-50 shadow-2xl border border-neutral-700"
+              title="Cerrar"
+            >
+              <X className="w-6 h-6" />
+            </button>
+
+            <div className="max-w-5xl max-h-[90vh] flex flex-col items-center justify-center space-y-3">
+              {(() => {
+                const imgUrl = selectedPresentationImg || (gallery.length ? gallery[active] : producto.imageUrl);
+                return (
+                  <>
+                    <img
+                      src={imgUrl || ''}
+                      alt={producto.name}
+                      className="max-w-full max-h-[82vh] object-contain rounded-2xl shadow-2xl border border-neutral-800"
+                    />
+                    <div className="text-center text-xs font-bold text-neutral-300 bg-neutral-900/80 px-4 py-1.5 rounded-full border border-neutral-800">
+                      {selectedPresentationImg && selectedPurchaseUnit ? (
+                        <span className="text-lime-400">Empaque / Presentación: {selectedPurchaseUnit.unit}</span>
+                      ) : (
+                        <span>{producto.name}</span>
+                      )}
+                    </div>
+                  </>
+                );
+              })()}
             </div>
           </div>
         )}
