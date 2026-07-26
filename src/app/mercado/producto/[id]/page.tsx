@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { MapPin, User, ArrowLeft, ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
+import { MapPin, User, ArrowLeft, ShoppingCart, ChevronLeft, ChevronRight, Heart, ShieldCheck, Sprout, Package, Clock, CheckCircle2 } from "lucide-react";
 import { useCartStore } from "@/store/cart";
 import { useSession } from "next-auth/react";
 
@@ -12,9 +12,9 @@ interface ProductoDetalle {
   description: string;
   price: number;
   unit: string;
-  purchaseUnits?: Array<{ unit: string; equivalencia: number }> | string | null;
-  category?: { name: string } | null;
-  agricultor?: { id: string; user?: { nombre?: string | null } | null } | null;
+  purchaseUnits?: Array<{ unit: string; equivalencia: number; price?: number }> | string | null;
+  category?: { id?: string; name: string } | null;
+  agricultor?: { id: string; user?: { nombre?: string | null } | null; user_id?: string } | null;
   agricultorId?: string | null;
   imageUrl?: string | null;
   imagenes?: string[] | null;
@@ -36,7 +36,11 @@ export default function ProductoDetallePage() {
   const [producto, setProducto] = useState<ProductoDetalle | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedPurchaseUnit, setSelectedPurchaseUnit] = useState<{ unit: string; equivalencia: number } | null>(null);
+  const [selectedPurchaseUnit, setSelectedPurchaseUnit] = useState<{ unit: string; equivalencia: number; price?: number } | null>(null);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [productosSimilares, setProductosSimilares] = useState<any[]>([]);
+
+  const carouselRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -52,51 +56,36 @@ export default function ProductoDetallePage() {
           setError("Producto no encontrado");
           return;
         }
-        // Normalize purchaseUnits if present
+        // Normalize purchaseUnits
         if (p && p.purchaseUnits) {
           try {
-            if (Array.isArray(p.purchaseUnits)) {
-              p.purchaseUnits = p.purchaseUnits;
-            } else if (typeof p.purchaseUnits === 'string') {
+            if (typeof p.purchaseUnits === 'string') {
               p.purchaseUnits = JSON.parse(p.purchaseUnits);
             }
           } catch (_) {
             p.purchaseUnits = [];
           }
         }
-        // Normalize imagenes: may be stored as JSON string
+        // Normalize imagenes
         if (p && p.imagenes) {
           try {
-            if (Array.isArray(p.imagenes)) {
-              p.imagenes = p.imagenes;
-            } else if (typeof p.imagenes === 'string') {
+            if (typeof p.imagenes === 'string') {
               p.imagenes = JSON.parse(p.imagenes);
             }
           } catch (_) {
             p.imagenes = [];
           }
         }
-        // Normalize metodosEntrega if present (can be stored as JSON string)
+        // Normalize metodosEntrega
         if (p && p.metodosEntrega) {
           try {
-            if (Array.isArray(p.metodosEntrega)) {
-              p.metodosEntrega = p.metodosEntrega;
-            } else if (typeof p.metodosEntrega === 'string') {
+            if (typeof p.metodosEntrega === 'string') {
               p.metodosEntrega = JSON.parse(p.metodosEntrega);
             }
           } catch (_) {
             p.metodosEntrega = [];
           }
         }
-        // DEBUG: log raw product and purchaseUnits to troubleshoot missing presentations in UI
-        try {
-          // eslint-disable-next-line no-console
-          console.log('Producto raw from /api/productos/[id]:', p);
-          // eslint-disable-next-line no-console
-          console.log('producto.purchaseUnits (raw):', p.purchaseUnits);
-        } catch (e) {}
-        // DEBUG: show parsed imagenes
-        try { console.log('producto.imagenes (parsed):', p.imagenes); } catch (e) {}
         setProducto(p);
         setSelectedPurchaseUnit(null);
       } catch (e) {
@@ -107,6 +96,57 @@ export default function ProductoDetallePage() {
     };
     load();
   }, [params?.id]);
+
+  // Cargar productos similares
+  useEffect(() => {
+    const fetchSimilares = async () => {
+      try {
+        const res = await fetch('/api/productos');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          // Filtrar el producto actual
+          const list = data.filter((p: any) => String(p.id) !== String(params?.id));
+          setProductosSimilares(list);
+        }
+      } catch (err) {
+        console.error('Error al cargar productos similares:', err);
+      }
+    };
+    if (params?.id) fetchSimilares();
+  }, [params?.id]);
+
+  // Cargar estado de favoritos
+  useEffect(() => {
+    const checkFavorite = async () => {
+      if (!session?.user?.id || !params?.id) return;
+      try {
+        const res = await fetch('/api/comprador/favoritos');
+        if (!res.ok) return;
+        const favs = await res.json();
+        const exists = favs.some((f: any) => String(f.product?.id || f.productId) === String(params.id));
+        setIsFavorite(exists);
+      } catch (_) {}
+    };
+    checkFavorite();
+  }, [session?.user?.id, params?.id]);
+
+  const toggleFavorite = async () => {
+    if (!producto) return;
+    try {
+      if (isFavorite) {
+        await fetch(`/api/comprador/favoritos?productId=${encodeURIComponent(producto.id)}`, { method: 'DELETE' });
+        setIsFavorite(false);
+      } else {
+        await fetch('/api/comprador/favoritos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ productId: producto.id })
+        });
+        setIsFavorite(true);
+      }
+    } catch (_) {}
+  };
 
   const formatearPrecio = (precio: number) =>
     new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", minimumFractionDigits: 0 }).format(precio);
@@ -128,50 +168,28 @@ export default function ProductoDetallePage() {
 
   const unidadActual = selectedPurchaseUnit?.unit || producto?.unit;
 
-  const handleAddToCart = (qty: number = 1) => {
-    if (!producto) return;
-    if (producto.stock <= 0) return;
-    cart.addItem({
-      id: producto.id,
-      name: producto.name,
-      price: precioActual,
-      stock: producto.stock,
-      unit: unidadActual || producto.unit,
-      purchaseUnit: unidadActual || producto.unit,
-      campesinoId: producto.agricultorId || producto.agricultor?.id || "desconocido",
-      campesinoName: producto.agricultor?.user?.nombre || "desconocido",
-      imageUrl: producto.imageUrl || "",
-      metodosEntrega: Array.isArray(producto.metodosEntrega) ? producto.metodosEntrega : null,
-    }, qty);
-    // Abrir sidebar global del carrito para mostrar la adición
-    cart.toggleCart();
-  };
-
-  // Mantener el orden de hooks: declarar useMemo/useState antes de cualquier return condicional
   const gallery: string[] = useMemo(() => {
     const imgs: string[] = [];
     if (producto && Array.isArray(producto.imagenes) && producto.imagenes.length) imgs.push(...producto.imagenes.filter(Boolean));
     if (producto && producto.imageUrl) imgs.push(producto.imageUrl);
     return imgs.length ? imgs : [];
   }, [producto?.imageUrl, producto?.imagenes]);
+
   const [active, setActive] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [showOwnerAlert, setShowOwnerAlert] = useState(false);
   const canPrev = active > 0;
   const canNext = active < Math.max(gallery.length - 1, 0);
 
-  // Regla: agricultor no puede comprar su propio producto
   const esPropietario = !!(
     session?.user?.role === "CAMPESINO" &&
     session?.user?.id &&
     (
-      // Prefer user_id (owner user id) returned by the API, fall back to agricultor profile id
-      (producto?.agricultor as any)?.user_id && String(session.user.id) === String((producto?.agricultor as any).user_id) ||
+      ((producto?.agricultor as any)?.user_id && String(session.user.id) === String((producto?.agricultor as any).user_id)) ||
       (producto?.agricultor?.id && String(session.user.id) === String(producto.agricultor.id))
     )
   );
 
-  // Mostrar el mensaje de propietario solo una vez por carga de página
   useEffect(() => {
     let t: any;
     if (esPropietario) {
@@ -183,10 +201,34 @@ export default function ProductoDetallePage() {
     return () => clearTimeout(t);
   }, [esPropietario]);
 
+  const handleAddToCart = (qty: number = 1) => {
+    if (!producto) return;
+    if (producto.stock <= 0) return;
+    cart.addItem({
+      id: producto.id,
+      nombre: producto.name,
+      precio: precioActual,
+      stock: producto.stock,
+      unidad: unidadActual || producto.unit,
+      purchaseUnit: unidadActual || producto.unit,
+      campesinoId: producto.agricultorId || producto.agricultor?.id || "desconocido",
+      campesinoName: producto.agricultor?.user?.nombre || "desconocido",
+      imagen: producto.imageUrl || (gallery[0] || ""),
+      metodosEntrega: Array.isArray(producto.metodosEntrega) ? producto.metodosEntrega : null,
+    }, qty);
+    cart.toggleCart();
+  };
+
+  const scrollLeft = () => carouselRef.current?.scrollBy({ left: -320, behavior: 'smooth' });
+  const scrollRight = () => carouselRef.current?.scrollBy({ left: 320, behavior: 'smooth' });
+
   if (loading) {
     return (
       <div className="min-h-screen bg-neutral-900 flex items-center justify-center text-neutral-200">
-        Cargando producto...
+        <div className="flex items-center gap-3">
+          <Sprout className="w-6 h-6 text-lime-400 animate-spin" />
+          <span className="font-semibold text-sm">Cargando producto...</span>
+        </div>
       </div>
     );
   }
@@ -194,10 +236,10 @@ export default function ProductoDetallePage() {
   if (error || !producto) {
     return (
       <div className="min-h-screen bg-neutral-900 flex flex-col items-center justify-center text-neutral-200 p-4">
-        <p className="mb-4 text-sm md:text-base">{error || "Producto no encontrado"}</p>
+        <p className="mb-4 text-base font-semibold">{error || "Producto no encontrado"}</p>
         <button
           onClick={() => router.back()}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-neutral-700 text-neutral-100 hover:bg-neutral-800"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-lime-500 text-neutral-950 font-bold hover:bg-lime-400 transition"
         >
           <ArrowLeft className="w-4 h-4" /> Volver al mercado
         </button>
@@ -205,235 +247,410 @@ export default function ProductoDetallePage() {
     );
   }
 
-  const ubicacion = [producto.municipio, producto.vereda].filter(Boolean).join(", ") || "Colombia";
+  const nombreAgricultor = producto.agricultor?.user?.nombre || (producto.agricultor as any)?.nombre || "Agricultor de AgroConecta";
+  const municipio = producto.municipio || "Colombia";
+  const vereda = producto.vereda ? `, Vereda ${producto.vereda}` : "";
+  const ubicacionCompleta = `${municipio}${vereda}`;
 
   return (
-    <div className="min-h-screen bg-neutral-900 text-white">
-      <div className="max-w-7xl mx-auto px-4 py-4 md:py-8">
-        <button
-          onClick={() => router.back()}
-          className="inline-flex items-center gap-2 text-sm text-neutral-300 hover:text-white mb-4"
-        >
-          <ArrowLeft className="w-4 h-4" /> Volver al mercado
-        </button>
+    <div className="min-h-screen bg-neutral-900 text-white pb-16">
+      <div className="max-w-7xl mx-auto px-4 py-4 md:py-8 space-y-8">
+        
+        {/* Barra superior de regreso */}
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => router.back()}
+            className="inline-flex items-center gap-2 text-sm font-semibold text-neutral-300 hover:text-lime-400 transition-colors bg-neutral-800/80 hover:bg-neutral-800 px-3.5 py-2 rounded-xl border border-neutral-750"
+          >
+            <ArrowLeft className="w-4 h-4" /> Volver al mercado
+          </button>
 
-        <div className="bg-neutral-800 border border-neutral-700 rounded-2xl overflow-hidden shadow-2xl grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 p-4 md:p-6">
+          <button
+            onClick={toggleFavorite}
+            className={`p-2.5 rounded-xl transition-all shadow-md flex items-center gap-2 text-xs font-semibold ${
+              isFavorite
+                ? 'bg-red-600 text-white hover:bg-red-700'
+                : 'bg-neutral-800 text-neutral-300 hover:text-red-400 border border-neutral-700'
+            }`}
+          >
+            <Heart className={`w-4 h-4 ${isFavorite ? 'fill-current' : ''}`} />
+            <span className="hidden sm:inline">{isFavorite ? 'Guardado en Favoritos' : 'Guardar en Favoritos'}</span>
+          </button>
+        </div>
+
+        {/* Tarjeta Principal de Detalle */}
+        <div className="bg-neutral-850 border border-neutral-800 rounded-2xl overflow-hidden shadow-2xl grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 p-4 md:p-8">
+          
           {/* Galería izquierda */}
-          <div className="lg:col-span-7 flex gap-3">
+          <div className="lg:col-span-6 flex flex-col sm:flex-row gap-4">
             {/* Thumbnails verticales */}
-            <div className="hidden sm:flex flex-col gap-3 w-24 overflow-y-auto max-h-[520px] pr-1">
-              {(gallery.length ? gallery : [producto.imageUrl]).filter(Boolean).map((src, i) => (
-                <button
-                  key={i}
-                  onClick={() => setActive(i)}
-                  className={`rounded-lg overflow-hidden h-20 w-20 flex items-center justify-center transition-transform transform ${i === active ? 'ring-2 ring-green-500 shadow-lg scale-105' : 'border border-neutral-700 hover:scale-105'}`}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={src as string} alt={`Vista ${i+1}`} className="w-full h-full object-cover" />
-                </button>
-              ))}
-            </div>
+            {gallery.length > 1 && (
+              <div className="hidden sm:flex flex-col gap-3 w-20 overflow-y-auto max-h-[480px] pr-1">
+                {gallery.map((src, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setActive(i)}
+                    className={`rounded-xl overflow-hidden h-20 w-20 flex-shrink-0 transition-all ${
+                      i === active 
+                        ? 'ring-2 ring-lime-500 scale-105 shadow-md shadow-lime-950/40' 
+                        : 'border border-neutral-750 opacity-70 hover:opacity-100'
+                    }`}
+                  >
+                    <img src={src} alt={`Vista ${i+1}`} className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
+
             {/* Imagen principal */}
-            <div className="relative flex-1 bg-neutral-900 border border-neutral-700 rounded-xl overflow-hidden">
+            <div className="relative flex-1 bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden group flex items-center justify-center min-h-[320px] md:min-h-[460px]">
               {gallery.length ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <div className="w-full h-[360px] md:h-[520px] bg-neutral-800 rounded-xl flex items-center justify-center">
-                  <img src={gallery[active]} alt={producto.name} className="max-h-full max-w-full object-contain rounded-lg shadow-lg" />
-                </div>
+                <img src={gallery[active]} alt={producto.name} className="w-full h-full max-h-[480px] object-cover transition-transform duration-500 group-hover:scale-105" />
               ) : producto.imageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <div className="w-full h-[360px] md:h-[520px] bg-neutral-800 rounded-xl flex items-center justify-center">
-                  <img src={producto.imageUrl} alt={producto.name} className="max-h-full max-w-full object-contain rounded-lg shadow-lg" />
-                </div>
+                <img src={producto.imageUrl} alt={producto.name} className="w-full h-full max-h-[480px] object-cover" />
               ) : (
-                <div className="w-full h-[360px] md:h-[520px] flex items-center justify-center text-6xl text-neutral-300">🌿</div>
+                <div className="flex flex-col items-center justify-center text-neutral-400 p-8">
+                  <Sprout className="w-16 h-16 text-lime-500 mb-2" />
+                  <span className="text-xs uppercase tracking-wider font-semibold">Producto Agrícola</span>
+                </div>
               )}
+
+              {/* Botones de Navegación de Galería */}
               {gallery.length > 1 && (
                 <>
                   <button
                     onClick={() => canPrev && setActive(a => Math.max(a-1, 0))}
                     disabled={!canPrev}
-                    aria-label="Anterior"
-                    className={`absolute left-3 top-1/2 -translate-y-1/2 p-3 rounded-full ${canPrev ? 'bg-neutral-900/70 hover:bg-neutral-800' : 'bg-neutral-900/40 cursor-not-allowed'} shadow-md`}
+                    className={`absolute left-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full ${canPrev ? 'bg-neutral-900/80 hover:bg-neutral-900 text-white' : 'bg-neutral-900/40 text-neutral-600 cursor-not-allowed'} shadow-lg backdrop-blur-sm`}
                   >
-                    <ChevronLeft className="w-5 h-5 text-white" />
+                    <ChevronLeft className="w-5 h-5" />
                   </button>
                   <button
                     onClick={() => canNext && setActive(a => Math.min(a+1, gallery.length-1))}
                     disabled={!canNext}
-                    aria-label="Siguiente"
-                    className={`absolute right-3 top-1/2 -translate-y-1/2 p-3 rounded-full ${canNext ? 'bg-neutral-900/70 hover:bg-neutral-800' : 'bg-neutral-900/40 cursor-not-allowed'} shadow-md`}
+                    className={`absolute right-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full ${canNext ? 'bg-neutral-900/80 hover:bg-neutral-900 text-white' : 'bg-neutral-900/40 text-neutral-600 cursor-not-allowed'} shadow-lg backdrop-blur-sm`}
                   >
-                    <ChevronRight className="w-5 h-5 text-white" />
+                    <ChevronRight className="w-5 h-5" />
                   </button>
                 </>
               )}
             </div>
           </div>
 
-          {/* Columna derecha */}
-          <div className="lg:col-span-5 space-y-4">
-            <div>
-                <div className="text-xs uppercase tracking-wide text-neutral-400 mb-1">
-                  <nav className="text-xs text-neutral-400 mb-2">
-                    <ol className="flex items-center gap-2">
-                      <li className="text-neutral-400">Mercado</li>
-                      <li className="text-neutral-600">/</li>
-                      <li className="text-neutral-400">{producto.category?.name || 'Producto'}</li>
-                      <li className="text-neutral-600">/</li>
-                      <li className="text-neutral-200 font-medium" aria-current="page">{producto.name}</li>
-                    </ol>
-                  </nav>
-                </div>
-              <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight mb-2">{producto.name}</h1>
-              <p className="text-neutral-300 text-sm md:text-base leading-relaxed">
-                {producto.description}
-              </p>
-            </div>
+          {/* Columna derecha: Detalles y Compra */}
+          <div className="lg:col-span-6 space-y-6 flex flex-col justify-between">
+            <div className="space-y-4">
+              
+              {/* Breadcrumb / Categoría */}
+              <div className="flex items-center gap-2">
+                <span className="inline-block bg-lime-500/10 border border-lime-500/20 text-lime-400 font-extrabold text-xs px-2.5 py-1 rounded-md uppercase tracking-wider">
+                  {producto.category?.name || 'Producto Agrícola'}
+                </span>
+                <span className="text-xs text-neutral-400">• Venta Directa</span>
+              </div>
 
-            <div className="flex items-start gap-6">
+              {/* Título y Descripción */}
               <div>
-                <div className="text-2xl md:text-3xl font-extrabold text-green-400">
-                  {formatearPrecio(precioActual)}
+                <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight mb-2">
+                  {producto.name}
+                </h1>
+                <p className="text-neutral-300 text-xs md:text-sm leading-relaxed line-clamp-3">
+                  {producto.description || "Producto fresco cosechado por nuestros campesinos locales directamente para tu mesa."}
+                </p>
+              </div>
+
+              {/* Bloque de Precio */}
+              <div className="bg-neutral-900 p-4 rounded-xl border border-neutral-800 flex items-baseline justify-between">
+                <div>
+                  <div className="text-3xl md:text-4xl font-extrabold text-lime-400">
+                    {formatearPrecio(precioActual)}
+                  </div>
+                  <div className="text-xs text-neutral-400 font-medium">
+                    Precio por {unidadActual}
+                  </div>
                 </div>
-                <div className="text-xs text-neutral-400">por {unidadActual}</div>
+
                 {selectedPurchaseUnit && (
-                  <div className="text-xs text-neutral-500 mt-1">
-                    ({selectedPurchaseUnit.equivalencia} {producto.unit})
+                  <div className="text-right">
+                    <span className="inline-block bg-lime-500/10 text-lime-400 border border-lime-500/20 text-xs font-bold px-2.5 py-1 rounded-md">
+                      {selectedPurchaseUnit.equivalencia} {producto.unit}
+                    </span>
                   </div>
                 )}
               </div>
-            </div>
 
-            {/* Selector de opciones de empaque */}
-            {purchaseUnits.length > 0 && (
-              <div className="pt-2 pb-3 border-t border-neutral-700">
-                <label className="text-sm font-medium text-neutral-200 mb-3 block">Opciones de compra</label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {/* Opción base */}
-                  <button
-                    onClick={() => setSelectedPurchaseUnit(null)}
-                    className={`px-3 py-2.5 rounded-lg border text-sm text-left transition-colors ${
-                      !selectedPurchaseUnit
-                        ? 'bg-green-600 text-white border-green-600 shadow-lg'
-                        : 'bg-neutral-800 text-neutral-200 border-neutral-700 hover:bg-neutral-700 hover:border-neutral-600'
-                    }`}
-                  >
-                    <div className="font-semibold">{producto.unit}</div>
-                    <div className="text-xs opacity-80">{formatearPrecio(producto.price)}</div>
-                  </button>
-                  {/* Opciones de empaque mayor */}
-                  {purchaseUnits.map((pu, idx) => (
+              {/* Opciones de Compra / Empaque */}
+              {purchaseUnits.length > 0 && (
+                <div className="space-y-2.5 pt-2">
+                  <label className="text-xs font-bold text-neutral-200 uppercase tracking-wider block flex items-center gap-1.5">
+                    <Package className="w-4 h-4 text-lime-400" /> Opciones de Presentación
+                  </label>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                    {/* Opción Base */}
                     <button
-                      key={idx}
-                      onClick={() => setSelectedPurchaseUnit(pu)}
-                      className={`px-3 py-2.5 rounded-lg border text-sm text-left transition-colors ${
-                        selectedPurchaseUnit?.unit === pu.unit
-                          ? 'bg-green-600 text-white border-green-600 shadow-lg'
-                          : 'bg-neutral-800 text-neutral-200 border-neutral-700 hover:bg-neutral-700 hover:border-neutral-600'
+                      type="button"
+                      onClick={() => setSelectedPurchaseUnit(null)}
+                      className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                        !selectedPurchaseUnit
+                          ? 'bg-lime-500/10 border-lime-500 text-lime-400 font-bold shadow-md'
+                          : 'bg-neutral-900 border-neutral-800 text-neutral-300 hover:bg-neutral-800'
                       }`}
                     >
-                      <div className="font-semibold">{pu.unit}</div>
-                      <div className="text-xs opacity-80">{formatearPrecio((pu as any).price != null ? (pu as any).price : producto.price * pu.equivalencia)}</div>
-                      <div className="text-xs opacity-60 mt-0.5">{pu.equivalencia} {producto.unit}</div>
+                      <div className="text-xs font-bold uppercase">{producto.unit}</div>
+                      <div className="text-sm font-extrabold text-white">{formatearPrecio(producto.price)}</div>
                     </button>
-                  ))}
+
+                    {/* Opciones Adicionales */}
+                    {purchaseUnits.map((pu, idx) => {
+                      const p = (pu as any).price != null ? (pu as any).price : producto.price * pu.equivalencia;
+                      const isSel = selectedPurchaseUnit?.unit === pu.unit;
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setSelectedPurchaseUnit(pu)}
+                          className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                            isSel
+                              ? 'bg-lime-500/10 border-lime-500 text-lime-400 font-bold shadow-md'
+                              : 'bg-neutral-900 border-neutral-800 text-neutral-300 hover:bg-neutral-800'
+                          }`}
+                        >
+                          <div className="text-xs font-bold uppercase">{pu.unit}</div>
+                          <div className="text-sm font-extrabold text-white">{formatearPrecio(p)}</div>
+                          <div className="text-[10px] text-neutral-400 font-medium">{pu.equivalencia} {producto.unit}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Tarjeta del Vendedor / Agricultor con Ubicación */}
+              <div className="bg-gradient-to-br from-neutral-900 to-neutral-850 p-4 rounded-xl border border-neutral-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-lime-500/10 border border-lime-500/30 flex items-center justify-center text-lime-400">
+                      <User className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="text-xs text-neutral-400 font-medium">Cultivado y vendido por</div>
+                      <div className="text-sm font-bold text-white flex items-center gap-1.5">
+                        <span>{nombreAgricultor}</span>
+                        <ShieldCheck className="w-4 h-4 text-lime-400 flex-shrink-0" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <span className="bg-lime-500/10 text-lime-400 text-[10px] font-bold px-2 py-0.5 rounded border border-lime-500/20 uppercase tracking-wider">
+                    Campesino Directo
+                  </span>
+                </div>
+
+                <div className="pt-2 border-t border-neutral-800 flex items-center gap-2 text-xs text-neutral-300">
+                  <MapPin className="w-4 h-4 text-orange-400 flex-shrink-0" />
+                  <span className="font-semibold text-white">Origen:</span>
+                  <span className="text-neutral-300 truncate">{ubicacionCompleta}</span>
                 </div>
               </div>
-            )}
 
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm text-neutral-200">
-                <User className="w-4 h-4 text-green-500" />
-                <span className="font-medium">{producto.agricultor?.user?.nombre || "Agricultor desconocido"}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-neutral-400">
-                <MapPin className="w-4 h-4 text-orange-500" />
-                <span>{ubicacion}</span>
-              </div>
+              {/* Alerta si es el propietario */}
+              {esPropietario && showOwnerAlert && (
+                <div className="p-3 rounded-xl border border-amber-500/40 bg-amber-950/20 text-amber-300 text-xs font-semibold">
+                  Eres el agricultor propietario de este producto. No puedes realizar auto-compras.
+                </div>
+              )}
             </div>
 
-            
-
-            {esPropietario && showOwnerAlert && (
-              <div className="mt-2 p-3 rounded-lg border border-amber-600 bg-amber-900/20 text-amber-300" role="alert">
-                Eres el agricultor de este producto. No puedes comprar tu propio producto.
-              </div>
-            )}
-
-            <div className="pt-3">
+            {/* Fila de Acción de Compra */}
+            <div className="pt-4 border-t border-neutral-800 space-y-3">
               {!esPropietario && (
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
+                  {/* Selector de Cantidad */}
+                  <div className="flex items-center bg-neutral-900 border border-neutral-800 rounded-xl p-1">
                     <button
-                      onClick={() => setQuantity(q => Math.max(1, q-1))}
+                      type="button"
+                      onClick={() => setQuantity(q => Math.max(1, q - 1))}
                       disabled={quantity <= 1}
-                      className="px-3 py-2 rounded-lg bg-neutral-800 border border-neutral-700 text-neutral-200"
+                      className="w-9 h-9 flex items-center justify-center rounded-lg text-neutral-300 hover:bg-neutral-800 disabled:opacity-40"
                     >-</button>
-                    <div className="px-4 py-2 bg-neutral-900 border border-neutral-700 rounded-lg text-neutral-100">{quantity}</div>
+                    <span className="w-10 text-center font-extrabold text-sm text-white">{quantity}</span>
                     <button
-                      onClick={() => setQuantity(q => Math.min(producto.stock, q+1))}
+                      type="button"
+                      onClick={() => setQuantity(q => Math.min(producto.stock, q + 1))}
                       disabled={quantity >= producto.stock}
-                      className="px-3 py-2 rounded-lg bg-neutral-800 border border-neutral-700 text-neutral-200"
+                      className="w-9 h-9 flex items-center justify-center rounded-lg text-neutral-300 hover:bg-neutral-800 disabled:opacity-40"
                     >+</button>
                   </div>
 
-                  {/* Método de entrega se selecciona en checkout; no se muestra aquí */}
-
+                  {/* Botón Agregar al Carrito */}
                   <button
+                    type="button"
                     onClick={() => handleAddToCart(quantity)}
                     disabled={producto.stock <= 0}
-                    className={`inline-flex items-center justify-center gap-2 font-semibold px-4 py-2 rounded-xl shadow-sm ${
+                    className={`flex-1 font-extrabold py-3 px-5 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm cursor-pointer ${
                       producto.stock <= 0
-                        ? "bg-neutral-700 text-neutral-400 cursor-not-allowed"
-                        : "bg-green-600 hover:bg-green-700 text-white"
+                        ? "bg-neutral-800 text-neutral-500 cursor-not-allowed border border-neutral-750"
+                        : "bg-lime-500 hover:bg-lime-400 text-neutral-950 shadow-lime-950/40 active:scale-95"
                     }`}
                   >
-                    <ShoppingCart className="w-4 h-4" />
-                    {producto.stock <= 0 ? "Sin stock" : "Agregar al carrito"}
+                    <ShoppingCart className="w-5 h-5 text-neutral-950" />
+                    <span>{producto.stock <= 0 ? "Producto Agotado" : "Agregar al carrito"}</span>
                   </button>
                 </div>
               )}
             </div>
+
           </div>
         </div>
 
-        {/* Tabs de detalle */}
-        <div className="mt-6 bg-neutral-800 border border-neutral-700 rounded-2xl p-4 md:p-6">
+        {/* Tabs de Características y Descripción */}
+        <div className="bg-neutral-850 border border-neutral-800 rounded-2xl p-4 md:p-6 shadow-xl">
           <Tabs producto={producto} />
         </div>
+
+        {/* Carrusel de Productos Similares */}
+        {productosSimilares.length > 0 && (
+          <div className="space-y-4 pt-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg md:text-xl font-bold text-white flex items-center gap-2">
+                  <Sprout className="w-5 h-5 text-lime-400" />
+                  <span>Productos Similares que te pueden interesar</span>
+                </h2>
+                <p className="text-xs text-neutral-400">Cosechados por nuestros agricultores en la región</p>
+              </div>
+
+              {/* Botones de Scroll del Carrusel */}
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={scrollLeft}
+                  className="p-2 rounded-xl bg-neutral-800 hover:bg-neutral-750 border border-neutral-700 text-neutral-200 transition"
+                  title="Anterior"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={scrollRight}
+                  className="p-2 rounded-xl bg-neutral-800 hover:bg-neutral-750 border border-neutral-700 text-neutral-200 transition"
+                  title="Siguiente"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Contenedor Carrusel Scroll Horizontal */}
+            <div
+              ref={carouselRef}
+              className="flex items-stretch gap-4 overflow-x-auto scrollbar-none pb-4 pt-1 scroll-smooth"
+            >
+              {productosSimilares.map((p) => {
+                const img = p.imageUrl || (Array.isArray(p.imagenes) && p.imagenes[0]) || p.imagen || "";
+                return (
+                  <div
+                    key={p.id}
+                    className="w-56 sm:w-64 flex-shrink-0 bg-neutral-900 hover:bg-neutral-850 rounded-xl border border-neutral-800/60 hover:border-neutral-700 transition-all duration-300 overflow-hidden group flex flex-col justify-between shadow-lg cursor-pointer"
+                    onClick={() => router.push(`/mercado/producto/${p.id}`)}
+                  >
+                    <div>
+                      {/* Imagen */}
+                      <div className="relative bg-neutral-900 overflow-hidden h-36">
+                        {img ? (
+                          <img
+                            src={img}
+                            alt={p.name || p.nombre}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-neutral-900 to-neutral-800 flex items-center justify-center">
+                            <Sprout className="w-8 h-8 text-lime-400/40" />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Info */}
+                      <div className="p-3 space-y-1.5">
+                        <span className="inline-block bg-lime-500/10 border border-lime-500/20 text-lime-400 font-bold text-[10px] px-2 py-0.5 rounded uppercase">
+                          {p.unit || p.unidad || "Unidad"}
+                        </span>
+                        <h3 className="text-xs font-bold text-white group-hover:text-lime-400 transition-colors line-clamp-1">
+                          {p.name || p.nombre}
+                        </h3>
+                      </div>
+                    </div>
+
+                    {/* Precio inferior */}
+                    <div className="p-3 pt-0 flex items-center justify-between">
+                      <div>
+                        <span className="text-sm font-extrabold text-lime-400 block leading-none">
+                          {formatearPrecio(p.price || p.precio || 0)}
+                        </span>
+                        <span className="text-[9px] text-neutral-400">por {p.unit || p.unidad}</span>
+                      </div>
+                      <div className="w-7 h-7 rounded-full bg-lime-500 text-neutral-950 flex items-center justify-center">
+                        <ShoppingCart className="w-3.5 h-3.5" />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );
 }
 
 function Tabs({ producto }: { producto: ProductoDetalle }) {
-  const [tab, setTab] = useState<'car'|'desc'>('car');
-  const caracteristicas: Array<{label: string; value: string | number | null | undefined}> = [
-    { label: 'Tipo de producto', value: producto.category?.name },
-    { label: 'Unidad', value: producto.unit },
-    { label: 'Tipo de cultivo', value: producto.tipoCultivo },
-    { label: 'Peso aproximado', value: producto.pesoAproximado ? `${producto.pesoAproximado}` : null },
+  const [tab, setTab] = useState<'car' | 'desc'>('car');
+  const caracteristicas: Array<{ label: string; value: string | number | null | undefined }> = [
+    { label: 'Categoría', value: producto.category?.name },
+    { label: 'Unidad de Medida Base', value: producto.unit },
+    { label: 'Tipo de Cultivo', value: producto.tipoCultivo || 'Convencional' },
+    { label: 'Peso Aproximado', value: producto.pesoAproximado ? `${producto.pesoAproximado} kg` : null },
     { label: 'Certificaciones', value: Array.isArray(producto.certificaciones) ? producto.certificaciones.join(', ') : (typeof producto.certificaciones === 'string' ? producto.certificaciones : null) },
   ];
+
   return (
     <div>
-      <div className="flex gap-4 border-b border-neutral-700 mb-4">
-        <button onClick={() => setTab('car')} className={`pb-2 text-sm ${tab==='car' ? 'text-white border-b-2 border-green-600' : 'text-neutral-400 hover:text-white'}`}>Características</button>
-        <button onClick={() => setTab('desc')} className={`pb-2 text-sm ${tab==='desc' ? 'text-white border-b-2 border-green-600' : 'text-neutral-400 hover:text-white'}`}>Descripción</button>
+      <div className="flex gap-6 border-b border-neutral-800 mb-4">
+        <button
+          type="button"
+          onClick={() => setTab('car')}
+          className={`pb-2.5 text-xs sm:text-sm font-bold uppercase tracking-wider transition-colors cursor-pointer ${
+            tab === 'car' ? 'text-lime-400 border-b-2 border-lime-400' : 'text-neutral-400 hover:text-white'
+          }`}
+        >
+          Características del Producto
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab('desc')}
+          className={`pb-2.5 text-xs sm:text-sm font-bold uppercase tracking-wider transition-colors cursor-pointer ${
+            tab === 'desc' ? 'text-lime-400 border-b-2 border-lime-400' : 'text-neutral-400 hover:text-white'
+          }`}
+        >
+          Descripción Detallada
+        </button>
       </div>
+
       {tab === 'car' ? (
         <div className="divide-y divide-neutral-800">
-          {caracteristicas.filter(c=>c.value).map((c, i) => (
-            <div key={i} className="flex items-center justify-between py-3">
-              <div className="text-neutral-400 text-sm">{c.label}</div>
-              <div className="text-neutral-100 text-sm font-medium ml-4">{String(c.value)}</div>
+          {caracteristicas.filter(c => c.value).map((c, i) => (
+            <div key={i} className="flex items-center justify-between py-2.5 text-xs sm:text-sm">
+              <span className="text-neutral-400 font-medium">{c.label}</span>
+              <span className="text-white font-bold ml-4">{String(c.value)}</span>
             </div>
           ))}
         </div>
       ) : (
-        <div className="text-neutral-300 text-sm leading-relaxed whitespace-pre-wrap">
-          {producto.description || 'Sin descripción'}
+        <div className="text-neutral-300 text-xs sm:text-sm leading-relaxed whitespace-pre-wrap py-2">
+          {producto.description || 'Este producto no cuenta con descripción adicional.'}
         </div>
       )}
     </div>
