@@ -631,6 +631,7 @@ export default function ProductosCatalogo({
               No fue posible conectar con el servidor de productos.<br />
               <span className="font-semibold text-xs opacity-80">Por favor verifica tu conexión e intenta recargar la página.</span>
             </div>
+          )}
           {/* Modal de Detalle de Producto al hacer clic en cualquier tarjeta */}
           <ProductoDetalleModal
             open={isModalOpen}
