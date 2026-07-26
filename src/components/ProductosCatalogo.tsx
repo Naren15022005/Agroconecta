@@ -499,7 +499,13 @@ export default function ProductosCatalogo({
                           onClick={(e) => { e.stopPropagation(); handleAddToCart(producto); }}
                           title="Agregar al carrito"
                         >
-                          <Plus className="w-5 h-5 text-neutral-950 stroke-[3]" />
+                          <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-neutral-950" viewBox="0 0 24 24">
+                            <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2">
+                              <path d="M1 2h4l3 12.4a2 2 0 0 0 2 1.6h9a2 2 0 0 0 2-1.6L23 6H6"/>
+                              <circle cx="9" cy="21" r="1"/>
+                              <circle cx="20" cy="21" r="1"/>
+                            </g>
+                          </svg>
                         </button>
                       )}
                     </div>
