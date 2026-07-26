@@ -172,7 +172,7 @@ export default function ProductoDetallePage() {
     const imgs: string[] = [];
     if (producto && Array.isArray(producto.imagenes) && producto.imagenes.length) imgs.push(...producto.imagenes.filter(Boolean));
     if (producto && producto.imageUrl) imgs.push(producto.imageUrl);
-    return imgs.length ? imgs : [];
+    return Array.from(new Set(imgs));
   }, [producto?.imageUrl, producto?.imagenes]);
 
   const [active, setActive] = useState(0);
@@ -283,17 +283,17 @@ export default function ProductoDetallePage() {
           
           {/* Galería izquierda */}
           <div className="lg:col-span-6 flex flex-col sm:flex-row gap-4">
-            {/* Thumbnails verticales */}
+            {/* Thumbnails verticales (Escritorio / Tablet) */}
             {gallery.length > 1 && (
-              <div className="hidden sm:flex flex-col gap-3 w-20 overflow-y-auto max-h-[480px] pr-1">
+              <div className="hidden sm:flex flex-col gap-3 w-20 overflow-y-auto max-h-[460px] pr-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                 {gallery.map((src, i) => (
                   <button
                     key={i}
                     onClick={() => setActive(i)}
-                    className={`rounded-xl overflow-hidden h-20 w-20 flex-shrink-0 transition-all ${
+                    className={`rounded-xl overflow-hidden h-20 w-20 flex-shrink-0 transition-all cursor-pointer ${
                       i === active 
                         ? 'ring-2 ring-lime-500 scale-105 shadow-md shadow-lime-950/40' 
-                        : 'border border-neutral-750 opacity-70 hover:opacity-100'
+                        : 'border border-neutral-750 opacity-60 hover:opacity-100'
                     }`}
                   >
                     <img src={src} alt={`Vista ${i+1}`} className="w-full h-full object-cover" />
@@ -302,37 +302,68 @@ export default function ProductoDetallePage() {
               </div>
             )}
 
-            {/* Imagen principal */}
-            <div className="relative flex-1 bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden group flex items-center justify-center min-h-[320px] md:min-h-[460px]">
-              {gallery.length ? (
-                <img src={gallery[active]} alt={producto.name} className="w-full h-full max-h-[480px] object-cover transition-transform duration-500 group-hover:scale-105" />
-              ) : producto.imageUrl ? (
-                <img src={producto.imageUrl} alt={producto.name} className="w-full h-full max-h-[480px] object-cover" />
-              ) : (
-                <div className="flex flex-col items-center justify-center text-neutral-400 p-8">
-                  <Sprout className="w-16 h-16 text-lime-500 mb-2" />
-                  <span className="text-xs uppercase tracking-wider font-semibold">Producto Agrícola</span>
-                </div>
-              )}
+            {/* Visualizador de Imagen principal */}
+            <div className="flex-1 flex flex-col gap-3">
+              <div className="relative w-full bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden group flex items-center justify-center h-[340px] sm:h-[420px] md:h-[460px]">
+                {gallery.length ? (
+                  <img
+                    src={gallery[active]}
+                    alt={producto.name}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                ) : producto.imageUrl ? (
+                  <img
+                    src={producto.imageUrl}
+                    alt={producto.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center justify-center text-neutral-400 p-8">
+                    <Sprout className="w-16 h-16 text-lime-500 mb-2" />
+                    <span className="text-xs uppercase tracking-wider font-semibold">Producto Agrícola</span>
+                  </div>
+                )}
 
-              {/* Botones de Navegación de Galería */}
+                {/* Botones de Navegación de Galería */}
+                {gallery.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => canPrev && setActive(a => Math.max(a-1, 0))}
+                      disabled={!canPrev}
+                      className={`absolute left-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full ${canPrev ? 'bg-neutral-900/80 hover:bg-neutral-900 text-white cursor-pointer' : 'bg-neutral-900/40 text-neutral-600 cursor-not-allowed'} shadow-lg backdrop-blur-sm transition`}
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => canNext && setActive(a => Math.min(a+1, gallery.length-1))}
+                      disabled={!canNext}
+                      className={`absolute right-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full ${canNext ? 'bg-neutral-900/80 hover:bg-neutral-900 text-white cursor-pointer' : 'bg-neutral-900/40 text-neutral-600 cursor-not-allowed'} shadow-lg backdrop-blur-sm transition`}
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {/* Thumbnails Horizontales (Sólo Móvil) */}
               {gallery.length > 1 && (
-                <>
-                  <button
-                    onClick={() => canPrev && setActive(a => Math.max(a-1, 0))}
-                    disabled={!canPrev}
-                    className={`absolute left-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full ${canPrev ? 'bg-neutral-900/80 hover:bg-neutral-900 text-white' : 'bg-neutral-900/40 text-neutral-600 cursor-not-allowed'} shadow-lg backdrop-blur-sm`}
-                  >
-                    <ChevronLeft className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={() => canNext && setActive(a => Math.min(a+1, gallery.length-1))}
-                    disabled={!canNext}
-                    className={`absolute right-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full ${canNext ? 'bg-neutral-900/80 hover:bg-neutral-900 text-white' : 'bg-neutral-900/40 text-neutral-600 cursor-not-allowed'} shadow-lg backdrop-blur-sm`}
-                  >
-                    <ChevronRight className="w-5 h-5" />
-                  </button>
-                </>
+                <div className="flex sm:hidden items-center gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                  {gallery.map((src, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setActive(i)}
+                      className={`rounded-lg overflow-hidden h-14 w-14 flex-shrink-0 transition-all ${
+                        i === active 
+                          ? 'ring-2 ring-lime-500 scale-105' 
+                          : 'border border-neutral-750 opacity-60'
+                      }`}
+                    >
+                      <img src={src} alt={`Thumb ${i+1}`} className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
               )}
             </div>
           </div>
