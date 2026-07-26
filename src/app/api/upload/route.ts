@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import { join } from "path";
@@ -13,11 +12,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    // Detectar tipo de contenido
     const contentType = request.headers.get("content-type") || "";
     let buffer: Buffer | null = null;
     let ext = "jpg";
     let originalName = "imagen";
+    let base64String: string | null = null;
 
     if (contentType.includes("application/json")) {
       // Soporte para base64 JSON
@@ -26,14 +25,24 @@ export async function POST(request: NextRequest) {
       if (!image || typeof image !== "string") {
         return NextResponse.json({ error: "No se encontró imagen" }, { status: 400 });
       }
+
+      base64String = image;
+
       // Extraer tipo y base64
       const match = image.match(/^data:(image\/(png|jpeg|jpg|webp));base64,(.+)$/);
-      if (!match) {
-        return NextResponse.json({ error: "Formato de imagen inválido" }, { status: 400 });
+      if (match) {
+        ext = match[2] === "jpeg" ? "jpg" : match[2];
+        buffer = Buffer.from(match[3], "base64");
+        originalName = `base64upload.${ext}`;
+      } else if (image.startsWith('http')) {
+        // Es una URL directa
+        return NextResponse.json({
+          success: true,
+          imageUrl: image,
+          url: image,
+          fileName: 'external_image'
+        });
       }
-      ext = match[2] === "jpeg" ? "jpg" : match[2];
-      buffer = Buffer.from(match[3], "base64");
-      originalName = `base64upload.${ext}`;
     } else if (contentType.includes("multipart/form-data")) {
       // Soporte para form-data tradicional
       const data = await request.formData();
@@ -49,53 +58,50 @@ export async function POST(request: NextRequest) {
       }
       const bytes = await file.arrayBuffer();
       buffer = Buffer.from(bytes);
-      // Extraer extensión
       const fileMatch = file.type.match(/image\/(png|jpeg|jpg|webp)/);
       ext = fileMatch ? (fileMatch[1] === "jpeg" ? "jpg" : fileMatch[1]) : "jpg";
       originalName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-    } else {
-      return NextResponse.json({ error: "Tipo de contenido no soportado" }, { status: 400 });
+      base64String = `data:${file.type};base64,${buffer.toString("base64")}`;
     }
 
-    if (!buffer) {
-      return NextResponse.json({ error: "No se pudo procesar la imagen" }, { status: 400 });
-    }
-
-    // Crear directorio si no existe (siempre antes de guardar)
-    const uploadDir = join(process.cwd(), 'public', 'uploads', 'productos');
+    // Intentar guardar en disco local si el entorno lo permite (ej: desarrollo local)
     try {
+      const uploadDir = join(process.cwd(), 'public', 'uploads', 'productos');
       await mkdir(uploadDir, { recursive: true });
-    } catch (error) {
-      // Si falla, retorna error real
-      return NextResponse.json({ error: 'No se pudo crear el directorio de imágenes' }, { status: 500 });
+      const timestamp = Date.now();
+      const fileName = `${timestamp}_${uuidv4()}_${originalName}`;
+      const filePath = join(uploadDir, fileName);
+      if (buffer) {
+        await writeFile(filePath, buffer);
+        const publicUrl = `/uploads/productos/${fileName}`;
+        return NextResponse.json({ 
+          success: true, 
+          imageUrl: publicUrl,
+          url: publicUrl,
+          fileName: fileName
+        });
+      }
+    } catch (fsErr) {
+      console.warn('[API upload] Sistema de archivos de solo lectura (Vercel serverless). Usando Data URL fallback.');
     }
 
-
-    // Generar nombre único para el archivo
-    const timestamp = Date.now();
-    const fileName = `${timestamp}_${uuidv4()}_${originalName}`;
-    const filePath = join(uploadDir, fileName);
-
-    // Guardar archivo
-    try {
-      await writeFile(filePath, buffer);
-    } catch (err) {
-      return NextResponse.json({ error: 'No se pudo guardar la imagen' }, { status: 500 });
+    // Fallback seguro si el sistema de archivos es de solo lectura (Vercel): Retornar Data URL o URL directa
+    if (base64String) {
+      return NextResponse.json({
+        success: true,
+        imageUrl: base64String,
+        url: base64String,
+        fileName: `dataurl_${Date.now()}`
+      }, { status: 200 });
     }
 
-    // Retornar URL pública
-    const publicUrl = `/uploads/productos/${fileName}`;
-    return NextResponse.json({ 
-      success: true, 
-      imageUrl: publicUrl,
-      url: publicUrl,
-      fileName: fileName
-    });
+    return NextResponse.json({ error: "No se pudo procesar la imagen" }, { status: 400 });
 
   } catch (error) {
     console.error('Error uploading file:', error);
     return NextResponse.json({ 
-      error: "Error interno del servidor" 
+      error: "Error interno del servidor",
+      details: error instanceof Error ? error.message : "Error procesando imagen"
     }, { status: 500 });
   }
 }

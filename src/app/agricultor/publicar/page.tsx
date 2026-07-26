@@ -224,7 +224,10 @@ export default function PublicarPage() {
     if (previewImages.length > 0) {
       for (let i = 0; i < previewImages.length; i++) {
         const base64 = previewImages[i];
-        if (!base64 || !base64.startsWith('data:image/')) continue;
+        if (!base64 || !base64.startsWith('data:image/')) {
+          if (base64) allImageUrls.push(base64);
+          continue;
+        }
         try {
           const uploadRes = await fetch("/api/upload", {
             method: "POST",
@@ -233,11 +236,14 @@ export default function PublicarPage() {
           });
           if (uploadRes.ok) {
             const uploadData = await uploadRes.json();
-            const url = uploadData.url || uploadData.imageUrl || '';
-            if (url) allImageUrls.push(url);
+            const url = uploadData.url || uploadData.imageUrl || base64;
+            allImageUrls.push(url);
+          } else {
+            allImageUrls.push(base64);
           }
         } catch (err) {
-          console.warn(`Error de red al subir imagen ${i + 1}`);
+          console.warn(`Error de red al subir imagen ${i + 1}, usando base64 directamente`);
+          allImageUrls.push(base64);
         }
       }
 
