@@ -263,28 +263,6 @@ export default function ProductoDetallePage() {
   return (
     <div className="min-h-screen bg-neutral-900 text-white pb-16">
       <div className="max-w-7xl mx-auto px-4 py-4 md:py-8 space-y-8">
-        
-        {/* Barra superior de regreso */}
-        <div className="flex items-center justify-between">
-          <button
-            onClick={() => router.back()}
-            className="inline-flex items-center gap-2 text-sm font-semibold text-neutral-300 hover:text-lime-400 transition-colors bg-neutral-800/80 hover:bg-neutral-800 px-3.5 py-2 rounded-xl border border-neutral-750"
-          >
-            <ArrowLeft className="w-4 h-4" /> Volver al mercado
-          </button>
-
-          <button
-            onClick={toggleFavorite}
-            className={`p-2.5 rounded-xl transition-all shadow-md flex items-center gap-2 text-xs font-semibold ${
-              isFavorite
-                ? 'bg-red-600 text-white hover:bg-red-700'
-                : 'bg-neutral-800 text-neutral-300 hover:text-red-400 border border-neutral-700'
-            }`}
-          >
-            <Heart className={`w-4 h-4 ${isFavorite ? 'fill-current' : ''}`} />
-            <span className="hidden sm:inline">{isFavorite ? 'Guardado en Favoritos' : 'Guardar en Favoritos'}</span>
-          </button>
-        </div>
 
         {/* Tarjeta Principal de Detalle */}
         <div className="bg-neutral-850 border border-neutral-800 rounded-2xl overflow-hidden shadow-2xl grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 p-4 md:p-8">
