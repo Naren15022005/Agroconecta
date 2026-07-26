@@ -419,7 +419,7 @@ export default function ProductosCatalogo({
                 return (
                   <div
                     key={producto.id}
-                    className="bg-neutral-800/90 rounded-2xl border border-neutral-700/80 hover:border-lime-500/60 transition-all duration-300 overflow-hidden group flex flex-col justify-between shadow-lg"
+                    className="bg-neutral-800/90 rounded-xl border border-neutral-700/80 hover:border-lime-500/60 transition-all duration-300 overflow-hidden group flex flex-col justify-between shadow-lg"
                   >
                     <div>
                       {/* Imagen con fallback limpio vectorizado */}
@@ -538,7 +538,7 @@ export default function ProductosCatalogo({
                 return (
                   <div
                     key={producto.id}
-                    className="bg-neutral-800/90 hover:bg-neutral-800 rounded-2xl border border-neutral-700/80 transition-colors overflow-hidden p-4 flex flex-col md:flex-row gap-4"
+                    className="bg-neutral-800/90 hover:bg-neutral-800 rounded-xl border border-neutral-700/80 transition-colors overflow-hidden p-4 flex flex-col md:flex-row gap-4"
                   >
                     <div className="relative w-full md:w-48 h-40 flex-shrink-0 rounded-xl overflow-hidden bg-neutral-850">
                       {hasValidImage ? (
