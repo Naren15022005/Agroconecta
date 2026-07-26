@@ -184,10 +184,22 @@ export default function PublicarPage() {
     }));
   };
 
+  const updatePurchaseUnitPrice = (index: number, val: string) => {
+    const newPrice = val === '' ? null : Number(val);
+    setFormData(prev => ({
+      ...prev,
+      purchaseUnits: prev.purchaseUnits.map((item, i) => 
+        i === index ? { ...item, price: newPrice } : item
+      )
+    }));
+  };
+
   const handlePackagingConfirm = (items: PurchaseUnit[]) => {
     const mapped = items.map(i => ({
       ...i,
-      price: formData.price && formData.price !== '' ? Number(formData.price) * Number(i.equivalencia) : null
+      price: i.price !== undefined && i.price !== null 
+        ? i.price 
+        : (formData.price && formData.price !== '' ? Number(formData.price) * Number(i.equivalencia) : null)
     }));
     setFormData(prev => ({ ...prev, purchaseUnits: [...prev.purchaseUnits, ...mapped] }));
   };
@@ -486,26 +498,42 @@ export default function PublicarPage() {
 
               {formData.purchaseUnits.length > 0 && (
                 <div className="mt-2.5 space-y-2">
-                  {formData.purchaseUnits.map((pu, idx) => (
-                    <div key={idx} className="flex items-center justify-between bg-neutral-950 p-2.5 rounded-xl border border-neutral-800 text-xs">
-                      <div>
-                        <span className="font-bold text-white">{pu.unit}</span>
-                        <span className="text-neutral-400 ml-2">({pu.equivalencia} {formData.unit})</span>
-                        {formData.price && (
-                          <span className="text-lime-400 font-semibold ml-2">
-                            ${(Number(formData.price) * pu.equivalencia).toLocaleString('es-CO')}
-                          </span>
-                        )}
+                  {formData.purchaseUnits.map((pu, idx) => {
+                    const currentVal = pu.price !== undefined && pu.price !== null 
+                      ? pu.price 
+                      : (formData.price ? Number(formData.price) * pu.equivalencia : '');
+                    return (
+                      <div key={idx} className="flex items-center justify-between bg-neutral-950 p-2.5 rounded-xl border border-neutral-800 text-xs gap-2">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className="font-bold text-white text-xs truncate">{pu.unit}</span>
+                          <span className="text-neutral-400 text-[11px] flex-shrink-0">({pu.equivalencia} {formData.unit})</span>
+                        </div>
+
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <div className="relative">
+                            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-lime-400 font-bold text-xs">$</span>
+                            <input
+                              type="number"
+                              min="0"
+                              value={currentVal}
+                              onChange={(e) => updatePurchaseUnitPrice(idx, e.target.value)}
+                              placeholder="Precio"
+                              className="w-24 sm:w-28 pl-6 pr-2 py-1 bg-neutral-900 border border-neutral-800 focus:border-lime-500 rounded-lg text-lime-400 font-bold text-xs outline-none transition-colors"
+                              title="Haz clic para modificar el precio a preferencia"
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removePurchaseUnit(idx)}
+                            className="p-1 text-neutral-400 hover:text-red-400 transition-colors cursor-pointer"
+                            title="Eliminar empaque"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => removePurchaseUnit(idx)}
-                        className="p-1 text-neutral-400 hover:text-red-400 transition-colors"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

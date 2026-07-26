@@ -5,6 +5,7 @@ import { X, Box, Package, Archive, Layers, ShoppingBag, PackageCheck, Plus, Chec
 interface PurchaseUnit {
   unit: string;
   equivalencia: number;
+  price?: number | null;
 }
 
 interface Props {
@@ -16,6 +17,11 @@ interface Props {
   baseUnit?: string;
   basePrice?: number | null;
 }
+
+type SelectedItemState = {
+  equivalencia: number;
+  price: number | null;
+};
 
 const GROUPS: { title: string; items: { key: string; label: string; icon?: React.ReactNode }[] }[] = [
   {
@@ -43,10 +49,10 @@ const GROUPS: { title: string; items: { key: string; label: string; icon?: React
   }
 ];
 
-export default function PackagingModal({ open, isOpen, onClose, onConfirm, baseUnitLabel, baseUnit }: Props) {
+export default function PackagingModal({ open, isOpen, onClose, onConfirm, baseUnitLabel, baseUnit, basePrice }: Props) {
   const isModalOpen = open ?? isOpen ?? false;
   const unitLabel = baseUnit || baseUnitLabel || 'unidad';
-  const [selected, setSelected] = useState<Record<string, number>>({});
+  const [selected, setSelected] = useState<Record<string, SelectedItemState>>({});
 
   const toggleItem = (key: string) => {
     setSelected(prev => {
@@ -55,16 +61,34 @@ export default function PackagingModal({ open, isOpen, onClose, onConfirm, baseU
         delete copy[key];
         return copy;
       }
-      return { ...prev, [key]: 10 };
+      const initialEq = 10;
+      const initialPrice = basePrice ? basePrice * initialEq : null;
+      return { ...prev, [key]: { equivalencia: initialEq, price: initialPrice } };
     });
   };
 
   const setEquivalence = (key: string, value: number) => {
-    setSelected(prev => ({ ...prev, [key]: value }));
+    setSelected(prev => {
+      const current = prev[key] || { equivalencia: 10, price: null };
+      const newEq = Math.max(1, value);
+      const newPrice = basePrice ? basePrice * newEq : current.price;
+      return { ...prev, [key]: { equivalencia: newEq, price: newPrice } };
+    });
+  };
+
+  const setCustomPrice = (key: string, priceValue: number | null) => {
+    setSelected(prev => {
+      const current = prev[key] || { equivalencia: 10, price: null };
+      return { ...prev, [key]: { ...current, price: priceValue } };
+    });
   };
 
   const confirm = () => {
-    const items: PurchaseUnit[] = Object.entries(selected).map(([unit, equivalencia]) => ({ unit, equivalencia }));
+    const items: PurchaseUnit[] = Object.entries(selected).map(([unit, data]) => ({ 
+      unit, 
+      equivalencia: data.equivalencia,
+      price: data.price
+    }));
     onConfirm(items);
     setSelected({});
     onClose();
@@ -88,7 +112,7 @@ export default function PackagingModal({ open, isOpen, onClose, onConfirm, baseU
             </div>
             <div>
               <h3 className="text-lg font-bold text-white">Agregar Empaques al por Mayor</h3>
-              <p className="text-xs text-neutral-400">Define cuántas {unitLabel}s contiene cada empaque</p>
+              <p className="text-xs text-neutral-400">Define cuántas {unitLabel}s contiene cada empaque y ajusta el precio a preferencia</p>
             </div>
           </div>
 
@@ -109,6 +133,7 @@ export default function PackagingModal({ open, isOpen, onClose, onConfirm, baseU
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                 {g.items.map(it => {
                   const active = it.key in selected;
+                  const itemData = selected[it.key];
                   return (
                     <div 
                       key={it.key} 
@@ -133,17 +158,34 @@ export default function PackagingModal({ open, isOpen, onClose, onConfirm, baseU
                       </button>
 
                       {active && (
-                        <div className="mt-3 pt-2 border-t border-neutral-800 flex items-center justify-between gap-2">
-                          <label className="text-xs text-neutral-400">Contiene:</label>
-                          <div className="flex items-center gap-1.5">
-                            <input 
-                              type="number" 
-                              min={1} 
-                              value={selected[it.key]} 
-                              onChange={e => setEquivalence(it.key, Math.max(1, Number(e.target.value || 1)))} 
-                              className="w-16 px-2 py-1 rounded-lg bg-neutral-900 border border-neutral-750 text-white text-xs font-bold text-center focus:outline-none focus:border-lime-500" 
-                            />
-                            <span className="text-xs font-medium text-neutral-300">{unitLabel}s</span>
+                        <div className="mt-3 pt-2.5 border-t border-neutral-800 space-y-2">
+                          <div className="flex items-center justify-between gap-1.5">
+                            <label className="text-[11px] font-medium text-neutral-400">Contiene:</label>
+                            <div className="flex items-center gap-1">
+                              <input 
+                                type="number" 
+                                min={1} 
+                                value={itemData.equivalencia} 
+                                onChange={e => setEquivalence(it.key, Number(e.target.value || 1))} 
+                                className="w-14 px-2 py-1 rounded-lg bg-neutral-900 border border-neutral-750 text-white text-xs font-bold text-center focus:outline-none focus:border-lime-500" 
+                              />
+                              <span className="text-xs text-neutral-300 font-medium">{unitLabel}s</span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between gap-1.5">
+                            <label className="text-[11px] font-medium text-neutral-400">Precio empaque:</label>
+                            <div className="relative">
+                              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-lime-400 font-bold text-xs">$</span>
+                              <input 
+                                type="number" 
+                                min={0} 
+                                value={itemData.price !== null ? itemData.price : ''} 
+                                onChange={e => setCustomPrice(it.key, e.target.value === '' ? null : Number(e.target.value))} 
+                                placeholder="Precio" 
+                                className="w-24 pl-5 pr-2 py-1 rounded-lg bg-neutral-900 border border-neutral-750 text-lime-400 text-xs font-bold text-right focus:outline-none focus:border-lime-500" 
+                              />
+                            </div>
                           </div>
                         </div>
                       )}
@@ -179,7 +221,8 @@ export default function PackagingModal({ open, isOpen, onClose, onConfirm, baseU
                   const name = (document.getElementById('customUnitName') as HTMLInputElement).value.trim();
                   const eq = parseFloat((document.getElementById('customUnitEq') as HTMLInputElement).value || '0');
                   if (!name || !eq || eq <= 0) { alert('Ingresa un nombre y cantidad válida'); return; }
-                  setSelected(prev => ({ ...prev, [name]: eq }));
+                  const calcPrice = basePrice ? basePrice * eq : null;
+                  setSelected(prev => ({ ...prev, [name]: { equivalencia: eq, price: calcPrice } }));
                   (document.getElementById('customUnitName') as HTMLInputElement).value = '';
                   (document.getElementById('customUnitEq') as HTMLInputElement).value = '';
                 }} 
