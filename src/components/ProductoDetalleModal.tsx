@@ -103,19 +103,19 @@ export default function ProductoDetalleModal({ open, producto, onClose, onConfir
     loadFav();
   }, [session?.user?.id, producto]);
 
+  // Calculate current price based on selected purchase unit
+  const precioActual = useMemo(() => {
+    if (!producto) return 0;
+    if (!selectedPurchaseUnit) return producto.precio;
+    if ((selectedPurchaseUnit as any).price != null) return (selectedPurchaseUnit as any).price;
+    return producto.precio * selectedPurchaseUnit.equivalencia;
+  }, [producto, selectedPurchaseUnit]);
+
   if (!open || !producto) return null;
 
   const esPropietario = !!(session?.user?.role === 'CAMPESINO' && session?.user?.id && producto.agricultorId && String(session.user.id) === String(producto.agricultorId));
 
   const formatearPrecio = (precio: number) => new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", minimumFractionDigits: 0 }).format(precio);
-
-  // Calculate current price based on selected purchase unit
-  const precioActual = useMemo(() => {
-    if (!selectedPurchaseUnit) return producto.precio;
-    // If the purchase unit has an explicit price, prefer it
-    if ((selectedPurchaseUnit as any).price != null) return (selectedPurchaseUnit as any).price;
-    return producto.precio * selectedPurchaseUnit.equivalencia;
-  }, [producto.precio, selectedPurchaseUnit]);
 
   const unidadActual = selectedPurchaseUnit?.unit || producto.unidad;
 
