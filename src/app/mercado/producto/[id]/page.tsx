@@ -433,23 +433,39 @@ export default function ProductoDetallePage() {
                     </button>
 
                     {/* Opciones Adicionales */}
-                    {purchaseUnits.map((pu, idx) => {
-                      const p = (pu as any).price != null ? (pu as any).price : producto.price * pu.equivalencia;
+                    {purchaseUnits.map((pu: any, idx: number) => {
+                      const p = pu.price != null ? pu.price : producto.price * pu.equivalencia;
                       const isSel = selectedPurchaseUnit?.unit === pu.unit;
                       return (
                         <button
                           key={idx}
                           type="button"
-                          onClick={() => setSelectedPurchaseUnit(pu)}
-                          className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                          onClick={() => {
+                            setSelectedPurchaseUnit(pu);
+                            if (pu.imagen) {
+                              const imgIdx = gallery.indexOf(pu.imagen);
+                              if (imgIdx !== -1) setActive(imgIdx);
+                            }
+                          }}
+                          className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
                             isSel
-                              ? 'bg-lime-500/10 border-lime-500 text-lime-400 font-bold shadow-md'
+                              ? 'bg-lime-500/10 border-lime-500 text-lime-400 font-bold shadow-md ring-1 ring-lime-500'
                               : 'bg-neutral-900 border-neutral-800 text-neutral-300 hover:bg-neutral-800'
                           }`}
                         >
-                          <div className="text-xs font-bold uppercase">{pu.unit}</div>
-                          <div className="text-sm font-extrabold text-white">{formatearPrecio(p)}</div>
-                          <div className="text-[10px] text-neutral-400 font-medium">{pu.equivalencia} {producto.unit}</div>
+                          {pu.imagen && (
+                            <div className="w-full h-16 rounded-lg overflow-hidden mb-2 bg-neutral-950 border border-neutral-800">
+                              <img src={pu.imagen} alt={pu.unit} className="w-full h-full object-cover" />
+                            </div>
+                          )}
+                          <div>
+                            <div className="text-xs font-bold uppercase flex items-center justify-between">
+                              <span>{pu.unit}</span>
+                              {pu.imagen && <ImageIcon className="w-3 h-3 text-lime-400" />}
+                            </div>
+                            <div className="text-sm font-extrabold text-white">{formatearPrecio(p)}</div>
+                            <div className="text-[10px] text-neutral-400 font-medium">{pu.equivalencia} {producto.unit}</div>
+                          </div>
                         </button>
                       );
                     })}

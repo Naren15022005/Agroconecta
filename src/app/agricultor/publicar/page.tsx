@@ -252,6 +252,14 @@ export default function PublicarPage() {
       }
     }
 
+    if (formData.purchaseUnits && formData.purchaseUnits.length > 0) {
+      for (const pu of formData.purchaseUnits) {
+        if (pu.imagen && !allImageUrls.includes(pu.imagen)) {
+          allImageUrls.push(pu.imagen);
+        }
+      }
+    }
+
     const payload = {
       name: formData.name,
       description: formData.description,
