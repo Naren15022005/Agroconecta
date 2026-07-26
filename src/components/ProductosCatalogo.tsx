@@ -472,14 +472,6 @@ export default function ProductosCatalogo({
                           {producto.nombre}
                         </h3>
 
-                        {/* Sub-info: Tiempo de Entrega u Opciones */}
-                        <div className="flex items-center gap-1 text-[10px] text-neutral-400 font-medium pt-0.5">
-                          <Clock className="w-3 h-3 text-neutral-500 flex-shrink-0" />
-                          <span>Entrega rápida</span>
-                          {producto.purchaseUnits && producto.purchaseUnits.length > 0 && (
-                            <span className="ml-1 text-lime-400 font-semibold">• {producto.purchaseUnits.length + 1} ops</span>
-                          )}
-                        </div>
                       </div>
                     </div>
 
