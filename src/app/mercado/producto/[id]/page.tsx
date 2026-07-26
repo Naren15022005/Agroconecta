@@ -172,8 +172,16 @@ export default function ProductoDetallePage() {
     const imgs: string[] = [];
     if (producto && Array.isArray(producto.imagenes) && producto.imagenes.length) imgs.push(...producto.imagenes.filter(Boolean));
     if (producto && producto.imageUrl) imgs.push(producto.imageUrl);
-    return Array.from(new Set(imgs));
-  }, [producto?.imageUrl, producto?.imagenes]);
+    const unique = Array.from(new Set(imgs));
+
+    // Excluir imágenes de empaques para que no aparezcan en la galería principal del producto
+    const packagingImageUrls = new Set(
+      purchaseUnits.map((pu: any) => pu.imagen).filter(Boolean)
+    );
+
+    const soloFotosProducto = unique.filter(url => !packagingImageUrls.has(url));
+    return soloFotosProducto.length ? soloFotosProducto : (unique.length ? [unique[0]] : []);
+  }, [producto?.imageUrl, producto?.imagenes, purchaseUnits]);
 
   const [active, setActive] = useState(0);
   const [quantity, setQuantity] = useState(1);
@@ -412,27 +420,44 @@ export default function ProductoDetallePage() {
 
               {/* Opciones de Compra / Empaque */}
               {purchaseUnits.length > 0 && (
-                <div className="space-y-2.5 pt-2">
-                  <label className="text-xs font-bold text-neutral-200 uppercase tracking-wider block flex items-center gap-1.5">
-                    <Package className="w-4 h-4 text-lime-400" /> Opciones de Presentación
-                  </label>
+                <div className="space-y-3 pt-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-neutral-200 uppercase tracking-wider flex items-center gap-1.5">
+                      <Package className="w-4 h-4 text-lime-400" /> Opciones de Presentación
+                    </label>
+                    <span className="text-[11px] text-neutral-400 font-medium">Selecciona una presentación</span>
+                  </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {/* Opción Base */}
                     <button
                       type="button"
                       onClick={() => setSelectedPurchaseUnit(null)}
-                      className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                      className={`relative rounded-xl border text-left transition-all cursor-pointer overflow-hidden group flex flex-col justify-between ${
                         !selectedPurchaseUnit
-                          ? 'bg-lime-500/10 border-lime-500 text-lime-400 font-bold shadow-md'
-                          : 'bg-neutral-900 border-neutral-800 text-neutral-300 hover:bg-neutral-800'
+                          ? 'bg-lime-500/10 border-lime-500 text-lime-400 ring-2 ring-lime-500/50 shadow-lg shadow-lime-950/40'
+                          : 'bg-neutral-900 border-neutral-800 text-neutral-300 hover:bg-neutral-850 hover:border-neutral-700'
                       }`}
                     >
-                      <div className="text-xs font-bold uppercase">{producto.unit}</div>
-                      <div className="text-sm font-extrabold text-white">{formatearPrecio(producto.price)}</div>
+                      <div className="p-3.5 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-extrabold uppercase tracking-wider text-white">
+                            {producto.unit}
+                          </span>
+                          {!selectedPurchaseUnit && (
+                            <CheckCircle2 className="w-4 h-4 text-lime-400 fill-lime-500/20" />
+                          )}
+                        </div>
+                        <div className="text-base font-extrabold text-lime-400">
+                          {formatearPrecio(producto.price)}
+                        </div>
+                        <div className="text-[10px] text-neutral-400 font-semibold">
+                          Unidad base
+                        </div>
+                      </div>
                     </button>
 
-                    {/* Opciones Adicionales */}
+                    {/* Opciones de Empaque / Presentaciones Adicionales */}
                     {purchaseUnits.map((pu: any, idx: number) => {
                       const p = pu.price != null ? pu.price : producto.price * pu.equivalencia;
                       const isSel = selectedPurchaseUnit?.unit === pu.unit;
@@ -440,31 +465,42 @@ export default function ProductoDetallePage() {
                         <button
                           key={idx}
                           type="button"
-                          onClick={() => {
-                            setSelectedPurchaseUnit(pu);
-                            if (pu.imagen) {
-                              const imgIdx = gallery.indexOf(pu.imagen);
-                              if (imgIdx !== -1) setActive(imgIdx);
-                            }
-                          }}
-                          className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                          onClick={() => setSelectedPurchaseUnit(pu)}
+                          className={`relative rounded-xl border text-left transition-all cursor-pointer overflow-hidden group flex flex-col justify-between ${
                             isSel
-                              ? 'bg-lime-500/10 border-lime-500 text-lime-400 font-bold shadow-md ring-1 ring-lime-500'
-                              : 'bg-neutral-900 border-neutral-800 text-neutral-300 hover:bg-neutral-800'
+                              ? 'bg-lime-500/10 border-lime-500 text-lime-400 ring-2 ring-lime-500/50 shadow-lg shadow-lime-950/40'
+                              : 'bg-neutral-900 border-neutral-800 text-neutral-300 hover:bg-neutral-850 hover:border-neutral-700'
                           }`}
                         >
-                          {pu.imagen && (
-                            <div className="w-full h-16 rounded-lg overflow-hidden mb-2 bg-neutral-950 border border-neutral-800">
-                              <img src={pu.imagen} alt={pu.unit} className="w-full h-full object-cover" />
+                          {/* Foto del empaque si existe */}
+                          {pu.imagen ? (
+                            <div className="relative w-full h-24 bg-neutral-950 overflow-hidden border-b border-neutral-800">
+                              <img
+                                src={pu.imagen}
+                                alt={pu.unit}
+                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                              />
+                              <span className="absolute top-2 right-2 bg-neutral-950/80 backdrop-blur-md px-1.5 py-0.5 rounded text-[10px] font-bold text-lime-400 border border-neutral-700">
+                                {pu.equivalencia} {producto.unit}
+                              </span>
                             </div>
-                          )}
-                          <div>
-                            <div className="text-xs font-bold uppercase flex items-center justify-between">
-                              <span>{pu.unit}</span>
-                              {pu.imagen && <ImageIcon className="w-3 h-3 text-lime-400" />}
+                          ) : null}
+
+                          <div className="p-3.5 space-y-1">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-extrabold uppercase tracking-wider text-white">
+                                {pu.unit}
+                              </span>
+                              {isSel && (
+                                <CheckCircle2 className="w-4 h-4 text-lime-400 fill-lime-500/20" />
+                              )}
                             </div>
-                            <div className="text-sm font-extrabold text-white">{formatearPrecio(p)}</div>
-                            <div className="text-[10px] text-neutral-400 font-medium">{pu.equivalencia} {producto.unit}</div>
+                            <div className="text-base font-extrabold text-lime-400">
+                              {formatearPrecio(p)}
+                            </div>
+                            <div className="text-[10px] text-neutral-400 font-semibold">
+                              Equivale a {pu.equivalencia} {producto.unit}
+                            </div>
                           </div>
                         </button>
                       );
