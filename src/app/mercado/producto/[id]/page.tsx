@@ -214,16 +214,22 @@ export default function ProductoDetallePage() {
   const handleAddToCart = (qty: number = 1) => {
     if (!producto) return;
     if (producto.stock <= 0) return;
+
+    const itemPrice = precioActual;
+    const itemUnit = unidadActual || producto.unit;
+    const itemImg = selectedPurchaseUnit?.imagen || selectedPresentationImg || producto.imageUrl || (gallery[0] || "");
+    const itemId = selectedPurchaseUnit ? `${producto.id}-${selectedPurchaseUnit.unit}` : producto.id;
+
     cart.addItem({
-      id: producto.id,
-      nombre: producto.name,
-      precio: precioActual,
+      id: itemId,
+      name: producto.name,
+      price: itemPrice,
       stock: producto.stock,
-      unidad: unidadActual || producto.unit,
-      purchaseUnit: unidadActual || producto.unit,
-      campesinoId: producto.agricultorId || producto.agricultor?.id || "desconocido",
-      campesinoName: producto.agricultor?.user?.nombre || "desconocido",
-      imagen: producto.imageUrl || (gallery[0] || ""),
+      unit: itemUnit,
+      purchaseUnit: selectedPurchaseUnit ? selectedPurchaseUnit.unit : producto.unit,
+      campesinoId: producto.agricultorId || producto.agricultor?.id || (producto.agricultor as any)?.user_id || "desconocido",
+      campesinoName: nombreAgricultor,
+      imageUrl: itemImg,
       metodosEntrega: Array.isArray(producto.metodosEntrega) ? producto.metodosEntrega : null,
     }, qty);
     cart.toggleCart();

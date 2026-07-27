@@ -41,20 +41,45 @@ export const useCartStore = create<CartStore>()(
       items: [],
       isOpen: false,
       
-      addItem: (newItem, quantity = 1) => {
+      addItem: (rawItem: any, quantity = 1) => {
         const items = get().items
-        const existingItem = items.find(item => item.id === newItem.id && item.purchaseUnit === (newItem as any).purchaseUnit)
+        const name = rawItem.name || rawItem.nombre || 'Producto'
+        const price = Number(rawItem.price ?? rawItem.precio ?? 0)
+        const unit = rawItem.unit || rawItem.unidad || 'Unidad'
+        const purchaseUnit = rawItem.purchaseUnit || unit
+        const campesinoId = rawItem.campesinoId || rawItem.agricultorId || rawItem.agricultor?.id || 'desconocido'
+        const campesinoName = rawItem.campesinoName || rawItem.agricultor?.user?.nombre || rawItem.agricultor?.nombre || (typeof rawItem.agricultor === 'string' ? rawItem.agricultor : 'Agricultor')
+        const imageUrl = rawItem.imageUrl || rawItem.imagen || ''
+        const stock = Number(rawItem.stock ?? 999)
+
+        const newItem: CartItem = {
+          ...rawItem,
+          id: rawItem.id,
+          name,
+          price,
+          unit,
+          purchaseUnit,
+          campesinoId,
+          campesinoName,
+          imageUrl,
+          stock,
+        }
+
+        const existingIndex = items.findIndex(
+          item => item.id === newItem.id && item.purchaseUnit === newItem.purchaseUnit
+        )
 
         const qtyToAdd = Math.max(1, Math.floor(quantity))
 
-        if (existingItem) {
-          set({
-            items: items.map(item =>
-              item.id === newItem.id && item.purchaseUnit === (newItem as any).purchaseUnit
-                ? { ...item, quantity: Math.min(item.quantity + qtyToAdd, item.stock) }
-                : item
-            )
-          })
+        if (existingIndex !== -1) {
+          const updatedItems = [...items]
+          const existing = updatedItems[existingIndex]
+          updatedItems[existingIndex] = {
+            ...existing,
+            ...newItem,
+            quantity: Math.min(existing.quantity + qtyToAdd, newItem.stock)
+          }
+          set({ items: updatedItems })
         } else {
           set({
             items: [...items, { ...newItem, quantity: Math.min(qtyToAdd, newItem.stock) }]

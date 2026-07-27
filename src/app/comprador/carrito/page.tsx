@@ -105,7 +105,14 @@ export default function CarritoPage() {
 
                             <div className="min-w-0 flex-1">
                               <h4 className="font-bold text-white text-base capitalize truncate">{item.name}</h4>
-                              <p className="text-xs text-neutral-400 mb-1">Unidad: {item.unit}</p>
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="text-xs text-neutral-400">Unidad: {item.unit}</span>
+                                {item.purchaseUnit && item.purchaseUnit !== item.unit && (
+                                  <span className="inline-block bg-lime-500/10 text-lime-400 border border-lime-500/20 text-[10px] font-extrabold px-2 py-0.5 rounded-md">
+                                    Presentación: {item.purchaseUnit}
+                                  </span>
+                                )}
+                              </div>
                               <p className="text-base font-extrabold text-lime-400">
                                 ${itemPrice.toLocaleString('es-CO')}
                               </p>

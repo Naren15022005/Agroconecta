@@ -222,9 +222,17 @@ export default function CartSidebar() {
                               {/* Info */}
                               <div className="min-w-0 flex-1">
                                 <p className="font-bold text-sm text-white truncate capitalize">{item.name}</p>
-                                <p className="text-xs text-lime-400 font-bold mt-0.5">
-                                  ${itemPrice.toLocaleString('es-CO')} <span className="text-[10px] text-neutral-400 font-medium">/{item.unit}</span>
-                                </p>
+                                <div className="flex items-center gap-1.5 mt-0.5">
+                                  <p className="text-xs text-lime-400 font-extrabold">
+                                    ${itemPrice.toLocaleString('es-CO')}
+                                  </p>
+                                  <span className="text-[10px] text-neutral-400 font-medium">/{item.unit}</span>
+                                </div>
+                                {item.purchaseUnit && item.purchaseUnit !== item.unit && (
+                                  <span className="inline-block bg-lime-500/10 text-lime-400 border border-lime-500/20 text-[10px] font-extrabold px-2 py-0.5 rounded-md mt-1">
+                                    Presentación: {item.purchaseUnit}
+                                  </span>
+                                )}
                               </div>
 
                               {/* Eliminar */}
