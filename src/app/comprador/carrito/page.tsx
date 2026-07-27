@@ -80,7 +80,6 @@ export default function CarritoPage() {
                       </div>
                     </div>
                     <div className="text-right">
-                    <div className="text-right">
                       <p className="text-sm font-extrabold text-lime-400">
                         ${(vendor.items.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0) || 0).toLocaleString('es-CO')}
                       </p>
