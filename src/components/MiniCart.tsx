@@ -58,7 +58,7 @@ const MiniCart: React.FC<MiniCartProps> = ({ open, onClose }) => {
                 {vendor.items.map(item => (
                   <div key={item.id} className="flex items-center justify-between text-sm py-1.5">
                     <span className="truncate max-w-[140px] font-medium text-gray-800">{item.name} <span className="text-gray-400">x{item.quantity}</span></span>
-                    <span className="font-semibold text-green-700">${(item.price * item.quantity).toLocaleString()}</span>
+                    <span className="font-semibold text-green-700">${((item.price || 0) * (item.quantity || 0)).toLocaleString('es-CO')}</span>
                   </div>
                 ))}
               </div>
@@ -67,7 +67,7 @@ const MiniCart: React.FC<MiniCartProps> = ({ open, onClose }) => {
         )}
         <div className="border-t mt-4 pt-4 flex justify-between items-center">
           <span className="font-semibold text-gray-700">Total:</span>
-          <span className="text-green-700 font-bold text-xl">${getTotalPrice().toLocaleString()}</span>
+          <span className="text-green-700 font-bold text-xl">${(getTotalPrice() || 0).toLocaleString('es-CO')}</span>
         </div>
         <div className="mt-5 flex gap-2">
           <Link href="/comprador/mercado" className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg text-center font-medium hover:bg-gray-200 transition border border-gray-200">Seguir comprando</Link>

@@ -196,7 +196,7 @@ export default function CartSidebar() {
                       </div>
                       <div className="text-right">
                         <p className="text-xs font-bold text-lime-400">
-                          ${vendor.items.reduce((sum, item) => sum + item.price * item.quantity, 0).toLocaleString()}
+                          ${(vendor.items.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0) || 0).toLocaleString('es-CO')}
                         </p>
                       </div>
                     </div>
@@ -205,6 +205,8 @@ export default function CartSidebar() {
                     <div className="p-3 space-y-3">
                       {vendor.items.map((item) => {
                         const hasImage = item.imageUrl && (item.imageUrl.startsWith('http') || item.imageUrl.startsWith('/'));
+                        const itemPrice = item.price || 0;
+                        const itemQty = item.quantity || 0;
                         return (
                           <div key={`${item.id}-${item.purchaseUnit ?? ''}`} className="rounded-xl bg-neutral-800 p-3 border border-neutral-700/80 space-y-3">
                             <div className="flex items-center gap-3">
@@ -221,7 +223,7 @@ export default function CartSidebar() {
                               <div className="min-w-0 flex-1">
                                 <p className="font-bold text-sm text-white truncate capitalize">{item.name}</p>
                                 <p className="text-xs text-lime-400 font-bold mt-0.5">
-                                  ${item.price.toLocaleString()} <span className="text-[10px] text-neutral-400 font-medium">/{item.unit}</span>
+                                  ${itemPrice.toLocaleString('es-CO')} <span className="text-[10px] text-neutral-400 font-medium">/{item.unit}</span>
                                 </p>
                               </div>
 
@@ -260,7 +262,7 @@ export default function CartSidebar() {
 
                               <div className="text-right">
                                 <p className="text-xs font-extrabold text-white">
-                                  ${(item.price * item.quantity).toLocaleString()}
+                                  ${(itemPrice * itemQty).toLocaleString('es-CO')}
                                 </p>
                               </div>
                             </div>
@@ -282,7 +284,7 @@ export default function CartSidebar() {
                   <p className="text-xs text-neutral-400 font-medium">Total de la compra</p>
                   <p className="text-[11px] text-neutral-500">{getTotalItems()} producto(s)</p>
                 </div>
-                <p className="text-xl font-extrabold text-lime-400">${getTotalPrice().toLocaleString()}</p>
+                <p className="text-xl font-extrabold text-lime-400">${(getTotalPrice() || 0).toLocaleString('es-CO')}</p>
               </div>
 
               <div className="flex gap-2">

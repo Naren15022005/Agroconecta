@@ -80,8 +80,9 @@ export default function CarritoPage() {
                       </div>
                     </div>
                     <div className="text-right">
+                    <div className="text-right">
                       <p className="text-sm font-extrabold text-lime-400">
-                        ${vendor.items.reduce((sum, item) => sum + item.price * item.quantity, 0).toLocaleString()}
+                        ${(vendor.items.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0) || 0).toLocaleString('es-CO')}
                       </p>
                     </div>
                   </div>
@@ -90,6 +91,8 @@ export default function CarritoPage() {
                   <div className="divide-y divide-neutral-800/80">
                     {vendor.items.map((item) => {
                       const hasImage = item.imageUrl && (item.imageUrl.startsWith('http') || item.imageUrl.startsWith('/'));
+                      const itemPrice = item.price || 0;
+                      const itemQty = item.quantity || 0;
                       return (
                         <div key={item.id} className="p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                           <div className="flex items-center gap-4 min-w-0 flex-1">
@@ -105,7 +108,7 @@ export default function CarritoPage() {
                               <h4 className="font-bold text-white text-base capitalize truncate">{item.name}</h4>
                               <p className="text-xs text-neutral-400 mb-1">Unidad: {item.unit}</p>
                               <p className="text-base font-extrabold text-lime-400">
-                                ${item.price.toLocaleString()}
+                                ${itemPrice.toLocaleString('es-CO')}
                               </p>
                             </div>
                           </div>
@@ -134,7 +137,7 @@ export default function CarritoPage() {
 
                             <div className="text-right min-w-[100px]">
                               <p className="font-extrabold text-white text-base">
-                                ${(item.price * item.quantity).toLocaleString()}
+                                ${(itemPrice * itemQty).toLocaleString('es-CO')}
                               </p>
                             </div>
 
@@ -162,7 +165,7 @@ export default function CarritoPage() {
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between text-neutral-300">
                     <span>Productos ({cart.getTotalItems()})</span>
-                    <span className="font-semibold text-white">${cart.getTotalPrice().toLocaleString()}</span>
+                    <span className="font-semibold text-white">${(cart.getTotalPrice() || 0).toLocaleString('es-CO')}</span>
                   </div>
                   <div className="flex justify-between text-neutral-300">
                     <span>Envío</span>
@@ -171,7 +174,7 @@ export default function CarritoPage() {
                   <div className="border-t border-neutral-800 pt-3 flex justify-between items-baseline">
                     <span className="font-bold text-white text-base">Total</span>
                     <span className="text-2xl font-extrabold text-lime-400">
-                      ${cart.getTotalPrice().toLocaleString()}
+                      ${(cart.getTotalPrice() || 0).toLocaleString('es-CO')}
                     </span>
                   </div>
                 </div>

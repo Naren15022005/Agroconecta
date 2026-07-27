@@ -149,7 +149,7 @@ export default function ProductoDetallePage() {
   };
 
   const formatearPrecio = (precio: number) =>
-    new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", minimumFractionDigits: 0 }).format(precio);
+    new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", minimumFractionDigits: 0 }).format(precio || 0);
 
   // Parse purchase units
   const purchaseUnits = useMemo(() => {

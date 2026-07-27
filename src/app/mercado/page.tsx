@@ -214,7 +214,7 @@ export default function MercadoPage() {
                   {/* Precio */}
                   <div className="flex items-center justify-between mb-3">
                     <div className="text-2xl font-bold text-green-600">
-                      ${producto.price.toLocaleString()}
+                      ${(producto.price || 0).toLocaleString('es-CO')}
                       <span className="text-sm font-normal text-gray-500">
                         /{producto.unit}
                       </span>
