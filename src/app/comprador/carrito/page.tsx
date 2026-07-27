@@ -89,7 +89,8 @@ export default function CarritoPage() {
                   {/* Lista de Items */}
                   <div className="divide-y divide-neutral-800/80">
                     {vendor.items.map((item) => {
-                      const hasImage = item.imageUrl && (item.imageUrl.startsWith('http') || item.imageUrl.startsWith('/'));
+                      const imgUrl = item.imageUrl || (item as any).imagen;
+                      const hasImage = Boolean(imgUrl && typeof imgUrl === 'string' && imgUrl.trim().length > 0);
                       const itemPrice = item.price || 0;
                       const itemQty = item.quantity || 0;
                       return (
@@ -97,7 +98,7 @@ export default function CarritoPage() {
                           <div className="flex items-center gap-4 min-w-0 flex-1">
                             <div className="w-16 h-16 rounded-xl bg-neutral-800 border border-neutral-700/80 overflow-hidden flex-shrink-0 flex items-center justify-center">
                               {hasImage ? (
-                                <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                                <img src={imgUrl} alt={item.name} className="w-full h-full object-cover" />
                               ) : (
                                 <Sprout className="w-7 h-7 text-lime-400" />
                               )}

@@ -204,7 +204,8 @@ export default function CartSidebar() {
                     {/* Productos */}
                     <div className="p-3 space-y-3">
                       {vendor.items.map((item) => {
-                        const hasImage = item.imageUrl && (item.imageUrl.startsWith('http') || item.imageUrl.startsWith('/'));
+                        const imgUrl = item.imageUrl || (item as any).imagen;
+                        const hasImage = Boolean(imgUrl && typeof imgUrl === 'string' && imgUrl.trim().length > 0);
                         const itemPrice = item.price || 0;
                         const itemQty = item.quantity || 0;
                         return (
@@ -213,7 +214,7 @@ export default function CartSidebar() {
                               {/* Imagen o Fallback */}
                               <div className="w-14 h-14 rounded-xl bg-neutral-850 overflow-hidden border border-neutral-700/60 flex-shrink-0 flex items-center justify-center">
                                 {hasImage ? (
-                                  <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                                  <img src={imgUrl} alt={item.name} className="w-full h-full object-cover" />
                                 ) : (
                                   <Sprout className="w-6 h-6 text-lime-400" />
                                 )}
